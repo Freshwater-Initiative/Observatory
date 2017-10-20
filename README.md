@@ -1,4 +1,4 @@
-# Tools for observing the terrestrial and aquatic surfaces of Earth
+# Tools for observing terrestrial and aquatic surfaces of Earth
 
 "You belong among the wildflowers, you belong somewhere you feel free." Tom Petty
 
