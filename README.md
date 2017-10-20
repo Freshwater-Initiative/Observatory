@@ -1,4 +1,4 @@
-# Observatory
+# An Observatory is the intersection between regional watersheds and analytical research
 Tools for observing the terrestrial and aquatic surfaces of Earth
 
 "You belong among the wildflowers, you belong somewhere you feel free." Tom Petty
