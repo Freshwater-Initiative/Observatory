@@ -252,31 +252,24 @@ def compile_VICASCII_Livneh2015_locations(maptable):
     return locations
 
 
-def compile_VICASCII_Livneh2013_USA_locations(maptable):
+def compile_VICASCII_Livneh2013_locations(maptable):
     """
     compile the list of file URLs for Livneh et al., 2013 VIC.ASCII outputs for the USA
     
     maptable: (dataframe) a dataframe that contains the FID, LAT, LONG_, and ELEV for each interpolated data file
     """
-    locations=[]
-    for ind, row in maptable.iterrows():
-        loci='_'.join(['VIC_fluxes_Livneh_CONUSExt_v.1.2_2013', str(row['LAT']), str(row['LONG_'])])
-        url=["ftp://ftp.hydro.washington.edu/pub/blivneh/CONUS/Fluxes.asc.v.1.2.1915.2011.bz2/fluxes.125.120.37.49/",loci,".bz2"]
-        locations.append(''.join(url))
-    return locations
-
-
-def compile_VICASCII_Livneh2013_CAN_locations(maptable):
-    """
-    compile the list of file URLs for Livneh et al., 2013 VIC.ASCII outputs for Canada
+    blocks = scrape_domain(domain='livnehpublicstorage.colorado.edu',
+                       subdomain='/public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2/',
+                       startswith='fluxes')
     
-    maptable: (dataframe) a dataframe that contains the FID, LAT, LONG_, and ELEV for each interpolated data file
-    """
+    maptable = mapToBlock(maptable, blocks)
+
+    
     locations=[]
     for ind, row in maptable.iterrows():
         loci='_'.join(['VIC_fluxes_Livneh_CONUSExt_v.1.2_2013', str(row['LAT']), str(row['LONG_'])])
-        url=["ftp://ftp.hydro.washington.edu/pub/blivneh/CONUS/Fluxes.asc.v.1.2.1915.2011.bz2/fluxes.canada.columbia/",loci,".bz2"]
-        locations.append(''.join(url))
+        url='/'.join(["ftp://livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2/",row['block'],loci+".bz2"])
+        locations.append(url)
     return locations
 
 
@@ -334,7 +327,7 @@ def compile_dailyMET_Livneh2013_locations(maptable):
     maptable: (dataframe) a dataframe that contains the FID, LAT, LONG_, and ELEV for each interpolated data file
     """
     blocks = scrape_domain(domain='livnehpublicstorage.colorado.edu',
-                           subdomain='/public/Livneh.2013.CONUS.Dataset/',
+                           subdomain='/public/Livneh.2013.CONUS.Dataset/Meteorology.asc.v.1.2.1915.2011.bz2/',
                            startswith='data')
     
     maptable = mapToBlock(maptable, blocks)
@@ -342,8 +335,8 @@ def compile_dailyMET_Livneh2013_locations(maptable):
     locations=[]
     for ind, row in maptable.iterrows():
         loci='_'.join(['Meteorology_Livneh_CONUSExt_v.1.2_2013', str(row['LAT']), str(row['LONG_'])])
-        url='/'.join(["ftp://livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset",row['block'],loci+".bz2"])
-        locations.append(''.join(url))
+        url='/'.join(["ftp://livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset/Meteorology.asc.v.1.2.1915.2011.bz2/",row['block'],loci+".bz2"])
+        locations.append(url)
     return locations
 
 
@@ -421,7 +414,7 @@ def wget_download(listofinterest):
         except:
             print('File does not exist at this URL: ' + basename)
 
-# Download the livneh 2013 files to the livneh2013 subdirectory
+# Download the files to the subdirectory
 def wget_download_one(fileurl):
     """
     Download a file from an http domain
@@ -696,7 +689,7 @@ def getDailyVIC_livneh2013(homedir, mappingfile, subdir='livneh2013/Daily_VIC_19
     maptable = pd.read_csv(mappingfile)
 
     # compile the longitude and latitude points for USA
-    locations = compile_VICASCII_Livneh2013_USA_locations(maptable)
+    locations = compile_VICASCII_Livneh2013_locations(maptable)
 
     # Download the files
     ftp_download_p(locations)
@@ -704,19 +697,6 @@ def getDailyVIC_livneh2013(homedir, mappingfile, subdir='livneh2013/Daily_VIC_19
     # update the mappingfile with the file catalog
     addCatalogToMap(outfilepath=mappingfile, maptable=maptable, folderpath=filedir, catalog_label=catalog_label)
     
-    
-    # SECOND RUN
-    # read in the subset of missing locations for a second run-through for the Canada webservice
-    maptable = pd.read_csv(mappingfile)
-    maptable = maptable.loc[pd.isnull(maptable[catalog_label]),:].reset_index(drop=True)
-    locations = compile_VICASCII_Livneh2013_CAN_locations(maptable)
-    
-    # Download the files
-    ftp_download_p(locations)
-    
-    # update the mappingfile with the file catalog
-    addCatalogToMap(outfilepath=mappingfile, maptable=maptable, folderpath=filedir, catalog_label=catalog_label)
-
     # return to the home directory
     os.chdir(homedir)
     return filedir
