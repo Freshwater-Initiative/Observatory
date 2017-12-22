@@ -1752,116 +1752,6 @@ def switchUpVICSoil(input_file=None,
     print(str(soil_base[0].sum()) +' VIC grid cells have successfully been switched up.') 
     print('Check your home directory for your new VIC soil model input set to your list of Lat/Long grid centroids.')
     
-    
-def makebelieve_old(homedir, mappingfile, BiasCorr,
-                lowrange='0to1000m', LowElev=range(0,1000),
-                midrange='1000to1500m', MidElev=range(1001,1501),
-                highrange='1500to3000m', HighElev=range(1501,3000),
-                data_dir=None, file_start_date=None, file_end_date=None,
-                dest_dir_suffix=None):
-    np.set_printoptions(precision=6)
-   
-    # take liv2013 date set date range as default if file reference dates are not given
-    if file_start_date is None:
-        file_start_date = datetime(1915,1,1)
-        
-    if file_end_date is None:
-        file_end_date = datetime(2011,12,31)
-    
-    # generate the month vector
-    month = pd.date_range(start=file_start_date, end=file_end_date).month
-    month = pd.DataFrame({'month':month})
-    
-    # create NEW directory
-    if dest_dir_suffix is None:
-        dest_dir_suffix = 'biascorr_output/'
-        
-    dest_dir = os.path.join(homedir, dest_dir_suffix+'/')
-    if not os.path.exists(dest_dir):
-        os.mkdir(dest_dir)
-        print('destdir created')
-    
-    # read in the Elevation table
-    zdiff = pd.read_table(mappingfile, sep=',', header='infer')
-    zdiff = zdiff.rename(columns={'RASTERVALU':'Elev','ELEV':'Elev'})
-    zdiff = zdiff[['LAT','LONG_', 'Elev']]
-    zdiff['filename'] = zdiff[['LAT','LONG_']].apply(lambda x: '_'.join(['Meteorology_Livneh_CONUSExt_v.1.2_2013',str(x[0]), str(x[1])]), axis=1)
-    #print(zdiff[0:10])
-
-    # lapse rate vector by month
-    # temperature adjustment vector by month
-
-    # identify the files to read
-    print('reading in data_long_lat files')
-    data_files = [os.path.join(data_dir,dat) for dat in os.listdir(data_dir) if os.path.basename(dat).startswith('Meteorology_Livneh_CONUSExt_v.1.2_2013')]
-    print('done reading data_long_lat files')
-    
-    # loop through each file
-    for eachfile in data_files:
-        
-        # subset the zdiff table using the eachfile's filename, then assign Elevation to equal the Elev value
-        Elevation = zdiff[zdiff['filename']==os.path.basename(eachfile)]['Elev'].reset_index(drop=True)
-                
-        # decide on the elevation-based Tcorr
-        #print('Convert BiasCorr to a df')
-        if Elevation.iloc[0] in LowElev:
-            BiasCorr_sub = {k: v for k, v in BiasCorr.items() if k.endswith('_'+lowrange)}
-            #BiasCorr_sub_df = pd.DataFrame.from_dict(BiasCorr_sub, orient='columns').reset_index()
-            #BiasCorr_sub_df.columns = ['month', 'precip', 'Tmax', 'Tmin']
-            
-        elif Elevation.iloc[0] in MidElev:
-            BiasCorr_sub = {k: v for k, v in BiasCorr.items() if k.endswith('_'+midrange)}
-            #BiasCorr_sub_df = pd.DataFrame.from_dict(BiasCorr_sub, orient='columns').reset_index()
-            #BiasCorr_sub_df.columns = ['month', 'precip', 'Tmax', 'Tmin']
-        
-        elif Elevation.iloc[0] in HighElev:
-            BiasCorr_sub = {k: v for k, v in BiasCorr.items() if k.endswith('_'+highrange)}
-            #BiasCorr_sub_df = pd.DataFrame.from_dict(BiasCorr_sub, orient='columns').reset_index()
-            #BiasCorr_sub_df.columns = ['month', 'precip', 'Tmax', 'Tmin']
-       
-        #print('reading in eachfile')
-        read_dat = pd.read_table(eachfile, delimiter='\s+', header=None)
-        read_dat.columns = ['precip', 'temp_max','temp_min','wind']
-        # print('done reading eachfile')
-
-        # extrapolate monthly values for each variable
-        for eachvar in ['precip', 'temp_max', 'temp_min']:
-            
-            for eachkey in BiasCorr_sub.keys():
-                if eachkey.startswith(eachvar):
-                    BiasCorr_sub_df = BiasCorr_sub[eachkey]
-            
-            # subset the column for the eachfile station number
-            BiasCorr_sub_df = BiasCorr_sub_df.loc[:,zdiff[zdiff['filename']==os.path.basename(eachfile)].index]
-            BiasCorr_sub_df.columns = ['var']
-                        
-            # regenerate the month
-            BiasCorr_sub_df = BiasCorr_sub_df.reset_index().rename(columns={'index':'month'})
-                        
-            # generate s-vectors
-            month_obj = month.merge(BiasCorr_sub_df, how='left', on='month')
-                        
-            # generate the s-vector
-            s = month_obj.loc[:,'var']
-            
-            if eachvar=='precip':
-                read_dat[eachvar] = np.multiply(np.array(read_dat[eachvar]), np.array(s))
-            else:
-                read_dat[eachvar] = np.array(read_dat[eachvar])+np.array(s)    
-        
-        #print('grabbing the S vector of monthlapse after the merge between month and Tcorr_df')
-        #print('number of corrections to apply: '+str(len(month)))
-        
-        # write it out to the new destination location
-        read_dat.to_csv(os.path.join(dest_dir, os.path.basename(eachfile)), sep='\t', header=None, index=False, float_format='%.4f')
-        print(os.path.join(dest_dir, os.path.basename(eachfile)))
-    
-    print('mission complete.')
-    print('this device will now self-destruct.')
-    print('just kidding.')
-    
-    return dest_dir
-
 
 def makebelieve(homedir, mappingfile, BiasCorr, metadata, start_catalog_label, end_catalog_label, 
                 file_start_date=None, file_end_date=None,
@@ -1925,9 +1815,10 @@ def makebelieve(homedir, mappingfile, BiasCorr, metadata, start_catalog_label, e
                     s = month.merge(BiasCorr_subdf, how='left', on='month').loc[:,eachkey]
 
                     if eachvar=='PRECIP':
-                        #read_dat[eachvar] = np.multiply(np.array(read_dat[eachvar]), np.array(s))  #Use for ratio precip method
+                        #Use for ratio precip method
+                        read_dat[eachvar] = np.multiply(np.array(read_dat.loc[:,eachvar]), np.array(s))
 
-                        read_dat[eachvar] = np.array(read_dat.loc[:,eachvar])+np.array(s) #Use for delta precip method
+                        #read_dat[eachvar] = np.array(read_dat.loc[:,eachvar])+np.array(s)
                         #positiveprecip=read_dat[eachvar]
                         #positiveprecip[positiveprecip<0.]=0.
                         #read_dat[eachvar] = positiveprecip*.9842
