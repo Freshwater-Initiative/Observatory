@@ -8,6 +8,7 @@ import numpy as np
 import collections as col
 import csv
 from datetime import datetime, timedelta
+import pickle
 
 # graphical control libraries
 import matplotlib as mpl
@@ -21,6 +22,7 @@ from descartes import PolygonPatch
 from matplotlib.collections import PatchCollection
 from mpl_toolkits.basemap import Basemap
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+import geopandas as gpd
 
 # data wrangling libraries
 # import urllib2
@@ -31,13 +33,27 @@ from bs4 import BeautifulSoup as bs
 
 # print('Version '+datetime.fromtimestamp(os.path.getmtime('ogh.py')).strftime('%Y-%m-%d %H:%M:%S')+' jp')
 
+
+
+def saveDictOfDf(outfilename, dictionaryObject):
+    # write a dictionary of dataframes to a json file using pickle
+    with open(outfilename, 'wb') as f:
+        pickle.dump(dictionaryObject, f)
+        f.close()
+
+def readDictOfDf(infilename):
+    # read a dictionary of dataframes from a json file using pickle
+    with open(infilename, 'rb') as f:
+        dictionaryObject = pickle.load(f)
+        f.close()
+    return dictionaryObject
+
 def reprojShapefile(sourcepath, newprojdictionary={'proj':'longlat', 'ellps':'WGS84', 'datum':'WGS84'}, outpath=None):
     """
     sourcepath: (dir) the path to the .shp file
     newprojdictionary: (dict) the new projection definition in the form of a dictionary (default provided)
     outpath: (dir) the output path for the new shapefile
     """
-    import geopandas as gpd
 
     # if outpath is none, treat the reprojection as a file replacement
     if outpath is None:
@@ -266,6 +282,50 @@ def compile_VICASCII_Livneh2013_CAN_locations(maptable):
 
 ### Climate (Meteorological observations)-oriented functions
 
+def canadabox():
+    import geocoder
+    test = geocoder.arcgis(location='Canada')
+    bb = test.geojson['features'][0]['bbox']
+    return box(bb[0], bb[1], bb[2], bb[3])
+
+def canadabox_bc():
+    # left, bottom, right top
+    return box(-138.0, 49.0, -114.0, 53.0)
+
+def scrape_domain(domain, subdomain, startswith=None):
+    """
+    scrape the gridded datafiles from a url of interest
+    
+    domain: (str) the web folder path
+    subdomain: (str) the subfolder path to be scraped for hyperlink references
+    startswith: (str) the starting keywords for a webpage element; default is None
+    """
+    # connect to domain
+    from ftplib import FTP
+    ftp = FTP(domain)
+    ftp.login()
+    ftp.cwd(subdomain)
+    
+    # scrape for data directories
+    tmp = [dirname for dirname in ftp.nlst() if dirname.startswith(startswith)]
+    geodf = pd.DataFrame(tmp, columns=['dirname'])
+    
+    # conform to bounding box format
+    tmp = geodf['dirname'].apply(lambda x: x.split('.')[1:])
+    tmp = tmp.apply(lambda x: list(map(float,x)) if len(x)>2 else x)
+
+    # assemble the boxes
+    geodf['bbox']=tmp.apply(lambda x: box(x[0]*-1, x[2], x[1]*-1, x[3]) if len(x)>2 else canadabox_bc())
+    return geodf
+
+def mapToBlock(df_points, df_regions):
+    
+    for index, eachblock in df_regions.iterrows():
+        for ind, row in df_points.iterrows():
+            if point.Point(row['LONG_'], row['LAT']).intersects(eachblock['bbox']):
+                df_points.loc[ind, 'block'] = str(eachblock['dirname'])
+    
+    return df_points
 
 def compile_dailyMET_Livneh2013_locations(maptable):
     """
@@ -273,10 +333,16 @@ def compile_dailyMET_Livneh2013_locations(maptable):
     
     maptable: (dataframe) a dataframe that contains the FID, LAT, LONG_, and ELEV for each interpolated data file
     """
+    blocks = scrape_domain(domain='livnehpublicstorage.colorado.edu',
+                           subdomain='/public/Livneh.2013.CONUS.Dataset/',
+                           startswith='data')
+    
+    maptable = mapToBlock(maptable, blocks)
+
     locations=[]
     for ind, row in maptable.iterrows():
         loci='_'.join(['Meteorology_Livneh_CONUSExt_v.1.2_2013', str(row['LAT']), str(row['LONG_'])])
-        url=["ftp://ftp.hydro.washington.edu/pub/blivneh/CONUS/Meteorology.asc.v.1.2.1915.2011.bz2/data.125.120.37.49/",loci,".bz2"]
+        url='/'.join(["ftp://livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset",row['block'],loci+".bz2"])
         locations.append(''.join(url))
     return locations
 
@@ -1678,11 +1744,11 @@ def switchUpVICSoil(input_file=None,
     maptable = pd.read_table(mappingfile,sep=",")
 
     #Make a list Lat/Long files that need to switched up 
-    latlong_1=maptable.apply(lambda x:tuple([x[2],x[1]]), axis=1)
+    latlong_1=maptable.apply(lambda x:tuple([x['LAT'],x['LONG_']]), axis=1)
 
     #Switch up from 0 to 1 so VIC will run for this Lat/Long point - print new output file (VIC model input file)
     soil_base[0] = latlong.apply(lambda x: 1 if x in set(latlong_1) else 0)        
-    soil_base.to_csv(output_file, header=False,index=False,sep="\t")
+    soil_base.to_csv(output_file, header=False, index=False, sep="\t")
     print(str(soil_base[0].sum()) +' VIC grid cells have successfully been switched up.') 
     print('Check your home directory for your new VIC soil model input set to your list of Lat/Long grid centroids.')
     
