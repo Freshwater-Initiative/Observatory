@@ -901,6 +901,70 @@ def read_in_all_files(map_df, dataset, metadata, file_start_date, file_end_date,
     return df_dict
 
 
+def read_files_to_vardf(map_df, df_dict, gridclimname, dataset, metadata, 
+                        file_start_date, file_end_date, file_delimiter, file_time_step, file_colnames, 
+                        subset_start_date, subset_end_date):
+    """
+    # reads in the files to generate variables dataframes
+    
+    map_df: (dataframe) the mappingfile clipped to the subset that will be read-in
+    df_dict: (dict) an existing dictionary where new computations will be stored
+    gridclimname: (str) the suffix for the dataset to be named; if None is provided, default to the dataset name
+    dataset: (str) the name of the dataset catalogged into map_df
+    metadata (str) the dictionary that contains the metadata explanations; default is None
+    file_start_date: (date) the start date of the files that will be read-in; default is None
+    file_end_date: (date) the end date for the files that will be read in; default is None
+    file_delimiter: (str) a file parsing character to be used for file reading
+    file_time_step: (str) the timedelta code that represents the difference between time points; default is 'D' (daily)    
+    file_colnames: (list) the list of shorthand variables; default is None
+    subset_start_date: (date) the start date of a date range of interest
+    subset_end_date: (date) the end date of a date range of interest
+    """
+    # start time
+    starttime = pd.datetime.now()
+    
+    ## date range from ogh_meta file
+    met_daily_dates=pd.date_range(file_start_date, file_end_date, freq=file_time_step)
+    met_daily_subdates=pd.date_range(subset_start_date, subset_end_date, freq=file_time_step)
+    
+    # iterate through each data file
+    for eachvar in metadata[dataset]['variable_list']:
+
+        # initiate df as a dask dataframe
+        df_list=[]
+
+        # identify the variable column index
+        usecols = [metadata[dataset]['variable_list'].index(eachvar)]
+
+        # loop through each file
+        for ind, row in map_df.iterrows():
+
+            # consider rewriting the params to just select one column by index at a time
+            var_series = delayed(pd.read_table)(filepath_or_buffer=row[dataset], 
+                                                delimiter=file_delimiter, 
+                                                header=None,
+                                                usecols=usecols,
+                                                names=[tuple(row[['FID','LAT','LONG_']])])
+
+            # append the series into the list of series
+            df_list.append(var_series)
+
+        # concatenate list of series (axis=1 is column-wise) into a dataframe
+        df1 = delayed(pd.concat)(df_list, axis=1)
+
+        # set and subset date_range index
+        df2 = df1.set_index(met_daily_dates, inplace=False).loc[met_daily_subdates]
+
+        # end of variable table
+        print(eachvar+ ' dataframe reading to start: ' + str(pd.datetime.now()-starttime))
+        
+        # assign dataframe to dictionary object
+        df_dict['_'.join([eachvar, gridclimname])] = dask.compute(df2)[0]
+        print('Reading complete:' + str(pd.datetime.now()-starttime))
+
+    return df_dict
+
+
 def read_daily_streamflow(file_name, drainage_area_m2, file_colnames=None, delimiter='\t', header='infer'):
     # read in a daily streamflow data set    
     
@@ -1031,7 +1095,6 @@ def read_daily_coop(file_name, file_colnames=None, usecols=None, delimiter=',', 
 
 # ### Data Processing functions
 
-
 def generateVarTables(file_dict, gridclimname, dataset, metadata, df_dict=None):
     """
     Slice the files by their common variable
@@ -1052,43 +1115,6 @@ def generateVarTables(file_dict, gridclimname, dataset, metadata, df_dict=None):
         df_dict['_'.join([eachvar, gridclimname])] = panel.xs(key=eachvar, axis=2)
         
     return df_dict
-
-
-#def generateVarTables (listOfDates, dictOfTables, n_stations):
-#    # NOTE: listOfTable must contain:
-#    # tmin_c
-#    # tmax_c
-#    # precip_mm
-#    # wind_m_s
-#    
-#    len_listOfDates=len(listOfDates) # number of dates
-#    
-#    # Create arrays of for each variable of interest (Tmin, Tmax, Precip).
-#    # Rows are dates of analysis and columns are the station number
-#    temp_min_np=np.empty([len_listOfDates,n_stations])
-#    temp_max_np=np.empty([len_listOfDates,n_stations])
-#    precip_np=np.empty([len_listOfDates,n_stations])
-#    wind_np=np.empty([len_listOfDates,n_stations])
-#    
-#    # fill in each array with values from each station
-#    for i in sorted(dictOfTables.keys()):
-#        temp_min_np[:,i]=dictOfTables[i].tmin_c.values.astype(float)
-#        temp_max_np[:,i]=dictOfTables[i].tmax_c.values.astype(float)
-#        precip_np[:,i]=dictOfTables[i].precip_mm.values.astype(float)
-#        wind_np[:,i]=dictOfTables[i].wind_m_s.values.astype(float)
-#        
-#    # generate each variable dataframe with rows as dates and columns as stations
-#    temp_min_df=pd.DataFrame(temp_min_np, columns=sorted(dictOfTables.keys()), index=listOfDates)    
-#    temp_max_df=pd.DataFrame(temp_max_np, columns=sorted(dictOfTables.keys()), index=listOfDates)    
-#    precip_df=pd.DataFrame(precip_np, columns=sorted(dictOfTables.keys()), index=listOfDates)    
-#    wind_df=pd.DataFrame(wind_np, columns=sorted(dictOfTables.keys()), index=listOfDates)
-#    
-#    # Create average temperature data frame as the average of Tmin and Tmax
-#    temp_avg_df=pd.DataFrame((temp_min_np+temp_max_np)/2, columns=sorted(dictOfTables.keys()), index=listOfDates)
-#    
-#    # generate each variable dataframe with rows as dates and columns as stations
-#       
-#    return(temp_min_df, temp_max_df, precip_df, wind_df, temp_avg_df)
 
 
 # compare two date sets for the start and end of the overlapping dates
@@ -1164,9 +1190,15 @@ def specialTavgMeans(VarTable):
           anom_month_daily)
 
 
-def aggregate_space_time_average(VarTable, df_dict, suffix,
-                                 elev_min_station, elev_mid_station, elev_max_station, 
-                                 start_date, end_date):
+def aggregate_space_time_average(VarTable, df_dict, suffix, start_date, end_date):
+    """
+    VarTable: (dataframe) a dataframe with date ranges as the index
+    df_dict: (dict) a dictionary to which computed outputs will be stored
+    suffix: (str) a string representing the name of the original table
+    start_date: (date) the start of the date range within the original table
+    end_date: (date) the end of the date range within the original table
+    """
+    starttime = pd.datetime.now()
     
     # subset dataframe to the date range of interest
     Var_daily = VarTable.loc[start_date:end_date,:]
@@ -1176,12 +1208,7 @@ def aggregate_space_time_average(VarTable, df_dict, suffix,
     
     # Mean monthly temperature averaged for all stations in analysis
     df_dict['meanmonth_'+suffix] = Var_daily.groupby(Var_daily.index.month).mean().mean(axis=1)
-                
-    # e.g., Mean monthly temperature for minimum and maximum elevation stations
-    df_dict['meanmonth_maxelev_'+suffix] = Var_daily.loc[:,elev_max_station].groupby(Var_daily.index.month).mean().mean(axis=1)
-    df_dict['meanmonth_midelev_'+suffix] = Var_daily.loc[:,elev_mid_station].groupby(Var_daily.index.month).mean().mean(axis=1)
-    df_dict['meanmonth_minelev_'+suffix] = Var_daily.loc[:,elev_min_station].groupby(Var_daily.index.month).mean().mean(axis=1)
-                     
+
     # Mean annual temperature
     df_dict['year_'+suffix] = Var_daily.groupby(Var_daily.index.year).mean()
     
@@ -1192,9 +1219,10 @@ def aggregate_space_time_average(VarTable, df_dict, suffix,
     df_dict['meanallyear_'+suffix] = Var_daily.mean(axis=1).mean(axis=0)
     
     # anomaly per year compared to average
-    df_dict['anom_year_'+suffix] = df_dict['meanyear_'+suffix] - df_dict['meanallyear_'+suffix]    
+    df_dict['anom_year_'+suffix] = df_dict['meanyear_'+suffix] - df_dict['meanallyear_'+suffix]
+    
+    print(suffix+ ' calculations completed in ' + str(pd.datetime.now()-starttime))
     return df_dict
-
 
 def aggregate_space_time_sum(VarTable, n_stations, start_date, end_date):
     Var_daily = VarTable.loc[start_date:end_date, range(0,n_stations)]
@@ -1209,9 +1237,9 @@ def aggregate_space_time_sum(VarTable, n_stations, start_date, end_date):
     meanmonth_daily= meanpermonth_daily.groupby(meanpermonth_daily.index.month).mean()
     
     return(Var_daily,
-          permonth_daily,
-          meanpermonth_daily,
-          meanmonth_daily)
+           permonth_daily,
+           meanpermonth_daily,
+           meanmonth_daily)
 
 
 #def aggregate_space_time_sum(VarTable, n_stations, start_date, end_date):
@@ -1359,39 +1387,142 @@ def plotPavg(dictionary, loc_name, start_date, end_date):
     plt.show()
     
     
-def gridclim_dict(gridclim_folder,
-                  mappingfile,
-                  loc_name=None,
-                  gridclimname=None, dataset=None, 
-                  metadata=None,
-                  min_elev=None, max_elev=None,
-                  file_start_date=None, file_end_date=None, file_time_step=None, 
+#def gridclim_dict_old(gridclim_folder,
+#                  mappingfile,
+#                  loc_name=None,
+#                  gridclimname=None, dataset=None, 
+#                  metadata=None,
+#                  min_elev=None, max_elev=None,
+#                  file_start_date=None, file_end_date=None, file_time_step=None, 
+#                  file_colnames=None, file_delimiter=None,
+#                  subset_start_date=None, subset_end_date=None,
+#                  df_dict=None):
+#    """
+#    # pipelined operation for assimilating data, processing it, and standardizing the plotting
+#    
+#
+#    """
+#
+#    # generate the climate locations and n_stations
+#    locations_df, n_stations = mappingfileToDF(mappingfile, colvar='all')
+#    
+#    # generate the climate station info
+#    if pd.isnull(min_elev):
+#        min_elev = locations_df.ELEV.min()
+#    
+#    if pd.isnull(max_elev):
+#        max_elev = locations_df.ELEV.max()
+#    
+#    # extract metadata if the information are not provided
+#    if pd.notnull(metadata):
+#        
+#        if file_start_date is None:
+#            file_start_date = metadata[dataset]['date_range']['start']
+#        
+#        if file_end_date is None:
+#            file_end_date = metadata[dataset]['date_range']['end']
+#
+#        if file_time_step is None:
+#            file_time_step = metadata[dataset]['date_range']['time_step']
+#
+#        if file_colnames is None:
+#            file_colnames = metadata[dataset]['variable_list']
+#        
+#        if file_delimiter is None:
+#            file_delimiter = metadata[dataset]['delimiter']
+#        
+#    # take all defaults if subset references are null
+#    if pd.isnull(subset_start_date):
+#        subset_start_date = file_start_date
+#    
+#    if pd.isnull(subset_end_date):
+#        subset_end_date = file_end_date
+#        
+#    # initiate output dictionary df_dict was null
+#    if pd.isnull(df_dict):
+#        df_dict = dict()
+#        
+#    if pd.isnull(gridclimname):
+#        if pd.notnull(dataset):
+#            gridclimname=dataset
+#        else:
+#            print('no suffix name provided. Provide a gridclimname or dataset label.')
+#            return
+#    
+#    # assemble the stations
+#    analysis_stations_info = locations_df[(locations_df.ELEV >= min_elev) & (locations_df.ELEV <= max_elev)].sort_values(by='ELEV', ascending=False)
+#
+#    # the number of stations to include into the top and bottom elevation ranges
+#    x = np.ceil(len(analysis_stations_info.ELEV)*.33)
+#
+#    # Extract list of station numbers for indexing. Alternative, you can set the list of stations manually!
+#    analysis_elev_max_station = analysis_stations_info.FID.head(int(x)).tolist()
+#    analysis_elev_min_station = analysis_stations_info.FID.tail(int(x)).tolist()
+#    analysis_elev_mid_station = [k for k in analysis_stations_info.FID if k not in analysis_elev_max_station + analysis_elev_min_station]
+#
+#    df_dict['analysis_elev_max'] = analysis_stations_info.ELEV.max() # maximum elevation of stations in analysis
+#    df_dict['analysis_elev_max_cutoff'] = analysis_stations_info.ELEV.head(int(x)).min()
+#    df_dict['analysis_elev_min_cutoff'] = analysis_stations_info.ELEV.tail(int(x)).max()
+#    df_dict['analysis_elev_min'] = analysis_stations_info.ELEV.min() # minimum elevation of stations in analysis
+#    
+#    # create dictionary of dataframe
+#    file_dict = read_in_all_files(map_df=locations_df,
+#                                  dataset=dataset, 
+#                                  metadata=metadata, 
+#                                  file_start_date=file_start_date, 
+#                                  file_end_date=file_end_date, 
+#                                  file_delimiter=file_delimiter, 
+#                                  file_time_step=file_time_step, 
+#                                  file_colnames=file_colnames, 
+#                                  subset_start_date=subset_start_date, 
+#                                  subset_end_date=subset_end_date)
+#    
+#    # assemble the variable dataframes to the dictionary
+#    df_dict = generateVarTables(file_dict=file_dict, gridclimname=gridclimname, dataset=dataset, metadata=metadata, df_dict=df_dict)
+#    
+#    # loop through the dictionary to compute each aggregate_space_time_average object
+#    keys_now = [eachkey for eachkey in df_dict.keys() if eachkey.endswith(gridclimname)]
+#    for eachvardf in keys_now:
+#        df_dict = aggregate_space_time_average(VarTable=df_dict[eachvardf],
+#                                               df_dict=df_dict,
+#                                               suffix=eachvardf,
+#                                               elev_min_station=analysis_elev_min_station,
+#                                               elev_mid_station=analysis_elev_mid_station,
+#                                               elev_max_station=analysis_elev_max_station, 
+#                                               start_date=subset_start_date, 
+#                                               end_date=subset_end_date)
+#
+#    # generate plots
+#    #plotTavg(df_dict, loc_name,start_date=subset_start_date, end_date=subset_end_date)
+#    #plotPavg(df_dict, loc_name,start_date=subset_start_date, end_date=subset_end_date)
+#    return df_dict
+
+
+def gridclim_dict(mappingfile, dataset, gridclimname=None, metadata=None, min_elev=None, max_elev=None,
+                  file_start_date=None, file_end_date=None, file_time_step=None,
                   file_colnames=None, file_delimiter=None,
-                  subset_start_date=None, subset_end_date=None,
-                  df_dict=None):
+                  subset_start_date=None, subset_end_date=None, df_dict=None):
     """
     # pipelined operation for assimilating data, processing it, and standardizing the plotting
     
-    gridclim_folder,
-    mappingfile,
-    loc_name=None,
-    gridclimname=None, 
-    dataset=None, 
-    metadata=None,
-    min_elev=None,
-    max_elev=None,
-    file_start_date=None,
-    file_end_date=None,
-    file_time_step=None,
-    subset_start_date=None,
-    subset_end_date=None,
-    df_dict=None
+    mappingfile: (dir) the path directory to the mappingfile
+    dataset: (str) the name of the dataset within mappingfile to use
+    gridclimname: (str) the suffix for the dataset to be named; if None is provided, default to the dataset name
+    metadata: (str) the dictionary that contains the metadata explanations; default is None
+    min_elev: (float) the minimum elevation criteria; default is None
+    max_elev: (float) the maximum elevation criteria; default is None
+    file_start_date: (date) the start date of the files that will be read-in; default is None
+    file_end_date: (date) the end date for the files that will be read in; default is None
+    file_time_step: (str) the timedelta code that represents the difference between time points; default is 'D' (daily)    
+    file_colnames: (list) the list of shorthand variables; default is None
+    file_delimiter: (str) a file parsing character to be used for file reading
+    subset_start_date: (date) the start date of a date range of interest
+    subset_end_date: (date) the end date of a date range of interest
+    df_dict: (dict) an existing dictionary where new computations will be stored
     """
     
-    
-    
     # generate the climate locations and n_stations
-    locations_df, n_stations = mappingfileToDF(mappingfile, colvar='all')
+    locations_df, n_stations = ogh.mappingfileToDF(mappingfile, colvar='all')
     
     # generate the climate station info
     if pd.isnull(min_elev):
@@ -1436,53 +1567,33 @@ def gridclim_dict(gridclim_folder,
             print('no suffix name provided. Provide a gridclimname or dataset label.')
             return
     
-    # assemble the stations
-    analysis_stations_info = locations_df[(locations_df.ELEV >= min_elev) & (locations_df.ELEV <= max_elev)].sort_values(by='ELEV', ascending=False)
+    # assemble the stations within min and max elevantion ranges
+    locations_df = locations_df[(locations_df.ELEV >= min_elev) & (locations_df.ELEV <= max_elev)]
 
-    # the number of stations to include into the top and bottom elevation ranges
-    x = np.ceil(len(analysis_stations_info.ELEV)*.33)
-
-    # Extract list of station numbers for indexing. Alternative, you can set the list of stations manually!
-    analysis_elev_max_station = analysis_stations_info.FID.head(int(x)).tolist()
-    analysis_elev_min_station = analysis_stations_info.FID.tail(int(x)).tolist()
-    analysis_elev_mid_station = [k for k in analysis_stations_info.FID if k not in analysis_elev_max_station + analysis_elev_min_station]
-
-    df_dict['analysis_elev_max'] = analysis_stations_info.ELEV.max() # maximum elevation of stations in analysis
-    df_dict['analysis_elev_max_cutoff'] = analysis_stations_info.ELEV.head(int(x)).min()
-    df_dict['analysis_elev_min_cutoff'] = analysis_stations_info.ELEV.tail(int(x)).max()
-    df_dict['analysis_elev_min'] = analysis_stations_info.ELEV.min() # minimum elevation of stations in analysis
-    
     # create dictionary of dataframe
-    file_dict = read_in_all_files(map_df=locations_df,
+    df_dict = read_files_to_vardf(map_df=locations_df,
                                   dataset=dataset, 
                                   metadata=metadata, 
+                                  gridclimname=gridclimname,
                                   file_start_date=file_start_date, 
                                   file_end_date=file_end_date, 
                                   file_delimiter=file_delimiter, 
                                   file_time_step=file_time_step, 
                                   file_colnames=file_colnames, 
                                   subset_start_date=subset_start_date, 
-                                  subset_end_date=subset_end_date)
-    
-    # assemble the variable dataframes to the dictionary
-    df_dict = generateVarTables(file_dict=file_dict, gridclimname=gridclimname, dataset=dataset, metadata=metadata, df_dict=df_dict)
+                                  subset_end_date=subset_end_date,
+                                  df_dict=df_dict)
     
     # loop through the dictionary to compute each aggregate_space_time_average object
     keys_now = [eachkey for eachkey in df_dict.keys() if eachkey.endswith(gridclimname)]
     for eachvardf in keys_now:
-        df_dict = aggregate_space_time_average(VarTable=df_dict[eachvardf],
-                                               df_dict=df_dict,
-                                               suffix=eachvardf,
-                                               elev_min_station=analysis_elev_min_station,
-                                               elev_mid_station=analysis_elev_mid_station,
-                                               elev_max_station=analysis_elev_max_station, 
-                                               start_date=subset_start_date, 
-                                               end_date=subset_end_date)
-
-    # generate plots
-    #plotTavg(df_dict, loc_name,start_date=subset_start_date, end_date=subset_end_date)
-    #plotPavg(df_dict, loc_name,start_date=subset_start_date, end_date=subset_end_date)
+        df_dict.update(aggregate_space_time_average(VarTable=df_dict[eachvardf],
+                                                    df_dict=df_dict,
+                                                    suffix=eachvardf, 
+                                                    start_date=subset_start_date, 
+                                                    end_date=subset_end_date))
     return df_dict
+
 
 def compute_diffs(df_dict, df_str, gridclimname1, gridclimname2, prefix1, prefix2='meanmonth'):
     #Compute difference between monthly means for some data (e.g,. Temp and precip) for two different gridded datasets (e.g., Liv, WRF)
@@ -2073,3 +2184,14 @@ def renderPointsInShape(shapefile, NAmer, mappingfile, colvar=['livneh2013_MET',
 
     # save image
     plt.savefig(outfilepath)
+    
+
+def findStationCode(mappingfile, colvar, colvalue):
+    """
+    mappingfile: (dir) the file path to the mappingfile, which contains the LAT, LONG_, and ELEV coordinates of interest
+    colvar: (string) a column name in mappingfile
+    colvalue: (value) a value that corresponds to the colvar column
+    """
+    mapdf = pd.read_csv(mappingfile)
+    outcome = mapdf.loc[mapdf[colvar]==colvalue, :][['FID','LAT','LONG_']].set_index('FID')
+    return outcome.to_records()
