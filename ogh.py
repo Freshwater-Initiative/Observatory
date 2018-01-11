@@ -36,7 +36,6 @@ from bs4 import BeautifulSoup as bs
 # print('Version '+datetime.fromtimestamp(os.path.getmtime('ogh.py')).strftime('%Y-%m-%d %H:%M:%S')+' jp')
 
 
-
 def saveDictOfDf(outfilename, dictionaryObject):
     # write a dictionary of dataframes to a json file using pickle
     with open(outfilename, 'wb') as f:
@@ -1524,7 +1523,7 @@ def gridclim_dict(mappingfile, dataset, gridclimname=None, metadata=None, min_el
     """
     
     # generate the climate locations and n_stations
-    locations_df, n_stations = ogh.mappingfileToDF(mappingfile, colvar='all')
+    locations_df, n_stations = mappingfileToDF(mappingfile, colvar='all')
     
     # generate the climate station info
     if pd.isnull(min_elev):
@@ -2177,11 +2176,11 @@ def renderPointsInShape(shapefile, NAmer, mappingfile, colvar=['livneh2013_MET',
     coll.set_alpha(0.4)
 
     # gridded points
-    gpoints = ogh.readShapefileTable(NAmer)
+    gpoints = readShapefileTable(NAmer)
     ax1.scatter(gpoints['Long'], gpoints['Lat'], alpha=0.4, c=color_producer.to_rgba(0))
 
     # catalog
-    cat, n_stations = ogh.mappingfileToDF(mappingfile, colvar=colvar)
+    cat, n_stations = mappingfileToDF(mappingfile, colvar=colvar)
     ax1.scatter(cat['LONG_'], cat['LAT'], alpha=0.4, c=color_producer.to_rgba(1))
 
     # save image
