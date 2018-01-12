@@ -11,6 +11,7 @@ import pickle
 import dask
 from dask import delayed
 import dask.dataframe as dd
+from multiprocessing import Pool
 
 # graphical control libraries
 import matplotlib as mpl
@@ -35,7 +36,6 @@ from bs4 import BeautifulSoup as bs
 
 # print('Version '+datetime.fromtimestamp(os.path.getmtime('ogh.py')).strftime('%Y-%m-%d %H:%M:%S')+' jp')
 
-
 def saveDictOfDf(outfilename, dictionaryObject):
     # write a dictionary of dataframes to a json file using pickle
     with open(outfilename, 'wb') as f:
@@ -47,7 +47,7 @@ def readDictOfDf(infilename):
     with open(infilename, 'rb') as f:
         dictionaryObject = pickle.load(f)
         f.close()
-    return dictionaryObject
+    return(dictionaryObject)
 
 def reprojShapefile(sourcepath, newprojdictionary={'proj':'longlat', 'ellps':'WGS84', 'datum':'WGS84'}, outpath=None):
     """
@@ -55,15 +55,14 @@ def reprojShapefile(sourcepath, newprojdictionary={'proj':'longlat', 'ellps':'WG
     newprojdictionary: (dict) the new projection definition in the form of a dictionary (default provided)
     outpath: (dir) the output path for the new shapefile
     """
-
+    
     # if outpath is none, treat the reprojection as a file replacement
     if outpath is None:
         outpath = sourcepath
-
+        
     shpfile = gpd.GeoDataFrame.from_file(sourcepath)
     shpfile = shpfile.to_crs(newprojdictionary)
     shpfile.to_file(outpath)
-    print(outpath + ' printed')
 
 
 def getFullShape(shapefile):
@@ -104,8 +103,7 @@ def readShapefileTable(shapefile):
     return(cent_df)
 
 
-def filterPointsinShape(shape, 
-                        points_lat, points_lon, points_elev=None, 
+def filterPointsinShape(shape, points_lat, points_lon, points_elev=None,
                         buffer_distance=0.06, buffer_resolution=16, labels=['LAT', 'LONG_', 'ELEV']):
     """
     filter for datafiles that can be used
@@ -121,8 +119,14 @@ def filterPointsinShape(shape,
     # add buffer region
     region = shape.buffer(buffer_distance, resolution=buffer_resolution)
     
+    # construct points_elev if null
+    if pd.isnull(points_elev):
+        points_elev=np.repeat(np.nan, len(points_lon))
+        
     # Intersection each coordinate with the region
     limited_list = []
+    
+    # loop through each spatial point
     for lon, lat, elev in zip(points_lon, points_lat, points_elev):
         gpoint = point.Point(lon, lat)
         if gpoint.intersects(region):
@@ -153,8 +157,7 @@ def scrapeurl(url, startswith=None, hasKeyword=None):
 
     # convert to dataframe then separate the lon and lat as float coordinate values
     temp = pd.DataFrame(temp, columns = ['filenames'])
-    #temp[['LAT','LONG_']] = temp['filenames'].apply(lambda x: pd.Series(str(x).rsplit('_', 2))[1:3]).astype(float)
-    return temp
+    return(temp)
 
 
 def treatgeoself(shapefile, NAmer, folder_path=os.getcwd(), outfilename='mappingfile.csv', buffer_distance=0.06):
@@ -181,9 +184,7 @@ def treatgeoself(shapefile, NAmer, folder_path=os.getcwd(), outfilename='mapping
                                    points_lat=NAmer_datapoints.LAT,
                                    points_lon=NAmer_datapoints.LONG_,
                                    points_elev=NAmer_datapoints.ELEV,
-                                   buffer_distance=buffer_distance,
-                                   buffer_resolution=16,
-                                   labels=['LAT', 'LONG_', 'ELEV'])
+                                   buffer_distance=buffer_distance, buffer_resolution=16, labels=['LAT', 'LONG_', 'ELEV'])
     maptable.reset_index(inplace=True)
     maptable = maptable.rename(columns={"index":"FID"})
     print(maptable.shape)
@@ -259,30 +260,28 @@ def compile_VICASCII_Livneh2013_locations(maptable):
     
     maptable: (dataframe) a dataframe that contains the FID, LAT, LONG_, and ELEV for each interpolated data file
     """
+    # identify the subfolder blocks
     blocks = scrape_domain(domain='livnehpublicstorage.colorado.edu',
-                       subdomain='/public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2/',
-                       startswith='fluxes')
+                           subdomain='/public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2/',
+                           startswith='fluxes')
     
+    # map each coordinate to the subfolder
     maptable = mapToBlock(maptable, blocks)
 
-    
     locations=[]
     for ind, row in maptable.iterrows():
         loci='_'.join(['VIC_fluxes_Livneh_CONUSExt_v.1.2_2013', str(row['LAT']), str(row['LONG_'])])
-        url='/'.join(["ftp://livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2/",row['block'],loci+".bz2"])
+        url='/'.join(["ftp://livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2/", row['block'], loci+".bz2"])
         locations.append(url)
     return locations
 
 
 ### Climate (Meteorological observations)-oriented functions
 
-def canadabox():
-    import geocoder
-    test = geocoder.arcgis(location='Canada')
-    bb = test.geojson['features'][0]['bbox']
-    return box(bb[0], bb[1], bb[2], bb[3])
-
 def canadabox_bc():
+    """
+    Establish the Canadian (north of the US bounding boxes) Columbia river basin bounding box
+    """
     # left, bottom, right top
     return box(-138.0, 49.0, -114.0, 53.0)
 
@@ -295,8 +294,7 @@ def scrape_domain(domain, subdomain, startswith=None):
     startswith: (str) the starting keywords for a webpage element; default is None
     """
     # connect to domain
-    from ftplib import FTP
-    ftp = FTP(domain)
+    ftp = ftplib.FTP(domain)
     ftp.login()
     ftp.cwd(subdomain)
     
@@ -327,16 +325,18 @@ def compile_dailyMET_Livneh2013_locations(maptable):
     
     maptable: (dataframe) a dataframe that contains the FID, LAT, LONG_, and ELEV for each interpolated data file
     """
+    # identify the subfolder blocks
     blocks = scrape_domain(domain='livnehpublicstorage.colorado.edu',
                            subdomain='/public/Livneh.2013.CONUS.Dataset/Meteorology.asc.v.1.2.1915.2011.bz2/',
                            startswith='data')
-    
+        
+    # map each coordinate to the subfolder
     maptable = mapToBlock(maptable, blocks)
 
     locations=[]
     for ind, row in maptable.iterrows():
         loci='_'.join(['Meteorology_Livneh_CONUSExt_v.1.2_2013', str(row['LAT']), str(row['LONG_'])])
-        url='/'.join(["ftp://livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset/Meteorology.asc.v.1.2.1915.2011.bz2/",row['block'],loci+".bz2"])
+        url='/'.join(["ftp://livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset/Meteorology.asc.v.1.2.1915.2011.bz2/", row['block'], loci+".bz2"])
         locations.append(url)
     return locations
 
@@ -442,7 +442,6 @@ def wget_download_p(listofinterest, nworkers=20):
     listofinterest: (list) a list of urls to request
     nworkers: (int) the number of processors to distribute tasks; default is 10
     """
-    from multiprocessing import Pool
     pool = Pool(int(nworkers))
     pool.map(wget_download_one, listofinterest)
     pool.close()
@@ -505,14 +504,13 @@ def ftp_download_one(loci):
         print('File does not exist at this URL: '+fileurl)
 
         
-def ftp_download_p(listofinterest, nworkers=5):
+def ftp_download_p(listofinterest, nworkers=10):
     """
     Download and decompress files from an ftp domain in parallel
     
     listofinterest: (list) a list of urls to request
     nworkers: (int) the number of processors to distribute tasks; default is 5
     """
-    from multiprocessing import Pool
     pool = Pool(int(nworkers))
     pool.map(ftp_download_one, listofinterest)
     pool.close()
@@ -844,10 +842,10 @@ def mappingfileToDF(mappingfile, colvar='all'):
     # compile summaries
     print(map_df.head())
           
-    print('Number of gridded data files:', len(map_df))
-    print('Minimum elevation: ', np.min(map_df.ELEV), 'm')
-    print('Mean elevation: ', int(np.mean(map_df.ELEV)), 'm')
-    print('Maximum elevation: ', np.max(map_df.ELEV), 'm')
+    print('Number of gridded data files:'+ str(len(map_df)))
+    print('Minimum elevation: ' + str(np.min(map_df.ELEV))+ 'm')
+    print('Mean elevation: '+ str(np.mean(map_df.ELEV))+ 'm')
+    print('Maximum elevation: '+ str(np.max(map_df.ELEV))+ 'm')
     
     return map_df, len(map_df)
 
@@ -963,7 +961,7 @@ def read_files_to_vardf(map_df, df_dict, gridclimname, dataset, metadata,
         df_dict['_'.join([eachvar, gridclimname])] = dask.compute(df2)[0]
         print('Reading complete:' + str(pd.datetime.now()-starttime))
 
-    return df_dict
+    return(df_dict)
 
 
 def read_daily_streamflow(file_name, drainage_area_m2, file_colnames=None, delimiter='\t', header='infer'):
@@ -986,8 +984,7 @@ def read_daily_streamflow(file_name, drainage_area_m2, file_colnames=None, delim
     if 'flow_cfs' in daily_data.columns:
         flow_cfs=daily_data['flow_cfs']
         flow_cms=flow_cfs/(3.28084**3)
-        flow_mmday=flow_cms*1000*3600*24/drainage_area_m2
-        
+        flow_mmday=flow_cms*1000*3600*24/drainage_area_m2 
     elif 'flow_cms' in daily_data.columns:
         flow_cms=daily_data['flow_cms']
         flow_cfs=flow_cms*(3.28084**3)
@@ -1115,7 +1112,7 @@ def generateVarTables(file_dict, gridclimname, dataset, metadata, df_dict=None):
     for eachvar in metadata[dataset]['variable_list']:
         df_dict['_'.join([eachvar, gridclimname])] = panel.xs(key=eachvar, axis=2)
         
-    return df_dict
+    return(df_dict)
 
 
 # compare two date sets for the start and end of the overlapping dates
@@ -1586,39 +1583,41 @@ def gridclim_dict(mappingfile, dataset, gridclimname=None, metadata=None, min_el
                                   df_dict=df_dict)
     
     # loop through the dictionary to compute each aggregate_space_time_average object
-    keys_now = [eachkey for eachkey in df_dict.keys() if eachkey.endswith(gridclimname)]
-    for eachvardf in keys_now:
-        df_dict.update(aggregate_space_time_average(VarTable=df_dict[eachvardf],
-                                                    df_dict=df_dict,
-                                                    suffix=eachvardf, 
-                                                    start_date=subset_start_date, 
-                                                    end_date=subset_end_date))
-    return df_dict
+    for eachvardf in df_dict.keys():
+        if eachvardf.endswith(gridclimname):
+            df_dict.update(aggregate_space_time_average(VarTable=df_dict[eachvardf],
+                                                        df_dict=df_dict,
+                                                        suffix=eachvardf, 
+                                                        start_date=subset_start_date, 
+                                                        end_date=subset_end_date))
+    return(df_dict)
 
 
 def compute_diffs(df_dict, df_str, gridclimname1, gridclimname2, prefix1, prefix2='meanmonth'):
-    #Compute difference between monthly means for some data (e.g,. Temp and precip) for two different gridded datasets (e.g., Liv, WRF)
+    #Compute difference between monthly means for some data (e.g,. Temp) for two different gridded datasets (e.g., Liv, WRF)
     
     comp_dict=dict()
     for each1 in prefix1:
         for each2 in prefix2:
             comp_dict['_'.join([str(each1),df_str])] = df_dict['_'.join([each2,each1,gridclimname1])]-df_dict['_'.join([each2,each1,gridclimname2])]
-    return comp_dict
+    return(comp_dict)
+
 
 def compute_ratios(df_dict, df_str, gridclimname1, gridclimname2, prefix1, prefix2='meanmonth'):
-    #Compute difference between monthly means for some data (e.g,. Temp and precip) for two different gridded datasets (e.g., Liv, WRF)
+    #Compute difference between monthly means for some data (e.g,. Temp) for two different gridded datasets (e.g., Liv, WRF)
     
     comp_dict=dict()
     for each1 in prefix1:
         for each2 in prefix2:
             comp_dict['_'.join([str(each1),df_str])] = df_dict['_'.join([each2,each1,gridclimname1])]/df_dict['_'.join([each2,each1,gridclimname2])]
-    return comp_dict
+    return(comp_dict)
+
 
 def compute_elev_diffs(df_dict, df_str, gridclimname1, prefix1, prefix2a='meanmonth_minelev_', prefix2b='meanmonth_maxelev_'):
     comp_dict=dict()
     for each1 in prefix1:
         comp_dict[str(each1)+df_str] = df_dict[prefix2a+each1+gridclimname1]-df_dict[prefix2b+each1+gridclimname1]
-    return comp_dict
+    return(comp_dict)
 
 
 def monthlyBiasCorrection_deltaTratioP_Livneh_METinput(homedir, mappingfile, BiasCorr,
@@ -1806,9 +1805,6 @@ def monthlyBiasCorrection_WRFlongtermmean_elevationbins_METinput(homedir, mappin
         s2 = pd.Series(month_obj.Tmax)
         s3 = pd.Series(month_obj.precip)
         
-        #print('grabbing the S vector of monthlapse after the merge between month and Tcorr_df')
-        #print('number of corrections to apply: '+str(len(month)))
-
         read_dat['Tmin'] = np.array(read_dat.Tmin)+np.array(s1)
         read_dat['Tmax'] = np.array(read_dat.Tmax)+np.array(s2)
         read_dat['precip'] = np.array(read_dat.precip)*np.array(s3)
@@ -1928,7 +1924,7 @@ def makebelieve(homedir, mappingfile, BiasCorr, metadata, start_catalog_label, e
     print('mission complete. this device will now self-destruct.')
     print('just kidding.')
 
-    return dest_dir, metadata
+    return(dest_dir, metadata)
 
 
 def plot_meanP(dictionary, loc_name, start_date, end_date):
