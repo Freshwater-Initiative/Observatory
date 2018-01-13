@@ -922,9 +922,13 @@ def read_files_to_vardf(map_df, df_dict, gridclimname, dataset, metadata,
     # start time
     starttime = pd.datetime.now()
     
-    ## date range from ogh_meta file
+    # date range from ogh_meta file
     met_daily_dates=pd.date_range(file_start_date, file_end_date, freq=file_time_step)
     met_daily_subdates=pd.date_range(subset_start_date, subset_end_date, freq=file_time_step)
+    
+    # omit null entries or missing data file
+    map_df = map_df.loc[pd.notnull(map_df[dataset]),:]
+    print('Number of data files within elevation range ('+str(min_elev)+':'+str(max_elev)'): '+str(len(locations_df)))
     
     # iterate through each data file
     for eachvar in metadata[dataset]['variable_list']:
@@ -934,7 +938,7 @@ def read_files_to_vardf(map_df, df_dict, gridclimname, dataset, metadata,
 
         # identify the variable column index
         usecols = [metadata[dataset]['variable_list'].index(eachvar)]
-
+        
         # loop through each file
         for ind, row in map_df.iterrows():
 
@@ -1567,7 +1571,7 @@ def gridclim_dict(mappingfile, dataset, gridclimname=None, metadata=None, min_el
     
     # assemble the stations within min and max elevantion ranges
     locations_df = locations_df[(locations_df.ELEV >= min_elev) & (locations_df.ELEV <= max_elev)]
-
+    
     # create dictionary of dataframe
     df_dict = read_files_to_vardf(map_df=locations_df,
                                   dataset=dataset, 
@@ -1581,15 +1585,22 @@ def gridclim_dict(mappingfile, dataset, gridclimname=None, metadata=None, min_el
                                   subset_start_date=subset_start_date, 
                                   subset_end_date=subset_end_date,
                                   df_dict=df_dict)
-    
+    # 
+    vardf_list = [eachvardf for eachvardf in df_dict.keys() if eachvardf.endswith(gridclimname)]
     # loop through the dictionary to compute each aggregate_space_time_average object
-    for eachvardf in df_dict.keys():
-        if eachvardf.endswith(gridclimname):
-            df_dict.update(aggregate_space_time_average(VarTable=df_dict[eachvardf],
-                                                        df_dict=df_dict,
-                                                        suffix=eachvardf, 
-                                                        start_date=subset_start_date, 
-                                                        end_date=subset_end_date))
+    for eachvardf in vardf_list:
+            
+        # update the dictionary with spatial and temporal average computations
+        df_dict.update(aggregate_space_time_average(VarTable=df_dict[eachvardf],
+                                                    df_dict=df_dict,
+                                                    suffix=eachvardf, 
+                                                    start_date=subset_start_date, 
+                                                    end_date=subset_end_date))
+            
+        # if the number of stations exceeds 500, remove daily time-series dataframe
+        if len(locations_df)>500:
+            del df_dict[eachvardf]
+                
     return(df_dict)
 
 
