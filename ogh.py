@@ -1,6 +1,5 @@
 # Import python modules
-import os
-import sys
+import os, sys
 
 # data handling libraries
 import pandas as pd
@@ -29,9 +28,7 @@ import geopandas as gpd
 
 # data wrangling libraries
 # import urllib2
-import ftplib
-import wget
-import bz2
+import ftplib, wget, bz2
 from bs4 import BeautifulSoup as bs
 
 # print('Version '+datetime.fromtimestamp(os.path.getmtime('ogh.py')).strftime('%Y-%m-%d %H:%M:%S')+' jp')
@@ -133,7 +130,7 @@ def filterPointsinShape(shape, points_lat, points_lon, points_elev=None,
             limited_list.append([lat, lon, elev])
     maptable = pd.DataFrame.from_records(limited_list, columns=labels)
     print('Number of gridded points/files: '+ str(len(maptable)))
-    return maptable
+    return(maptable)
 
 
 def scrapeurl(url, startswith=None, hasKeyword=None):
@@ -193,7 +190,7 @@ def treatgeoself(shapefile, NAmer, folder_path=os.getcwd(), outfilename='mapping
     # print the mappingfile
     mappingfile=os.path.join(folder_path, outfilename)
     maptable.to_csv(mappingfile, sep=',', header=True, index=False)
-    return mappingfile
+    return(mappingfile)
 
 
 def mapContentFolder(resid):
@@ -203,7 +200,7 @@ def mapContentFolder(resid):
     resid: (str) a string hash that represents the hydroshare resource that has been migrated
     """
     path = os.path.join('/home/jovyan/work/notebooks/data', str(resid), str(resid), 'data/contents')
-    return path
+    return(path)
 
 
 # ### CIG (DHSVM)-oriented functions
@@ -220,7 +217,7 @@ def compile_bc_Livneh2013_locations(maptable):
         basename='_'.join(['data', str(row['LAT']), str(row['LONG_'])])
         url=['http://cses.washington.edu/rocinante/Livneh/bcLivneh_WWA_2013/forcings_ascii/',basename]
         locations.append(''.join(url))
-    return locations2013
+    return(locations)
 
 
 def compile_Livneh2013_locations(maptable):
@@ -234,7 +231,7 @@ def compile_Livneh2013_locations(maptable):
         basename='_'.join(['data', str(row['LAT']), str(row['LONG_'])])
         url=['http://www.cses.washington.edu/rocinante/Livneh/Livneh_WWA_2013/forcs_dhsvm/',basename]
         locations.append(''.join(url))
-    return locations
+    return(locations)
 
 
 ### VIC-oriented functions
@@ -251,7 +248,7 @@ def compile_VICASCII_Livneh2015_locations(maptable):
         loci='_'.join(['Fluxes_Livneh_NAmerExt_15Oct2014', str(row['LAT']), str(row['LONG_'])])
         url=["ftp://192.12.137.7/pub/dcp/archive/OBS/livneh2014.1_16deg/VIC.ASCII/latitude.",str(row['LAT']),'/',loci,'.bz2']
         locations.append(''.join(url))
-    return locations
+    return(locations)
 
 
 def compile_VICASCII_Livneh2013_locations(maptable):
@@ -271,9 +268,9 @@ def compile_VICASCII_Livneh2013_locations(maptable):
     locations=[]
     for ind, row in maptable.iterrows():
         loci='_'.join(['VIC_fluxes_Livneh_CONUSExt_v.1.2_2013', str(row['LAT']), str(row['LONG_'])])
-        url='/'.join(["ftp://livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2/", row['block'], loci+".bz2"])
+        url='/'.join(["ftp://livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2", str(row['block']), loci+".bz2"])
         locations.append(url)
-    return locations
+    return(locations)
 
 
 ### Climate (Meteorological observations)-oriented functions
@@ -283,7 +280,7 @@ def canadabox_bc():
     Establish the Canadian (north of the US bounding boxes) Columbia river basin bounding box
     """
     # left, bottom, right top
-    return box(-138.0, 49.0, -114.0, 53.0)
+    return(box(-138.0, 49.0, -114.0, 53.0))
 
 def scrape_domain(domain, subdomain, startswith=None):
     """
@@ -307,8 +304,9 @@ def scrape_domain(domain, subdomain, startswith=None):
     tmp = tmp.apply(lambda x: list(map(float,x)) if len(x)>2 else x)
 
     # assemble the boxes
-    geodf['bbox']=tmp.apply(lambda x: box(x[0]*-1, x[2], x[1]*-1, x[3]) if len(x)>2 else canadabox_bc())
-    return geodf
+    geodf['bbox']=tmp.apply(lambda x: box(x[0]*-1, x[2]-1, x[1]*-1, x[3]) if len(x)>2 else canadabox_bc())
+    return(geodf)
+
 
 def mapToBlock(df_points, df_regions):
     
@@ -316,8 +314,8 @@ def mapToBlock(df_points, df_regions):
         for ind, row in df_points.iterrows():
             if point.Point(row['LONG_'], row['LAT']).intersects(eachblock['bbox']):
                 df_points.loc[ind, 'block'] = str(eachblock['dirname'])
-    
-    return df_points
+    return(df_points)
+
 
 def compile_dailyMET_Livneh2013_locations(maptable):
     """
@@ -336,9 +334,9 @@ def compile_dailyMET_Livneh2013_locations(maptable):
     locations=[]
     for ind, row in maptable.iterrows():
         loci='_'.join(['Meteorology_Livneh_CONUSExt_v.1.2_2013', str(row['LAT']), str(row['LONG_'])])
-        url='/'.join(["ftp://livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset/Meteorology.asc.v.1.2.1915.2011.bz2/", row['block'], loci+".bz2"])
+        url='/'.join(["ftp://livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset/Meteorology.asc.v.1.2.1915.2011.bz2", str(row['block']), loci+".bz2"])
         locations.append(url)
-    return locations
+    return(locations)
 
 
 def compile_dailyMET_Livneh2015_locations(maptable):
@@ -352,7 +350,7 @@ def compile_dailyMET_Livneh2015_locations(maptable):
         loci='_'.join(['Meteorology_Livneh_NAmerExt_15Oct2014', str(row['LAT']), str(row['LONG_'])])
         url=["ftp://192.12.137.7/pub/dcp/archive/OBS/livneh2014.1_16deg/ascii/daily/latitude.", str(row['LAT']),"/",loci,".bz2"]
         locations.append(''.join(url))
-    return locations
+    return(locations)
 
 
 # ### WRF-oriented functions
@@ -369,7 +367,7 @@ def compile_wrfnnrp_raw_Salathe2014_locations(maptable):
         basename='_'.join(['data', str(row['LAT']), str(row['LONG_'])])
         url=['http://cses.washington.edu/rocinante/WRF/NNRP/vic_16d/WWA_1950_2010/raw/forcings_ascii/',basename]
         locations.append(''.join(url))
-    return locations
+    return(locations)
 
 
 def compile_wrfnnrp_bc_Salathe2014_locations(maptable):
@@ -383,7 +381,7 @@ def compile_wrfnnrp_bc_Salathe2014_locations(maptable):
         basename='_'.join(['data', str(row['LAT']), str(row['LONG_'])])
         url=['http://cses.washington.edu/rocinante/WRF/NNRP/vic_16d/WWA_1950_2010/bc/forcings_ascii/',basename]
         locations.append(''.join(url))
-    return locations
+    return(locations)
 
 
 # ## Data file migration functions
@@ -504,7 +502,7 @@ def ftp_download_one(loci):
         print('File does not exist at this URL: '+fileurl)
 
         
-def ftp_download_p(listofinterest, nworkers=10):
+def ftp_download_p(listofinterest, nworkers=5):
     """
     Download and decompress files from an ftp domain in parallel
     
@@ -551,7 +549,7 @@ def catalogfiles(folderpath):
 
         # convert the filenames column to a filepath
         catalog['filenames'] = catalog['filenames'].apply(lambda x: os.path.join(folderpath, x))
-    return catalog
+    return(catalog)
 
 
 def addCatalogToMap(outfilepath, maptable, folderpath, catalog_label):
@@ -607,7 +605,7 @@ def getDailyMET_livneh2013(homedir, mappingfile, subdir='livneh2013/Daily_MET_19
 
     # return to the home directory
     os.chdir(homedir)
-    return filedir
+    return(filedir)
 
 
 def getDailyMET_livneh2015(homedir, mappingfile, subdir='livneh2015/Daily_MET_1950_2013/raw', catalog_label='dailymet_livneh2015'):
@@ -637,7 +635,7 @@ def getDailyMET_livneh2015(homedir, mappingfile, subdir='livneh2015/Daily_MET_19
     
     # return to the home directory
     os.chdir(homedir)
-    return filedir
+    return(filedir)
 
 
 def getDailyMET_bcLivneh2013(homedir, mappingfile, subdir='livneh2013/Daily_MET_1915_2011/bc', catalog_label='dailymet_bclivneh2013'):
@@ -667,7 +665,7 @@ def getDailyMET_bcLivneh2013(homedir, mappingfile, subdir='livneh2013/Daily_MET_
     
     # return to the home directory
     os.chdir(homedir)
-    return filedir
+    return(filedir)
 
 
 def getDailyVIC_livneh2013(homedir, mappingfile, subdir='livneh2013/Daily_VIC_1915_2011', catalog_label='dailyvic_livneh2013'):
@@ -698,7 +696,7 @@ def getDailyVIC_livneh2013(homedir, mappingfile, subdir='livneh2013/Daily_VIC_19
     
     # return to the home directory
     os.chdir(homedir)
-    return filedir
+    return(filedir)
 
 
 def getDailyVIC_livneh2015(homedir, mappingfile, subdir='livneh2015/Daily_VIC_1950_2013', catalog_label='dailyvic_livneh2015'):
@@ -728,7 +726,7 @@ def getDailyVIC_livneh2015(homedir, mappingfile, subdir='livneh2015/Daily_VIC_19
     
     # return to the home directory
     os.chdir(homedir)
-    return filedir
+    return(filedir)
 
 
 def getDailyWRF_salathe2014(homedir, mappingfile, subdir='salathe2014/WWA_1950_2010/raw', catalog_label='dailywrf_salathe2014'):
@@ -758,7 +756,7 @@ def getDailyWRF_salathe2014(homedir, mappingfile, subdir='salathe2014/WWA_1950_2
     
     # return to the home directory
     os.chdir(homedir)
-    return filedir
+    return(filedir)
 
 
 def getDailyWRF_bcsalathe2014(homedir, mappingfile, subdir='salathe2014/WWA_1950_2010/bc', catalog_label='dailywrf_bcsalathe2014'):
@@ -788,7 +786,7 @@ def getDailyWRF_bcsalathe2014(homedir, mappingfile, subdir='salathe2014/WWA_1950
     
     # return to the home directory
     os.chdir(homedir)
-    return filedir
+    return(filedir)
 
 
 # # Data Processing libraries
@@ -800,11 +798,9 @@ def filesWithPath(folderpath):
     
     folderpath: (dir) the folder of interest
     """
-    files =[os.path.join(folderpath, eachfile) 
-            for eachfile in os.listdir(folderpath) 
-            if not eachfile.startswith('.') # exclude hidden files
-            and not os.path.isdir(eachfile)] # exclude subdirectories
-    return files
+    files =[os.path.join(folderpath, eachfile) for eachfile in os.listdir(folderpath) 
+            if not eachfile.startswith('.') and not os.path.isdir(eachfile)] # exclude hidden files
+    return(files)
 
 
 def compareonvar(map_df, colvar='all'):
@@ -816,14 +812,14 @@ def compareonvar(map_df, colvar='all'):
     """
     # apply row-wise inclusion based on a subset of columns
     if pd.isnull(colvar):
-        return map_df
+        return(map_df)
     
     if colvar is 'all':
         # compare on all columns except the station info
-        return map_df.dropna()
+        return(map_df.dropna())
     else:
         # compare on only the listed columns
-        return map_df.dropna(subset=colvar)
+        return(map_df.dropna(subset=colvar))
 
 
 def mappingfileToDF(mappingfile, colvar='all'):
@@ -847,7 +843,7 @@ def mappingfileToDF(mappingfile, colvar='all'):
     print('Mean elevation: '+ str(np.mean(map_df.ELEV))+ 'm')
     print('Maximum elevation: '+ str(np.max(map_df.ELEV))+ 'm')
     
-    return map_df, len(map_df)
+    return(map_df, len(map_df))
 
 
 def read_in_all_files(map_df, dataset, metadata, file_start_date, file_end_date, file_time_step, file_colnames, file_delimiter, subset_start_date, subset_end_date):
@@ -897,12 +893,12 @@ def read_in_all_files(map_df, dataset, metadata, file_start_date, file_end_date,
         # set row indices
         df_dict[tuple(row[['FID','LAT','LONG_']].tolist())] = tmp
         
-    return df_dict
+    return(df_dict)
 
 
 def read_files_to_vardf(map_df, df_dict, gridclimname, dataset, metadata, 
                         file_start_date, file_end_date, file_delimiter, file_time_step, file_colnames, 
-                        subset_start_date, subset_end_date):
+                        subset_start_date, subset_end_date, min_elev, max_elev):
     """
     # reads in the files to generate variables dataframes
     
@@ -928,7 +924,7 @@ def read_files_to_vardf(map_df, df_dict, gridclimname, dataset, metadata,
     
     # omit null entries or missing data file
     map_df = map_df.loc[pd.notnull(map_df[dataset]),:]
-    print('Number of data files within elevation range ('+str(min_elev)+':'+str(max_elev)+'): '+str(len(locations_df)))
+    print('Number of data files within elevation range ('+str(min_elev)+':'+str(max_elev)+'): '+str(len(map_df)))
     
     # iterate through each data file
     for eachvar in metadata[dataset]['variable_list']:
@@ -1224,7 +1220,8 @@ def aggregate_space_time_average(VarTable, df_dict, suffix, start_date, end_date
     df_dict['anom_year_'+suffix] = df_dict['meanyear_'+suffix] - df_dict['meanallyear_'+suffix]
     
     print(suffix+ ' calculations completed in ' + str(pd.datetime.now()-starttime))
-    return df_dict
+    return(df_dict)
+
 
 def aggregate_space_time_sum(VarTable, n_stations, start_date, end_date):
     Var_daily = VarTable.loc[start_date:end_date, range(0,n_stations)]
@@ -1584,6 +1581,8 @@ def gridclim_dict(mappingfile, dataset, gridclimname=None, metadata=None, min_el
                                   file_colnames=file_colnames, 
                                   subset_start_date=subset_start_date, 
                                   subset_end_date=subset_end_date,
+                                  min_elev=min_elev, 
+                                  max_elev=max_elev,
                                   df_dict=df_dict)
     # 
     vardf_list = [eachvardf for eachvardf in df_dict.keys() if eachvardf.endswith(gridclimname)]
@@ -2202,4 +2201,4 @@ def findStationCode(mappingfile, colvar, colvalue):
     """
     mapdf = pd.read_csv(mappingfile)
     outcome = mapdf.loc[mapdf[colvar]==colvalue, :][['FID','LAT','LONG_']].set_index('FID')
-    return outcome.to_records()
+    return(outcome.to_records())
