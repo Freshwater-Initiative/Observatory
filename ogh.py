@@ -910,7 +910,7 @@ def read_files_to_vardf(map_df, df_dict, gridclimname, dataset, metadata,
     df_dict: (dict) an existing dictionary where new computations will be stored
     gridclimname: (str) the suffix for the dataset to be named; if None is provided, default to the dataset name
     dataset: (str) the name of the dataset catalogged into map_df
-    metadata (str) the dictionary that contains the metadata explanations; default is None
+    metadata: (str) the dictionary that contains the metadata explanations; default is None
     file_start_date: (date) the start date of the files that will be read-in; default is None
     file_end_date: (date) the end date for the files that will be read in; default is None
     file_delimiter: (str) a file parsing character to be used for file reading
@@ -928,7 +928,7 @@ def read_files_to_vardf(map_df, df_dict, gridclimname, dataset, metadata,
     
     # omit null entries or missing data file
     map_df = map_df.loc[pd.notnull(map_df[dataset]),:]
-    print('Number of data files within elevation range ('+str(min_elev)+':'+str(max_elev)'): '+str(len(locations_df)))
+    print('Number of data files within elevation range ('+str(min_elev)+':'+str(max_elev)+'): '+str(len(locations_df)))
     
     # iterate through each data file
     for eachvar in metadata[dataset]['variable_list']:
