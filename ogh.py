@@ -2,14 +2,13 @@
 import os, sys
 
 # data handling libraries
+import pickle
 import pandas as pd
 import numpy as np
-import collections as col
-from datetime import datetime, timedelta
-import pickle
+
+# parallel computing
 import dask
 from dask import delayed
-import dask.dataframe as dd
 from multiprocessing import Pool
 
 # graphical control libraries
@@ -18,16 +17,16 @@ mpl.use('agg')
 import matplotlib.pyplot as plt
 
 # shape and layer libraries
+#from mpl_toolkits.axes_grid1 import make_axes_locatable
 import fiona
 from shapely.geometry import MultiPolygon, shape, point, box
 from descartes import PolygonPatch
 from matplotlib.collections import PatchCollection
 from mpl_toolkits.basemap import Basemap
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 import geopandas as gpd
 
 # data wrangling libraries
-# import urllib2
+#import urllib2
 import ftplib, wget, bz2
 from bs4 import BeautifulSoup as bs
 
@@ -93,6 +92,7 @@ def readShapefileTable(shapefile):
     
     shapefile: (dir) a path to the ESRI .shp shapefile
     """
+    #cent_df = gpd.read_file(shapefile)
     shp = fiona.open(shapefile)
     centroid = [eachpol['properties'] for eachpol in shp]
     cent_df = pd.DataFrame.from_dict(centroid, orient='columns')
@@ -100,8 +100,8 @@ def readShapefileTable(shapefile):
     return(cent_df)
 
 
-def filterPointsinShape(shape, points_lat, points_lon, points_elev=None,
-                        buffer_distance=0.06, buffer_resolution=16, labels=['LAT', 'LONG_', 'ELEV']):
+def filterPointsinShape(shape, points_lat, points_lon, points_elev=None, buffer_distance=0.06, buffer_resolution=16, 
+                        labels=['LAT', 'LONG_', 'ELEV']):
     """
     filter for datafiles that can be used
     
@@ -117,19 +117,26 @@ def filterPointsinShape(shape, points_lat, points_lon, points_elev=None,
     region = shape.buffer(buffer_distance, resolution=buffer_resolution)
     
     # construct points_elev if null
-    if pd.isnull(points_elev):
+    if isinstance(points_elev, type(None)):
         points_elev=np.repeat(np.nan, len(points_lon))
         
     # Intersection each coordinate with the region
     limited_list = []
-    
-    # loop through each spatial point
     for lon, lat, elev in zip(points_lon, points_lat, points_elev):
         gpoint = point.Point(lon, lat)
         if gpoint.intersects(region):
             limited_list.append([lat, lon, elev])
     maptable = pd.DataFrame.from_records(limited_list, columns=labels)
-    print('Number of gridded points/files: '+ str(len(maptable)))
+        
+    ## dask approach ##
+    #for lon, lat, elev in zip(points_lon, points_lat, points_elev):
+        #gpoint = point.Point(lon, lat)
+        #intersection = delayed(gpoint.intersects(region))
+        #limited_list.append([intersection, lat, lon, elev])
+    # convert to dataframe
+    #maptable = pd.DataFrame.from_records(dask.compute(limited_list)[0], columns=['intersection']+labels)
+    #maptable = maptable.loc[maptable['intersection'],:]
+    #maptable = maptable.drop(columns=['intersection']).reset_index(drop=1)
     return(maptable)
 
 
@@ -1603,20 +1610,24 @@ def gridclim_dict(mappingfile, dataset, gridclimname=None, metadata=None, min_el
     return(df_dict)
 
 
-def compute_diffs(df_dict, df_str, gridclimname1, gridclimname2, prefix1, prefix2='meanmonth'):
+def compute_diffs(df_dict, df_str, gridclimname1, gridclimname2, prefix1, prefix2='meanmonth', comp_dict=None):
     #Compute difference between monthly means for some data (e.g,. Temp) for two different gridded datasets (e.g., Liv, WRF)
     
-    comp_dict=dict()
+    if isinstance(comp_dict, type(None)):
+        comp_dict=dict()
+        
     for each1 in prefix1:
         for each2 in prefix2:
             comp_dict['_'.join([str(each1),df_str])] = df_dict['_'.join([each2,each1,gridclimname1])]-df_dict['_'.join([each2,each1,gridclimname2])]
     return(comp_dict)
 
 
-def compute_ratios(df_dict, df_str, gridclimname1, gridclimname2, prefix1, prefix2='meanmonth'):
+def compute_ratios(df_dict, df_str, gridclimname1, gridclimname2, prefix1, prefix2='meanmonth', comp_dict=None):
     #Compute difference between monthly means for some data (e.g,. Temp) for two different gridded datasets (e.g., Liv, WRF)
     
-    comp_dict=dict()
+    if isinstance(comp_dict, type(None)):
+        comp_dict=dict()
+    
     for each1 in prefix1:
         for each2 in prefix2:
             comp_dict['_'.join([str(each1),df_str])] = df_dict['_'.join([each2,each1,gridclimname1])]/df_dict['_'.join([each2,each1,gridclimname2])]
