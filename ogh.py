@@ -2,13 +2,12 @@
 import os, sys
 
 # data handling libraries
-import pickle
 import pandas as pd
 import numpy as np
-
-# parallel computing
+from datetime import datetime, timedelta
+import pickle
+import json
 import dask
-from dask import delayed
 from multiprocessing import Pool
 
 # graphical control libraries
@@ -17,18 +16,36 @@ mpl.use('agg')
 import matplotlib.pyplot as plt
 
 # shape and layer libraries
-#from mpl_toolkits.axes_grid1 import make_axes_locatable
 import fiona
 from shapely.geometry import MultiPolygon, shape, point, box
 from descartes import PolygonPatch
 from matplotlib.collections import PatchCollection
 from mpl_toolkits.basemap import Basemap
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import geopandas as gpd
 
 # data wrangling libraries
-#import urllib2
+# import urllib2
 import ftplib, wget, bz2
 from bs4 import BeautifulSoup as bs
+
+
+class ogh_meta:
+    """
+    The json file that describes the Climate data product resources
+    """
+    def __init__(self):
+        self.__meta_data = dict(json.load(open('ogh_meta.json')))
+    
+    def keys(self):
+        return(self.__meta_data.keys())
+    
+    def values(self):
+        return(self.__meta_data.values())
+    
+    def __getitem__(self, key):
+        return(self.__meta_data[key])
+               
 
 # print('Version '+datetime.fromtimestamp(os.path.getmtime('ogh.py')).strftime('%Y-%m-%d %H:%M:%S')+' jp')
 
@@ -53,7 +70,7 @@ def reprojShapefile(sourcepath, newprojdictionary={'proj':'longlat', 'ellps':'WG
     """
     
     # if outpath is none, treat the reprojection as a file replacement
-    if outpath is None:
+    if isinstance(outpath, type(None)):
         outpath = sourcepath
         
     shpfile = gpd.GeoDataFrame.from_file(sourcepath)
@@ -127,16 +144,17 @@ def filterPointsinShape(shape, points_lat, points_lon, points_elev=None, buffer_
         if gpoint.intersects(region):
             limited_list.append([lat, lon, elev])
     maptable = pd.DataFrame.from_records(limited_list, columns=labels)
-        
+    
     ## dask approach ##
+    #intersection=[]
     #for lon, lat, elev in zip(points_lon, points_lat, points_elev):
-        #gpoint = point.Point(lon, lat)
-        #intersection = delayed(gpoint.intersects(region))
-        #limited_list.append([intersection, lat, lon, elev])
+    #    gpoint = point.Point(lon, lat)
+    #    intersection.append(dask.delayed(gpoint.intersects(region)))
+    #    limited_list.append([intersection, lat, lon, elev])
     # convert to dataframe
-    #maptable = pd.DataFrame.from_records(dask.compute(limited_list)[0], columns=['intersection']+labels)
-    #maptable = maptable.loc[maptable['intersection'],:]
-    #maptable = maptable.drop(columns=['intersection']).reset_index(drop=1)
+    #maptable = pd.DataFrame({labels[0]:points_lat, labels[1]:points_lon, labels[2]:points_elev}
+    #                        .loc[dask.compute(intersection)[0],:]
+    #                        .reset_index(drop=True)
     return(maptable)
 
 
@@ -818,7 +836,7 @@ def compareonvar(map_df, colvar='all'):
     colvar: (str or list) the column(s) to use for subsetting; 'None' will return an outerjoin, 'all' will return an innerjoin
     """
     # apply row-wise inclusion based on a subset of columns
-    if pd.isnull(colvar):
+    if isinstance(colvar, type(None)):
         return(map_df)
     
     if colvar is 'all':
@@ -870,19 +888,19 @@ def read_in_all_files(map_df, dataset, metadata, file_start_date, file_end_date,
     # extract metadata if the information are not provided
     if pd.notnull(metadata):
         
-        if file_start_date is None:
+        if isinstance(file_start_date, type(None)):
             file_start_date = metadata[dataset]['date_range']['start']
         
-        if file_end_date is None:
+        if isinstance(file_end_date, type(None)):
             file_end_date = metadata[dataset]['date_range']['end']
 
-        if file_time_step is None:
+        if isinstance(file_time_step, type(None)):
             file_time_step = metadata[dataset]['date_range']['time_step']
 
-        if file_colnames is None:
+        if isinstance(file_colnames, type(None)):
             file_colnames = metadata[dataset]['variable_list']
         
-        if file_delimiter is None:
+        if isinstance(file_delimiter, type(None)):
             file_delimiter = metadata[dataset]['delimiter']
    
     #initialize dictionary and time sequence
@@ -895,7 +913,7 @@ def read_in_all_files(map_df, dataset, metadata, file_start_date, file_end_date,
         tmp.set_index(met_daily_dates, inplace=True)
         
         # subset to the date range of interest (default is file date range)
-        tmp = tmp.ix[subset_start_date:subset_end_date]
+        tmp = tmp.iloc[(met_daily_dates>=subset_start_date) && (met_daily_dates<=subset_end_date),:]
         
         # set row indices
         df_dict[tuple(row[['FID','LAT','LONG_']].tolist())] = tmp
@@ -936,27 +954,25 @@ def read_files_to_vardf(map_df, df_dict, gridclimname, dataset, metadata,
     # iterate through each data file
     for eachvar in metadata[dataset]['variable_list']:
 
-        # initiate df as a dask dataframe
-        df_list=[]
-
         # identify the variable column index
         usecols = [metadata[dataset]['variable_list'].index(eachvar)]
+        
+        # initiate df as a list
+        df_list=[]
         
         # loop through each file
         for ind, row in map_df.iterrows():
 
             # consider rewriting the params to just select one column by index at a time
-            var_series = delayed(pd.read_table)(filepath_or_buffer=row[dataset], 
-                                                delimiter=file_delimiter, 
-                                                header=None,
-                                                usecols=usecols,
-                                                names=[tuple(row[['FID','LAT','LONG_']])])
+            var_series = dask.delayed(pd.read_table)(filepath_or_buffer=row[dataset],
+                                                     delimiter=file_delimiter,header=None,usecols=usecols,
+                                                     names=[tuple(row[['FID','LAT','LONG_']])])
 
             # append the series into the list of series
             df_list.append(var_series)
 
         # concatenate list of series (axis=1 is column-wise) into a dataframe
-        df1 = delayed(pd.concat)(df_list, axis=1)
+        df1 = dask.delayed(pd.concat)(df_list, axis=1)
 
         # set and subset date_range index
         df2 = df1.set_index(met_daily_dates, inplace=False).loc[met_daily_subdates]
@@ -966,7 +982,7 @@ def read_files_to_vardf(map_df, df_dict, gridclimname, dataset, metadata,
         
         # assign dataframe to dictionary object
         df_dict['_'.join([eachvar, gridclimname])] = dask.compute(df2)[0]
-        print('Reading complete:' + str(pd.datetime.now()-starttime))
+        print(eachvar+ ' dataframe complete:' + str(pd.datetime.now()-starttime))
 
     return(df_dict)
 
@@ -1392,117 +1408,6 @@ def plotPavg(dictionary, loc_name, start_date, end_date):
     plt.savefig('avg_monthly_precip'+str(loc_name)+'.png')
     plt.show()
     
-    
-#def gridclim_dict_old(gridclim_folder,
-#                  mappingfile,
-#                  loc_name=None,
-#                  gridclimname=None, dataset=None, 
-#                  metadata=None,
-#                  min_elev=None, max_elev=None,
-#                  file_start_date=None, file_end_date=None, file_time_step=None, 
-#                  file_colnames=None, file_delimiter=None,
-#                  subset_start_date=None, subset_end_date=None,
-#                  df_dict=None):
-#    """
-#    # pipelined operation for assimilating data, processing it, and standardizing the plotting
-#    
-#
-#    """
-#
-#    # generate the climate locations and n_stations
-#    locations_df, n_stations = mappingfileToDF(mappingfile, colvar='all')
-#    
-#    # generate the climate station info
-#    if pd.isnull(min_elev):
-#        min_elev = locations_df.ELEV.min()
-#    
-#    if pd.isnull(max_elev):
-#        max_elev = locations_df.ELEV.max()
-#    
-#    # extract metadata if the information are not provided
-#    if pd.notnull(metadata):
-#        
-#        if file_start_date is None:
-#            file_start_date = metadata[dataset]['date_range']['start']
-#        
-#        if file_end_date is None:
-#            file_end_date = metadata[dataset]['date_range']['end']
-#
-#        if file_time_step is None:
-#            file_time_step = metadata[dataset]['date_range']['time_step']
-#
-#        if file_colnames is None:
-#            file_colnames = metadata[dataset]['variable_list']
-#        
-#        if file_delimiter is None:
-#            file_delimiter = metadata[dataset]['delimiter']
-#        
-#    # take all defaults if subset references are null
-#    if pd.isnull(subset_start_date):
-#        subset_start_date = file_start_date
-#    
-#    if pd.isnull(subset_end_date):
-#        subset_end_date = file_end_date
-#        
-#    # initiate output dictionary df_dict was null
-#    if pd.isnull(df_dict):
-#        df_dict = dict()
-#        
-#    if pd.isnull(gridclimname):
-#        if pd.notnull(dataset):
-#            gridclimname=dataset
-#        else:
-#            print('no suffix name provided. Provide a gridclimname or dataset label.')
-#            return
-#    
-#    # assemble the stations
-#    analysis_stations_info = locations_df[(locations_df.ELEV >= min_elev) & (locations_df.ELEV <= max_elev)].sort_values(by='ELEV', ascending=False)
-#
-#    # the number of stations to include into the top and bottom elevation ranges
-#    x = np.ceil(len(analysis_stations_info.ELEV)*.33)
-#
-#    # Extract list of station numbers for indexing. Alternative, you can set the list of stations manually!
-#    analysis_elev_max_station = analysis_stations_info.FID.head(int(x)).tolist()
-#    analysis_elev_min_station = analysis_stations_info.FID.tail(int(x)).tolist()
-#    analysis_elev_mid_station = [k for k in analysis_stations_info.FID if k not in analysis_elev_max_station + analysis_elev_min_station]
-#
-#    df_dict['analysis_elev_max'] = analysis_stations_info.ELEV.max() # maximum elevation of stations in analysis
-#    df_dict['analysis_elev_max_cutoff'] = analysis_stations_info.ELEV.head(int(x)).min()
-#    df_dict['analysis_elev_min_cutoff'] = analysis_stations_info.ELEV.tail(int(x)).max()
-#    df_dict['analysis_elev_min'] = analysis_stations_info.ELEV.min() # minimum elevation of stations in analysis
-#    
-#    # create dictionary of dataframe
-#    file_dict = read_in_all_files(map_df=locations_df,
-#                                  dataset=dataset, 
-#                                  metadata=metadata, 
-#                                  file_start_date=file_start_date, 
-#                                  file_end_date=file_end_date, 
-#                                  file_delimiter=file_delimiter, 
-#                                  file_time_step=file_time_step, 
-#                                  file_colnames=file_colnames, 
-#                                  subset_start_date=subset_start_date, 
-#                                  subset_end_date=subset_end_date)
-#    
-#    # assemble the variable dataframes to the dictionary
-#    df_dict = generateVarTables(file_dict=file_dict, gridclimname=gridclimname, dataset=dataset, metadata=metadata, df_dict=df_dict)
-#    
-#    # loop through the dictionary to compute each aggregate_space_time_average object
-#    keys_now = [eachkey for eachkey in df_dict.keys() if eachkey.endswith(gridclimname)]
-#    for eachvardf in keys_now:
-#        df_dict = aggregate_space_time_average(VarTable=df_dict[eachvardf],
-#                                               df_dict=df_dict,
-#                                               suffix=eachvardf,
-#                                               elev_min_station=analysis_elev_min_station,
-#                                               elev_mid_station=analysis_elev_mid_station,
-#                                               elev_max_station=analysis_elev_max_station, 
-#                                               start_date=subset_start_date, 
-#                                               end_date=subset_end_date)
-#
-#    # generate plots
-#    #plotTavg(df_dict, loc_name,start_date=subset_start_date, end_date=subset_end_date)
-#    #plotPavg(df_dict, loc_name,start_date=subset_start_date, end_date=subset_end_date)
-#    return df_dict
-
 
 def gridclim_dict(mappingfile, dataset, gridclimname=None, metadata=None, min_elev=None, max_elev=None,
                   file_start_date=None, file_end_date=None, file_time_step=None,
@@ -1538,21 +1443,21 @@ def gridclim_dict(mappingfile, dataset, gridclimname=None, metadata=None, min_el
         max_elev = locations_df.ELEV.max()
     
     # extract metadata if the information are not provided
-    if pd.notnull(metadata):
+    if not isinstance(metadata, type(None)):
         
-        if file_start_date is None:
+        if isinstance(file_start_date, type(None)):
             file_start_date = metadata[dataset]['date_range']['start']
         
-        if file_end_date is None:
+        if isinstance(file_end_date, type(None)):
             file_end_date = metadata[dataset]['date_range']['end']
 
-        if file_time_step is None:
+        if isinstance(file_time_step, type(None)):
             file_time_step = metadata[dataset]['date_range']['time_step']
 
-        if file_colnames is None:
+        if isinstance(file_colnames, type(None)):
             file_colnames = metadata[dataset]['variable_list']
         
-        if file_delimiter is None:
+        if isinstance(file_delimiter, type(None)):
             file_delimiter = metadata[dataset]['delimiter']
         
     # take all defaults if subset references are null
@@ -1650,10 +1555,10 @@ def monthlyBiasCorrection_deltaTratioP_Livneh_METinput(homedir, mappingfile, Bia
     np.set_printoptions(precision=3)
     
     # take liv2013 date set date range as default if file reference dates are not given
-    if file_start_date is None:
+    if isinstance(file_start_date, type(None)):
         file_start_date = datetime(1915,1,1)
         
-    if file_end_date is None:
+    if isinstance(file_end_date, type(None)):
         file_end_date = datetime(2011,12,31)
     
     # generate the month vector
@@ -1756,10 +1661,10 @@ def monthlyBiasCorrection_WRFlongtermmean_elevationbins_METinput(homedir, mappin
     np.set_printoptions(precision=3)
     
     # take liv2013 date set date range as default if file reference dates are not given
-    if file_start_date is None:
+    if isinstance(file_start_date, type(None)):
         file_start_date = datetime(1950,1,1)
         
-    if file_end_date is None:
+    if isinstance(file_end_date, type(None)):
         file_end_date = datetime(2010,12,31)
     
     # generate the month vector
@@ -1868,10 +1773,10 @@ def makebelieve(homedir, mappingfile, BiasCorr, metadata, start_catalog_label, e
     np.set_printoptions(precision=6)
 
     # take liv2013 date set date range as default if file reference dates are not given
-    if file_start_date is None:
+    if isinstance(file_start_date, type(None)):
         file_start_date = metadata[start_catalog_label]['date_range']['start']
 
-    if file_end_date is None:
+    if isinstance(file_end_date, type(None)):
         file_end_date = metadata[start_catalog_label]['date_range']['end']
 
     # generate the month vector
@@ -1879,7 +1784,7 @@ def makebelieve(homedir, mappingfile, BiasCorr, metadata, start_catalog_label, e
     month = pd.DataFrame({'month':month})
 
     # create NEW directory
-    if dest_dir_suffix is None:
+    if isinstance(dest_dir_suffix, type(None)):
         dest_dir_suffix = 'biascorr_output/'
 
     dest_dir = os.path.join(homedir, dest_dir_suffix)
@@ -2153,7 +2058,7 @@ def renderWatershed(shapefile, outfilepath):
     plt.show()
     
 
-def renderPointsInShape(shapefile, NAmer, mappingfile, colvar=['livneh2013_MET','Salathe2014_WRFraw'], outfilepath='oghcat_Livneh_Salathe.png'):
+def renderPointsInShape(shapefile, NAmer, mappingfile, colvar=['livneh2013_MET','Salathe2014_WRFraw'], outfilepath='oghcat_Livneh_Salathe.png', epsg=4326):
 
     fig = plt.figure(figsize=(10,5), dpi=1000)
     ax1 = plt.subplot2grid((1,1),(0,0))
@@ -2170,21 +2075,15 @@ def renderPointsInShape(shapefile, NAmer, mappingfile, colvar=['livneh2013_MET',
 
     # watershed
     ptchs=[]
+    watershed_shade = color_producer.to_rgba(0.5)
     for pol in watershed:
-        watershed_shade = color_producer.to_rgba(0.5)
         ptchs.append(PolygonPatch(shape(pol['geometry']), fc=watershed_shade, ec=watershed_shade, linewidth=0))
     watershed.close()
 
     # generate basemap
-    m = Basemap(projection='merc',
-                ellps='WGS84',
-                epsg=4326,
-                llcrnrlon=minx - 1 * w,
-                llcrnrlat=miny - 1 * h,
-                urcrnrlon=maxx + 1 * w,
-                urcrnrlat=maxy + 1 * h,
-                resolution='l',
-                ax=ax1)
+    m = Basemap(projection='merc', ellps='WGS84', epsg=epsg,
+                llcrnrlon=minx - .5 * w, llcrnrlat=miny - .5 * h, urcrnrlon=maxx + .5 * w, urcrnrlat=maxy + .5 * h,
+                resolution='l', ax=ax1)
     m.arcgisimage(service='Canvas/World_Dark_Gray_Base', xpixels=10000)
 
     # generate the collection of Patches
@@ -2202,6 +2101,7 @@ def renderPointsInShape(shapefile, NAmer, mappingfile, colvar=['livneh2013_MET',
 
     # save image
     plt.savefig(outfilepath)
+    return ax1
     
 
 def findStationCode(mappingfile, colvar, colvalue):
