@@ -35,7 +35,7 @@ class ogh_meta:
     The json file that describes the Climate data product resources
     """
     def __init__(self):
-        self.__meta_data = dict(json.load(open('ogh_meta.json')))
+        self.__meta_data = dict(json.load(open('ogh_meta.json','rb')))
     
     def keys(self):
         return(self.__meta_data.keys())
@@ -595,8 +595,14 @@ def addCatalogToMap(outfilepath, maptable, folderpath, catalog_label):
     
     # drop existing column and update with a vector for the catalog of files
     if catalog_label in maptable.columns:
-        maptable = maptable.drop(catalog_label, 1)
+        maptable = maptable.drop(labels=catalog_label, axis=1)
     maptable = maptable.merge(catalog, on=['LAT','LONG_'], how='left')
+    
+    # remove blocks, if they were needed
+    if 'blocks' in maptable.columns:
+        maptable = maptable.drop(labels=['blocks'], axis=1)
+    
+    # write the updated mappingfile
     maptable.to_csv(outfilepath, header=True, index=False)
 
     
@@ -913,7 +919,7 @@ def read_in_all_files(map_df, dataset, metadata, file_start_date, file_end_date,
         tmp.set_index(met_daily_dates, inplace=True)
         
         # subset to the date range of interest (default is file date range)
-        tmp = tmp.iloc[(met_daily_dates>=subset_start_date) && (met_daily_dates<=subset_end_date),:]
+        tmp = tmp.iloc[(met_daily_dates>=subset_start_date) & (met_daily_dates<=subset_end_date),:]
         
         # set row indices
         df_dict[tuple(row[['FID','LAT','LONG_']].tolist())] = tmp
