@@ -25,8 +25,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import geopandas as gpd
 
 # data wrangling libraries
-# import urllib2
-import ftplib, wget, bz2
+import ftplib, urllib, wget, bz2
 from bs4 import BeautifulSoup as bs
 
 
@@ -2043,15 +2042,10 @@ def renderWatershed(shapefile, outfilepath):
     watershed.close()
 
     # generate basemap
-    m = Basemap(projection='merc',
-                ellps='WGS84',
-                epsg=4326,
-                llcrnrlon=minx - 1 * w,
-                llcrnrlat=miny - 1 * h,
-                urcrnrlon=maxx + 1 * w,
-                urcrnrlat=maxy + 1 * h,
-                resolution='l',
-                ax=ax1)
+    m = Basemap(projection='merc', ellps='WGS84', epsg=4326,
+                llcrnrlon=minx - 1 * w, llcrnrlat=miny - 1 * h,
+                urcrnrlon=maxx + 1 * w, urcrnrlat=maxy + 1 * h,
+                resolution='l', ax=ax1)
     m.arcgisimage(service='World_Physical_Map', xpixels=10000)
 
     # generate the collection of Patches
@@ -2064,9 +2058,9 @@ def renderWatershed(shapefile, outfilepath):
     plt.show()
     
 
-def renderPointsInShape(shapefile, NAmer, mappingfile, colvar=['livneh2013_MET','Salathe2014_WRFraw'], outfilepath='oghcat_Livneh_Salathe.png', epsg=4326):
+def renderPointsInShape(shapefile, NAmer, mappingfile, colvar='all', outfilepath='oghcat_Livneh_Salathe.png', epsg=3857):
 
-    fig = plt.figure(figsize=(10,5), dpi=1000)
+    fig = plt.figure(figsize=(5,5), dpi=1000)
     ax1 = plt.subplot2grid((1,1),(0,0))
 
     # generate the polygon color-scheme
@@ -2080,35 +2074,77 @@ def renderPointsInShape(shapefile, NAmer, mappingfile, colvar=['livneh2013_MET',
     w, h = maxx - minx, maxy - miny
 
     # watershed
-    ptchs=[]
     watershed_shade = color_producer.to_rgba(0.5)
-    for pol in watershed:
-        ptchs.append(PolygonPatch(shape(pol['geometry']), fc=watershed_shade, ec=watershed_shade, linewidth=0))
+    ptchs = [PolygonPatch(shape(pol['geometry']), fc=watershed_shade, ec=watershed_shade, linewidth=0) 
+             for pol in watershed]
     watershed.close()
-
+    
     # generate basemap
-    m = Basemap(projection='merc', ellps='WGS84', epsg=epsg,
-                llcrnrlon=minx - .5 * w, llcrnrlat=miny - .5 * h, urcrnrlon=maxx + .5 * w, urcrnrlat=maxy + .5 * h,
+    m = Basemap(projection='merc', ellps='WGS84', epsg=4326,
+                llcrnrlon=minx - 1 * w, llcrnrlat=miny - 1 * h, 
+                urcrnrlon=maxx + 1 * w, urcrnrlat=maxy + 1 * h,
                 resolution='l', ax=ax1)
-    m.arcgisimage(service='Canvas/World_Dark_Gray_Base', xpixels=10000)
-
+    m.arcgisimage(service='Canvas/World_Dark_Gray_Base', xpixels=1000)
+    ax1.grid(True, which='both')
+    
     # generate the collection of Patches
     coll = PatchCollection(ptchs, cmap=cmap, match_original=True)
     ax1.add_collection(coll)
     coll.set_alpha(0.4)
-
-    # gridded points
-    gpoints = readShapefileTable(NAmer)
-    ax1.scatter(gpoints['Long'], gpoints['Lat'], alpha=0.4, c=color_producer.to_rgba(0))
-
+    
     # catalog
-    cat, n_stations = mappingfileToDF(mappingfile, colvar=colvar)
-    ax1.scatter(cat['LONG_'], cat['LAT'], alpha=0.4, c=color_producer.to_rgba(1))
-
+    cat, n_stations = mappingfileToDF(mappingfile, colvar=None)
+    m.scatter(cat['LONG_'], cat['LAT'], marker='s', s=20, alpha=0.4, c=color_producer.to_rgba(.5))
+    
     # save image
     plt.savefig(outfilepath)
+    print('image saved')
     return ax1
+
+
+def renderValuesInPoints(shapefile, NAmer, vardf, vardf_dateindex, colvar='all', outfilepath='oghcat_test.png'):
+
+    # generate the figure axis
+    fig = plt.figure(figsize=(5,5), dpi=1000)
+    ax1 = plt.subplot2grid((1,1),(0,0))
+
+    # generate the polygon color-scheme
+    cmap = mpl.cm.get_cmap('jet')
+    norm = mpl.colors.Normalize(vardf.as_matrix().min(), vardf.as_matrix().max())
+    color_producer = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
+
+    # calculate bounding box based on the watershed shapefile
+    watershed = fiona.open(shapefile)
+    minx, miny, maxx, maxy = watershed.bounds
+    w, h = maxx - minx, maxy - miny
+
+    # watershed
+    ptchs = [PolygonPatch(shape(pol['geometry']), fc='w', ec='w', linewidth=0) for pol in watershed]
+    watershed.close()
     
+    # generate basemap
+    m = Basemap(projection='merc', ellps='WGS84', epsg=4326,
+                llcrnrlon=minx - 1 * w, llcrnrlat=miny - 1 * h, 
+                urcrnrlon=maxx + 1 * w, urcrnrlat=maxy + 1 * h,
+                resolution='l', ax=ax1)
+    m.arcgisimage(service='Canvas/World_Dark_Gray_Base', xpixels=1000)
+    ax1.grid(True, which='both')
+    
+    # generate the collection of Patches
+    coll = PatchCollection(ptchs, cmap=cmap, match_original=True)
+    ax1.add_collection(coll)
+    coll.set_alpha(0.3)
+    
+    # catalog
+    cat=vardf.loc[vardf_dateindex,:].reset_index(level=[1,2]).rename(columns={'level_1':'LAT','level_2':'LONG_'})
+    cat_color = cat[vardf_dateindex].apply(lambda x: color_producer.to_rgba(x))
+    m.scatter(cat['LONG_'], cat['LAT'], marker='s', s=20, alpha=0.4, c=cat_color)
+    
+    # save image
+    plt.savefig(outfilepath)
+    print('image saved')
+    return ax1
+
 
 def findStationCode(mappingfile, colvar, colvalue):
     """
@@ -2117,5 +2153,5 @@ def findStationCode(mappingfile, colvar, colvalue):
     colvalue: (value) a value that corresponds to the colvar column
     """
     mapdf = pd.read_csv(mappingfile)
-    outcome = mapdf.loc[mapdf[colvar]==colvalue, :][['FID','LAT','LONG_']].set_index('FID')
+    outcome = mapdf.loc[mapdf[colvar]==colvalue, :][['FID','LAT','LONG_']].reset_index(drop=True)
     return(outcome.to_records())
