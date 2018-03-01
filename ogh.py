@@ -292,7 +292,7 @@ def compile_VICASCII_Livneh2013_locations(maptable):
     locations=[]
     for ind, row in maptable.iterrows():
         loci='_'.join(['VIC_fluxes_Livneh_CONUSExt_v.1.2_2013', str(row['LAT']), str(row['LONG_'])])
-        url='/'.join(["ftp://livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2", str(row['block']), loci+".bz2"])
+        url='/'.join(["ftp://livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2", str(row['blocks']), loci+".bz2"])
         locations.append(url)
     return(locations)
 
@@ -337,7 +337,7 @@ def mapToBlock(df_points, df_regions):
     for index, eachblock in df_regions.iterrows():
         for ind, row in df_points.iterrows():
             if point.Point(row['LONG_'], row['LAT']).intersects(eachblock['bbox']):
-                df_points.loc[ind, 'block'] = str(eachblock['dirname'])
+                df_points.loc[ind, 'blocks'] = str(eachblock['dirname'])
     return(df_points)
 
 
@@ -358,7 +358,7 @@ def compile_dailyMET_Livneh2013_locations(maptable):
     locations=[]
     for ind, row in maptable.iterrows():
         loci='_'.join(['Meteorology_Livneh_CONUSExt_v.1.2_2013', str(row['LAT']), str(row['LONG_'])])
-        url='/'.join(["ftp://livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset/Meteorology.asc.v.1.2.1915.2011.bz2", str(row['block']), loci+".bz2"])
+        url='/'.join(["ftp://livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset/Meteorology.asc.v.1.2.1915.2011.bz2", str(row['blocks']), loci+".bz2"])
         locations.append(url)
     return(locations)
 
@@ -600,19 +600,19 @@ def addCatalogToMap(outfilepath, maptable, folderpath, catalog_label):
     # catalog the folder directory
     catalog = catalogfiles(folderpath).rename(columns={'filenames':catalog_label})
     
-    # drop existing column and update with a vector for the catalog of files
+    # drop existing column
     if catalog_label in maptable.columns:
         maptable = maptable.drop(labels=catalog_label, axis=1)
     
-    if len(catalog)!=0:
-        maptable = maptable.merge(catalog, on=['LAT','LONG_'], how='left')
+    # update with a vector for the catalog of files
+    maptable = maptable.merge(catalog, on=['LAT','LONG_'], how='left')
 
-        # remove blocks, if they were needed
-        if 'blocks' in maptable.columns:
-            maptable = maptable.drop(labels=['blocks'], axis=1)
+    # remove blocks, if they were needed
+    if 'blocks' in maptable.columns:
+        maptable = maptable.drop(labels=['blocks'], axis=1)
 
-        # write the updated mappingfile
-        maptable.to_csv(outfilepath, header=True, index=False)
+    # write the updated mappingfile
+    maptable.to_csv(outfilepath, header=True, index=False)
 
     
 # Wrapper scripts
