@@ -1427,7 +1427,7 @@ def plotPavg(dictionary, loc_name, start_date, end_date):
 def gridclim_dict(mappingfile, dataset, gridclimname=None, metadata=None, min_elev=None, max_elev=None,
                   file_start_date=None, file_end_date=None, file_time_step=None,
                   file_colnames=None, file_delimiter=None,
-                  subset_start_date=None, subset_end_date=None, df_dict=None):
+                  subset_start_date=None, subset_end_date=None, df_dict=None, colvar='all'):
     """
     # pipelined operation for assimilating data, processing it, and standardizing the plotting
     
@@ -1448,7 +1448,7 @@ def gridclim_dict(mappingfile, dataset, gridclimname=None, metadata=None, min_el
     """
     
     # generate the climate locations and n_stations
-    locations_df, n_stations = mappingfileToDF(mappingfile, colvar='all')
+    locations_df, n_stations = mappingfileToDF(mappingfile, colvar=colvar)
     
     # generate the climate station info
     if pd.isnull(min_elev):
