@@ -432,7 +432,9 @@ def wget_download(listofinterest):
     for fileurl in listofinterest:
         basename = os.path.basename(fileurl)
         try:
-            wget.download(fileurl)
+            ping = urllib.urlopen(fileurl)
+            if ping.getcode()!=404:
+                wget.download(fileurl)
             print('downloaded: ' + basename)
         except:
             print('File does not exist at this URL: ' + basename)
@@ -452,8 +454,10 @@ def wget_download_one(fileurl):
         os.remove(basename)
         
     try:
-        wget.download(fileurl)
-        print('downloaded: ' + basename)
+        ping = urllib.urlopen(fileurl)
+        if ping.getcode()!=404:
+            wget.download(fileurl)
+            print('downloaded: ' + basename)
     except:
         print('File does not exist at this URL: ' + basename)
     
@@ -468,7 +472,6 @@ def wget_download_p(listofinterest, nworkers=20):
     pool.map(wget_download_one, listofinterest)
     pool.close()
     pool.terminate()
-
 
 def ftp_download(listofinterest):
     """
@@ -498,7 +501,6 @@ def ftp_download(listofinterest):
             os.remove(filename)
             print('File does not exist at this URL: '+fileurl)
         
-        
 def ftp_download_one(loci):
     """
     Download and decompress a file from an ftp domain
@@ -525,7 +527,6 @@ def ftp_download_one(loci):
         os.remove(filename)
         print('File does not exist at this URL: '+fileurl)
 
-        
 def ftp_download_p(listofinterest, nworkers=5):
     """
     Download and decompress files from an ftp domain in parallel
@@ -537,7 +538,6 @@ def ftp_download_p(listofinterest, nworkers=5):
     pool.map(ftp_download_one, listofinterest)
     pool.close()
     pool.terminate()
-    
 
 def decompbz2(filename):
     """
@@ -553,7 +553,6 @@ def decompbz2(filename):
     zipfile.close()
     new_file.close()
     print(os.path.splitext(filename)[0] + ' unzipped')
-
 
 def catalogfiles(folderpath):
     """
@@ -574,7 +573,6 @@ def catalogfiles(folderpath):
         # convert the filenames column to a filepath
         catalog['filenames'] = catalog['filenames'].apply(lambda x: os.path.join(folderpath, x))
     return(catalog)
-
 
 def addCatalogToMap(outfilepath, maptable, folderpath, catalog_label):
     """
