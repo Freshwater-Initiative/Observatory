@@ -439,7 +439,10 @@ def wget_download(listofinterest):
         except:
             print('File does not exist at this URL: ' + basename)
 
+            
 # Download the files to the subdirectory
+
+
 def wget_download_one(fileurl):
     """
     Download a file from an http domain
@@ -461,6 +464,7 @@ def wget_download_one(fileurl):
     except:
         print('File does not exist at this URL: ' + basename)
     
+    
 def wget_download_p(listofinterest, nworkers=20):
     """
     Download files from an http domain in parallel
@@ -473,6 +477,7 @@ def wget_download_p(listofinterest, nworkers=20):
     pool.close()
     pool.terminate()
 
+    
 def ftp_download(listofinterest):
     """
     Download and decompress files from an ftp domain
@@ -501,6 +506,7 @@ def ftp_download(listofinterest):
             os.remove(filename)
             print('File does not exist at this URL: '+fileurl)
         
+        
 def ftp_download_one(loci):
     """
     Download and decompress a file from an ftp domain
@@ -527,6 +533,7 @@ def ftp_download_one(loci):
         os.remove(filename)
         print('File does not exist at this URL: '+fileurl)
 
+        
 def ftp_download_p(listofinterest, nworkers=5):
     """
     Download and decompress files from an ftp domain in parallel
@@ -539,6 +546,7 @@ def ftp_download_p(listofinterest, nworkers=5):
     pool.close()
     pool.terminate()
 
+    
 def decompbz2(filename):
     """
     Extract a file from a bz2 file of the same name, then remove the bz2 file
@@ -554,6 +562,7 @@ def decompbz2(filename):
     new_file.close()
     print(os.path.splitext(filename)[0] + ' unzipped')
 
+    
 def catalogfiles(folderpath):
     """
     make a catalog of the gridded files within a folderpath
@@ -574,6 +583,7 @@ def catalogfiles(folderpath):
         catalog['filenames'] = catalog['filenames'].apply(lambda x: os.path.join(folderpath, x))
     return(catalog)
 
+
 def addCatalogToMap(outfilepath, maptable, folderpath, catalog_label):
     """
     Update the mappingfile with a new column, a vector of filepaths for the downloaded files
@@ -593,14 +603,16 @@ def addCatalogToMap(outfilepath, maptable, folderpath, catalog_label):
     # drop existing column and update with a vector for the catalog of files
     if catalog_label in maptable.columns:
         maptable = maptable.drop(labels=catalog_label, axis=1)
-    maptable = maptable.merge(catalog, on=['LAT','LONG_'], how='left')
     
-    # remove blocks, if they were needed
-    if 'blocks' in maptable.columns:
-        maptable = maptable.drop(labels=['blocks'], axis=1)
-    
-    # write the updated mappingfile
-    maptable.to_csv(outfilepath, header=True, index=False)
+    if len(catalog)!=0:
+        maptable = maptable.merge(catalog, on=['LAT','LONG_'], how='left')
+
+        # remove blocks, if they were needed
+        if 'blocks' in maptable.columns:
+            maptable = maptable.drop(labels=['blocks'], axis=1)
+
+        # write the updated mappingfile
+        maptable.to_csv(outfilepath, header=True, index=False)
 
     
 # Wrapper scripts
