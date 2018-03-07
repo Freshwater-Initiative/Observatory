@@ -904,13 +904,13 @@ def read_in_all_files(map_df, dataset, metadata, file_start_date, file_end_date,
     if pd.notnull(metadata):
         
         if isinstance(file_start_date, type(None)):
-            file_start_date = metadata[dataset]['date_range']['start']
+            file_start_date = metadata[dataset]['start_date']
         
         if isinstance(file_end_date, type(None)):
-            file_end_date = metadata[dataset]['date_range']['end']
+            file_end_date = metadata[dataset]['end_date']
 
         if isinstance(file_time_step, type(None)):
-            file_time_step = metadata[dataset]['date_range']['time_step']
+            file_time_step = metadata[dataset]['temporal_resolution']
 
         if isinstance(file_colnames, type(None)):
             file_colnames = metadata[dataset]['variable_list']
@@ -1461,13 +1461,13 @@ def gridclim_dict(mappingfile, dataset, gridclimname=None, metadata=None, min_el
     if not isinstance(metadata, type(None)):
         
         if isinstance(file_start_date, type(None)):
-            file_start_date = metadata[dataset]['date_range']['start']
+            file_start_date = metadata[dataset]['start_date']
         
         if isinstance(file_end_date, type(None)):
-            file_end_date = metadata[dataset]['date_range']['end']
+            file_end_date = metadata[dataset]['end_date']
 
         if isinstance(file_time_step, type(None)):
-            file_time_step = metadata[dataset]['date_range']['time_step']
+            file_time_step = metadata[dataset]['temporal_resolution']
 
         if isinstance(file_colnames, type(None)):
             file_colnames = metadata[dataset]['variable_list']
@@ -1789,10 +1789,10 @@ def makebelieve(homedir, mappingfile, BiasCorr, metadata, start_catalog_label, e
 
     # take liv2013 date set date range as default if file reference dates are not given
     if isinstance(file_start_date, type(None)):
-        file_start_date = metadata[start_catalog_label]['date_range']['start']
+        file_start_date = metadata[start_catalog_label]['start_date']
 
     if isinstance(file_end_date, type(None)):
-        file_end_date = metadata[start_catalog_label]['date_range']['end']
+        file_end_date = metadata[start_catalog_label]['end_date']
 
     # generate the month vector
     month = pd.date_range(start=file_start_date, end=file_end_date).month
