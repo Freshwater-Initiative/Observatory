@@ -4,7 +4,6 @@ import os, sys
 # data handling libraries
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
 import pickle
 import json
 import dask
@@ -31,7 +30,7 @@ from bs4 import BeautifulSoup as bs
 
 class ogh_meta:
     """
-    The json file that describes the Climate data product resources
+    The json file that describes the Gridded climate data products
     """
     def __init__(self):
         self.__meta_data = dict(json.load(open('ogh_meta.json','rb')))
@@ -1574,10 +1573,10 @@ def monthlyBiasCorrection_deltaTratioP_Livneh_METinput(homedir, mappingfile, Bia
     
     # take liv2013 date set date range as default if file reference dates are not given
     if isinstance(file_start_date, type(None)):
-        file_start_date = datetime(1915,1,1)
+        file_start_date = pd.datetime(1915,1,1)
         
     if isinstance(file_end_date, type(None)):
-        file_end_date = datetime(2011,12,31)
+        file_end_date = pd.datetime(2011,12,31)
     
     # generate the month vector
     month = pd.date_range(start=file_start_date, end=file_end_date).month
@@ -1680,10 +1679,10 @@ def monthlyBiasCorrection_WRFlongtermmean_elevationbins_METinput(homedir, mappin
     
     # take liv2013 date set date range as default if file reference dates are not given
     if isinstance(file_start_date, type(None)):
-        file_start_date = datetime(1950,1,1)
+        file_start_date = pd.datetime(1950,1,1)
         
     if isinstance(file_end_date, type(None)):
-        file_end_date = datetime(2010,12,31)
+        file_end_date = pd.datetime(2010,12,31)
     
     # generate the month vector
     month = pd.date_range(start=file_start_date, end=file_end_date).month
