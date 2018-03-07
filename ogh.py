@@ -2053,7 +2053,7 @@ def renderWatershed(shapefile, outfilepath):
     w, h = maxx - minx, maxy - miny
 
     # watershed
-    ptchs=[PolygonPatch(shape(pol['geometry']), fc='pink', ec='pink', linewidth=0) for pol in watershed]
+    ptchs=[PolygonPatch(shape(pol['geometry']), fc=None, ec='k', linewidth=0.5) for pol in watershed]
     watershed.close()
 
     # generate basemap
@@ -2061,7 +2061,7 @@ def renderWatershed(shapefile, outfilepath):
                 llcrnrlon=minx - 1 * w, llcrnrlat=miny - 1 * h,
                 urcrnrlon=maxx + 1 * w, urcrnrlat=maxy + 1 * h,
                 resolution='l', ax=ax1)
-    m.arcgisimage(service='World_Physical_Map', xpixels=10000)
+    m.arcgisimage(service='ESRI_Imagery_World_2D', xpixels=10000)
 
     # generate the collection of Patches
     coll = PatchCollection(ptchs, cmap=cmap, match_original=True)
