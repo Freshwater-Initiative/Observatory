@@ -36,14 +36,17 @@ class ogh_meta:
     def __init__(self):
         self.__meta_data = dict(json.load(open('ogh_meta.json','rb')))
     
+    # key-value retrieval
+    def __getitem__(self, key):
+        return(self.__meta_data[key])
+
+    # key list
     def keys(self):
         return(self.__meta_data.keys())
     
+    # value list
     def values(self):
         return(self.__meta_data.values())
-    
-    def __getitem__(self, key):
-        return(self.__meta_data[key])
                
 
 # print('Version '+datetime.fromtimestamp(os.path.getmtime('ogh.py')).strftime('%Y-%m-%d %H:%M:%S')+' jp')
@@ -1855,16 +1858,19 @@ def makebelieve(homedir, mappingfile, BiasCorr, metadata, start_catalog_label, e
                         read_dat[eachvar] = np.array(read_dat.loc[:,eachvar])+np.array(s)
 
         # write it out to the new destination location
-        read_dat.to_csv(os.path.join(dest_dir, os.path.basename(eachfile)), sep='\t', header=None, index=False, float_format='%.4f')
+        filedest = os.path.join(dest_dir, os.path.basename(eachfile))
+        read_dat.to_csv(filedest, sep='\t', header=None, index=False, float_format='%.4f')
 
     # update the mappingfile with the file catalog
     addCatalogToMap(outfilepath=mappingfile, maptable=map_df, folderpath=dest_dir, catalog_label=end_catalog_label)
 
     # append the source metadata to the new catalog label metadata
     metadata[end_catalog_label] = metadata[start_catalog_label]
-    print('mission complete. this device will now self-destruct.')
-    print('just kidding.')
-
+    
+    # update the metadata json file
+    json.dump(metadata, open('ogh_meta.json', 'w'), ensure_ascii=False)
+    
+    print('mission complete. this device will now self-destruct. just kidding.')
     return(dest_dir, metadata)
 
 
