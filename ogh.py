@@ -2167,5 +2167,5 @@ def findStationCode(mappingfile, colvar, colvalue):
     colvalue: (value) a value that corresponds to the colvar column
     """
     mapdf = pd.read_csv(mappingfile)
-    outcome = mapdf.loc[mapdf[colvar]==colvalue, :][['FID','LAT','LONG_']].reset_index(drop=True)
+    outcome = mapdf.loc[mapdf[colvar]==colvalue, :][['FID','LAT','LONG_']].reset_index(drop=True).set_index('FID')
     return(outcome.to_records())
