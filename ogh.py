@@ -233,7 +233,7 @@ def mapContentFolder(resid):
 def compile_bc_Livneh2013_locations(maptable):
     """
     compile a list of file URLs for bias corrected Livneh et al. 2013 (CIG)
-
+    
     maptable: (dataframe) a dataframe that contains the FID, LAT, LONG_, and ELEV for each interpolated data file
     """
     locations=[]
@@ -432,7 +432,7 @@ def wget_download(listofinterest):
     for fileurl in listofinterest:
         basename = os.path.basename(fileurl)
         try:
-            ping = urllib.urlopen(fileurl)
+            ping = urllib.request.urlopen(fileurl)
             if ping.getcode()!=404:
                 wget.download(fileurl)
             print('downloaded: ' + basename)
@@ -457,7 +457,7 @@ def wget_download_one(fileurl):
         os.remove(basename)
         
     try:
-        ping = urllib.urlopen(fileurl)
+        ping = urllib.request.urlopen(fileurl)
         if ping.getcode()!=404:
             wget.download(fileurl)
             print('downloaded: ' + basename)
@@ -2068,9 +2068,9 @@ def renderWatershed(shapefile, outfilepath):
     plt.show()
     
 
-def renderPointsInShape(shapefile, NAmer, mappingfile, colvar='all', outfilepath='oghcat_Livneh_Salathe.png', epsg=3857):
+def renderPointsInShape(shapefile, NAmer, mappingfile, colvar='all', outfilepath='oghcat_Livneh_Salathe.png', epsg=4326):
 
-    fig = plt.figure(figsize=(5,5), dpi=1000)
+    fig = plt.figure(figsize=(5,5), dpi=500)
     ax1 = plt.subplot2grid((1,1),(0,0))
 
     # generate the polygon color-scheme
@@ -2090,12 +2090,11 @@ def renderPointsInShape(shapefile, NAmer, mappingfile, colvar='all', outfilepath
     watershed.close()
     
     # generate basemap
-    m = Basemap(projection='merc', ellps='WGS84', epsg=4326,
+    m = Basemap(projection='merc', ellps='WGS84', epsg=epsg,
                 llcrnrlon=minx - 1 * w, llcrnrlat=miny - 1 * h, 
                 urcrnrlon=maxx + 1 * w, urcrnrlat=maxy + 1 * h,
                 resolution='l', ax=ax1)
     m.arcgisimage(service='Canvas/World_Dark_Gray_Base', xpixels=1000)
-    ax1.grid(True, which='both')
     
     # generate the collection of Patches
     coll = PatchCollection(ptchs, cmap=cmap, match_original=True)
@@ -2103,7 +2102,7 @@ def renderPointsInShape(shapefile, NAmer, mappingfile, colvar='all', outfilepath
     coll.set_alpha(0.4)
     
     # catalog
-    cat, n_stations = mappingfileToDF(mappingfile, colvar=None)
+    cat, n_stations = mappingfileToDF(mappingfile, colvar=colvar)
     m.scatter(cat['LONG_'], cat['LAT'], marker='s', s=20, alpha=0.4, c=color_producer.to_rgba(.5))
     
     # save image
@@ -2112,10 +2111,10 @@ def renderPointsInShape(shapefile, NAmer, mappingfile, colvar='all', outfilepath
     return ax1
 
 
-def renderValuesInPoints(shapefile, NAmer, vardf, vardf_dateindex, colvar='all', outfilepath='oghcat_test.png'):
+def renderValuesInPoints(shapefile, NAmer, vardf, vardf_dateindex, outfilepath='oghcat_test.png', epsg=4326):
 
     # generate the figure axis
-    fig = plt.figure(figsize=(5,5), dpi=1000)
+    fig = plt.figure(figsize=(5,5), dpi=500)
     ax1 = plt.subplot2grid((1,1),(0,0))
 
     # generate the polygon color-scheme
@@ -2133,7 +2132,7 @@ def renderValuesInPoints(shapefile, NAmer, vardf, vardf_dateindex, colvar='all',
     watershed.close()
     
     # generate basemap
-    m = Basemap(projection='merc', ellps='WGS84', epsg=4326,
+    m = Basemap(projection='merc', ellps='WGS84', epsg=epsg,
                 llcrnrlon=minx - 1 * w, llcrnrlat=miny - 1 * h, 
                 urcrnrlon=maxx + 1 * w, urcrnrlat=maxy + 1 * h,
                 resolution='l', ax=ax1)
