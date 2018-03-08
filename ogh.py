@@ -2038,39 +2038,48 @@ def plot_meanTmax(dictionary, loc_name, start_date, end_date):
     plt.show()
     
     
-def renderWatershed(shapefile, outfilepath):
-    fig = plt.figure(figsize=(10,5), dpi=1000)
+def renderWatershed(shapefile, outfilepath='watershedmap.png', epsg=4326):
+
+    # generate the figure axis
+    fig = plt.figure(figsize=(3,3), dpi=500)
     ax1 = plt.subplot2grid((1,1),(0,0))
 
-    # generate the polygon color-scheme
-    cmap = mpl.cm.get_cmap('coolwarm')
-    norm = mpl.colors.Normalize(0, 1)
-    color_producer = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
+    # normalize the color distribution according to the value distribution
+    cmap = mpl.cm.gnuplot2
 
     # calculate bounding box based on the watershed shapefile
     watershed = fiona.open(shapefile)
     minx, miny, maxx, maxy = watershed.bounds
     w, h = maxx - minx, maxy - miny
-
-    # watershed
-    ptchs=[PolygonPatch(shape(pol['geometry']), fc=None, ec='k', linewidth=0.5) for pol in watershed]
     watershed.close()
 
     # generate basemap
-    m = Basemap(projection='merc', ellps='WGS84', epsg=4326,
-                llcrnrlon=minx - 1 * w, llcrnrlat=miny - 1 * h,
-                urcrnrlon=maxx + 1 * w, urcrnrlat=maxy + 1 * h,
-                resolution='l', ax=ax1)
-    m.arcgisimage(service='ESRI_Imagery_World_2D', xpixels=10000)
+    m = Basemap(projection='merc', epsg=3857, resolution='h', ax=ax1,
+                llcrnrlon=minx - 0.25 * w, llcrnrlat=miny - 0.25 * h, urcrnrlon=maxx + 0.25 * w, urcrnrlat=maxy + 0.25 * h)
+    m.drawcountries(linewidth=0.1)
+    m.drawcoastlines(linewidth=0.1)
+    m.drawmapboundary(fill_color='lightskyblue')
+    m.fillcontinents(color='cornsilk', lake_color='lightskyblue')
+    m.drawrivers(color='lightskyblue', linewidth=.1)
+    m.drawstates(linewidth=0.1, linestyle='solid', color='gray')
+    m.drawcountries(color='gray', linewidth=0.1)
+    m.drawmapscale(minx, miny, maxx, maxy, 500, yoffset=10000, barstyle='fancy', fontsize=2, linewidth=0.01)
 
-    # generate the collection of Patches
-    coll = PatchCollection(ptchs, cmap=cmap, match_original=True)
+    # read and transform the watershed shapefiles
+    m.readshapefile(shapefile = shapefile.replace('.shp',''), name='watersheds',
+                    drawbounds=True, zorder=None, linewidth=0.1, color='m', antialiased=1, default_encoding='utf-8')
+
+    # load and transform each polygon in shape
+    patches = [PolygonPatch(Polygon(np.array(shape)), fc='m', ec='m', linewidth=0.1, zorder=0) 
+               for info, shape in zip(m.watersheds_info, m.watersheds)]
+    
+    # assimilate shapes to plot axis
+    coll = PatchCollection(patches, cmap=cmap, match_original=True, zorder=5.0)
     ax1.add_collection(coll)
-    coll.set_alpha(0.4)
-
-    # save image
-    plt.savefig(outfilepath)
+    
+    plt.savefig(os.path.join(homedir, 'statemap.png'), dpi=500)
     plt.show()
+    return ax1
     
 
 def renderPointsInShape(shapefile, NAmer, mappingfile, colvar='all', outfilepath='oghcat_Livneh_Salathe.png', epsg=4326):
