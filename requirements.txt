@@ -1,0 +1,7 @@
+pandas
+dask
+descartes
+geopandas
+beautifulsoup4
+basemap
+wget
