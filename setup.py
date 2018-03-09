@@ -7,6 +7,7 @@ import os
 from codecs import open
 
 from setuptools import find_packages, setup
+import versioneer
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -20,7 +21,7 @@ with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='ogh',
-    version='0.1-alpha',
+    version=versioneer.get_version(),
     description='Tools for observing the terrestrial and aquatic surfaces of Earth',
     long_description=long_description,
     url='',
