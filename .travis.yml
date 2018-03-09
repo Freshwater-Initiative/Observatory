@@ -61,4 +61,4 @@ script:
     fi
   - if [[ $TEST_TARGET == 'coding_standards' ]]; then
       flake8 --max-line-length=105 ogh;
-fi
+    fi
