@@ -9,6 +9,18 @@ An observatory is a location used for observing terrestrial or celestial events 
 
 This repository is intended for the sharing and distribution of open-source Python based code useful for model and data integration that improves access to large datasets, reduces computational burden, reinvent the wheel less often, and share and communicate more about how to synthesize earth surface observations in useful ways.
 
+## Installing Latest Master Version
+
+Linux/OSX:
+
+```bash
+wget https://raw.githubusercontent.com/Freshwater-Initiative/Observatory/master/requirements.txt
+wget https://raw.githubusercontent.com/Freshwater-Initiative/Observatory/master/requirements-dev.txt
+conda create -n oghenv -c conda-forge python=2.7 --file requirements.txt --file requirements-dev.txt
+source activate oghenv
+pip install git+https://github.com/Freshwater-Initiative/Observatory.git
+```
+
 # Work with a git-versioned-folder in hydroshare to develop your own Utilities
 0) Make a fork of Freshwater-Initiative/Observatory
 1) In HydroShare, get to JupyterHub and open up a terminal instance.
