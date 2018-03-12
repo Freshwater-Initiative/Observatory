@@ -47,23 +47,28 @@ class ogh_meta:
     def values(self):
         return(self.__meta_data.values())
                
-
-# print('Version '+datetime.fromtimestamp(os.path.getmtime('ogh.py')).strftime('%Y-%m-%d %H:%M:%S')+' jp')
-
-def saveDictOfDf(outfilename, dictionaryObject):
+def saveDictOfDf(outfilepath, dictionaryObject):
+    """
+    outfilepath: (dir) the path to the output json file
+    dictionaryObject: (dict) the python dictionary object
+    """
+    
     # write a dictionary of dataframes to a json file using pickle
-    with open(outfilename, 'wb') as f:
+    with open(outfilepath, 'wb') as f:
         pickle.dump(dictionaryObject, f)
         f.close()
 
-def readDictOfDf(infilename):
+def readDictOfDf(infilepath):
+    """
+    infilepath: (dir) the path to the input json file
+    """
     # read a dictionary of dataframes from a json file using pickle
-    with open(infilename, 'rb') as f:
+    with open(infilepath, 'rb') as f:
         dictionaryObject = pickle.load(f)
         f.close()
     return(dictionaryObject)
 
-def reprojShapefile(sourcepath, newprojdictionary={'proj':'longlat', 'ellps':'WGS84', 'datum':'WGS84'}, outpath=None):
+def reprojShapefile(sourcepath, outpath=None, newprojdictionary={'proj':'longlat', 'ellps':'WGS84', 'datum':'WGS84'}):
     """
     sourcepath: (dir) the path to the .shp file
     newprojdictionary: (dict) the new projection definition in the form of a dictionary (default provided)
@@ -77,7 +82,6 @@ def reprojShapefile(sourcepath, newprojdictionary={'proj':'longlat', 'ellps':'WG
     shpfile = gpd.GeoDataFrame.from_file(sourcepath)
     shpfile = shpfile.to_crs(newprojdictionary)
     shpfile.to_file(outpath)
-
 
 def getFullShape(shapefile):
     """
