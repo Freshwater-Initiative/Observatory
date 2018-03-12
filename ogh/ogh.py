@@ -187,7 +187,7 @@ def scrapeurl(url, startswith=None, hasKeyword=None):
     return(temp)
 
 
-def treatgeoself(shapefile, NAmer, folder_path=os.getcwd(), outfilename='mappingfile.csv', buffer_distance=0.06):
+def treatgeoself(shapefile, NAmer, mappingfile=os.path.join(os.getcwd(),'mappingfile.csv'), buffer_distance=0.06):
     """
     TreatGeoSelf to some [data] lovin'!
     
@@ -211,14 +211,14 @@ def treatgeoself(shapefile, NAmer, folder_path=os.getcwd(), outfilename='mapping
                                    points_lat=NAmer_datapoints.LAT,
                                    points_lon=NAmer_datapoints.LONG_,
                                    points_elev=NAmer_datapoints.ELEV,
-                                   buffer_distance=buffer_distance, buffer_resolution=16, labels=['LAT', 'LONG_', 'ELEV'])
+                                   buffer_distance=buffer_distance, buffer_resolution=16, 
+                                   labels=['LAT', 'LONG_', 'ELEV'])
     maptable.reset_index(inplace=True)
     maptable = maptable.rename(columns={"index":"FID"})
     print(maptable.shape)
-    print(maptable.tail())
+    print(maptable.head())
     
     # print the mappingfile
-    mappingfile=os.path.join(folder_path, outfilename)
     maptable.to_csv(mappingfile, sep=',', header=True, index=False)
     return(mappingfile)
 
