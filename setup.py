@@ -22,6 +22,7 @@ with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
 setup(
     name='ogh',
     version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     description='Tools for observing the terrestrial and aquatic surfaces of Earth',
     long_description=long_description,
     url='',
