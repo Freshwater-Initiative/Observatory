@@ -36,7 +36,7 @@ setup(
         'Topic :: Software Development :: Build Tools',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 2.7 :: 3.6',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Scientific/Engineering'
     ],
