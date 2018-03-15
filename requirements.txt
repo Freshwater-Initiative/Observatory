@@ -4,4 +4,4 @@ descartes
 geopandas
 beautifulsoup4
 basemap
-wget
+python-wget
