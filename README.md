@@ -9,6 +9,10 @@ An observatory is a location used for observing terrestrial or celestial events 
 
 This repository is intended for the sharing and distribution of open-source Python based code useful for model and data integration that improves access to large datasets, reduces computational burden, reinvent the wheel less often, and share and communicate more about how to synthesize earth surface observations in useful ways.
 
+## Installing Version on conda-forge
+> !conda install -c conda-forge --yes ogh
+> import ogh
+
 ## Installing Latest Master Version
 
 Linux/OSX:
