@@ -11,11 +11,12 @@ from multiprocessing import Pool
 
 # graphical control libraries
 import matplotlib as mpl
-mpl.use('agg')
+# mpl.use('agg')
 import matplotlib.pyplot as plt
 
 # shape and layer libraries
 import fiona
+import shapely.ops
 from shapely.geometry import MultiPolygon, shape, point, box
 from descartes import PolygonPatch
 from matplotlib.collections import PatchCollection
@@ -1332,7 +1333,7 @@ def plotTavg(dictionary, loc_name, start_date, end_date):
     # generate month indices
     wy_index=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     wy_numbers=[10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    month_strings=[ 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept']
+    month_strings=[ 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep']
     
     # initiate the plot object
     fig, ax=plt.subplots(1,1,figsize=(10, 6))
@@ -2086,91 +2087,198 @@ def renderWatershed(shapefile, outfilepath='watershedmap.png', epsg=4326):
     return ax1
     
 
-def renderPointsInShape(shapefile, NAmer, mappingfile, colvar='all', outfilepath='oghcat_Livneh_Salathe.png', epsg=4326):
+# def renderPointsInShape(shapefile, NAmer, mappingfile, colvar='all', outfilepath='oghcat_Livneh_Salathe.png', epsg=4326):
 
-    fig = plt.figure(figsize=(5,5), dpi=500)
+#     fig = plt.figure(figsize=(5,5), dpi=500)
+#     ax1 = plt.subplot2grid((1,1),(0,0))
+
+#     # generate the polygon color-scheme
+#     cmap = mpl.cm.get_cmap('coolwarm')
+#     norm = mpl.colors.Normalize(0, 1)
+#     color_producer = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
+
+#     # calculate bounding box based on the watershed shapefile
+#     watershed = fiona.open(shapefile)
+#     minx, miny, maxx, maxy = watershed.bounds
+#     w, h = maxx - minx, maxy - miny
+
+#     # watershed
+#     watershed_shade = color_producer.to_rgba(0.5)
+#     ptchs = [PolygonPatch(shape(pol['geometry']), fc=watershed_shade, ec=watershed_shade, linewidth=0) 
+#              for pol in watershed]
+#     watershed.close()
+    
+#     # generate basemap
+#     m = Basemap(projection='merc', ellps='WGS84', epsg=epsg,
+#                 llcrnrlon=minx - 1 * w, llcrnrlat=miny - 1 * h, 
+#                 urcrnrlon=maxx + 1 * w, urcrnrlat=maxy + 1 * h,
+#                 resolution='l', ax=ax1)
+#     m.arcgisimage(service='Canvas/World_Dark_Gray_Base', xpixels=1000)
+    
+#     # generate the collection of Patches
+#     coll = PatchCollection(ptchs, cmap=cmap, match_original=True)
+#     ax1.add_collection(coll)
+#     coll.set_alpha(0.4)
+    
+#     # catalog
+#     cat, n_stations = mappingfileToDF(mappingfile, colvar=colvar)
+#     m.scatter(cat['LONG_'], cat['LAT'], marker='s', s=20, alpha=0.4, c=color_producer.to_rgba(.5))
+    
+#     # save image
+#     plt.savefig(outfilepath)
+#     print('image saved')
+#     return ax1
+
+
+def griddedCellGradient(mappingfile, shapefile, outfilepath, plottitle, colorbar_label,
+                        spatial_resolution=1/16, margin=0.25, epsg=3857, column='ELEV',
+                        basemap_image='ESRI_Imagery_World_2D', cmap='coolwarm'):
+    """
+    
+    
+    mappingfile: (dir) the path to the mappingfile for the watershed gridded cell centroids
+    shapefile: (dir) the path to the ESRI shapefile for the watershed shape
+    spatial_resolution: (float) the degree of longitude-latitude separation between gridded cell centroids, e.g., 1/16
+    margin: (float) the fraction of width and height to view outside of the watershed shapefile, e.g., 0.25
+    crs: (dict) the coordinate reference system to use for the geodataframe, e.g. {'init':'epsg:3857'}
+    epsg: (int) the epsg code for regional projection, e.g. 3857
+    column: (str) the name of the column within the mappingfile to visualize with a color gradient
+    basemap_image: (str) the basemap arcgis service e.g., 'Canvas/World_Dark_Gray_Base' or 'ESRI_Imagery_World_2D'
+    cmap: (str) the code for matplotlib colormaps, e.g. 'coolwarm',
+    plottitle: (str) the title of the plot
+    colorbar_label: (str) the label for the colorbar
+    outfilepath: (dir) the path for the output image file
+    """
+    
+    # generate the figure axis
+    fig = plt.figure(figsize=(3,3), dpi=500)
     ax1 = plt.subplot2grid((1,1),(0,0))
 
-    # generate the polygon color-scheme
-    cmap = mpl.cm.get_cmap('coolwarm')
-    norm = mpl.colors.Normalize(0, 1)
-    color_producer = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
-
+    # read mappingfile, generate gridded cell boxes, and initialize the geodataframe
+    map_df = pd.read_csv(mappingfile)
+    midpt=spatial_resolution/2
+    crs={'init':'epsg:{0}'.format(epsg)}
+    geometry = map_df.apply(lambda x: box(x['LONG_']-midpt, x['LAT']-midpt, x['LONG_']+midpt, x['LAT']+midpt), axis=1)
+    map_df2 = gpd.GeoDataFrame(map_df, crs=crs, geometry=geometry)
+    
+    # normalize the color distribution according to the value distribution
+    colormap = mpl.cm.get_cmap(cmap)
+    norm = mpl.colors.LogNorm(map_df2[column].min(), map_df2[column].max())
+    color_producer = mpl.cm.ScalarMappable(norm=norm, cmap=colormap)
+    
     # calculate bounding box based on the watershed shapefile
     watershed = fiona.open(shapefile)
     minx, miny, maxx, maxy = watershed.bounds
     w, h = maxx - minx, maxy - miny
-
-    # watershed
-    watershed_shade = color_producer.to_rgba(0.5)
-    ptchs = [PolygonPatch(shape(pol['geometry']), fc=watershed_shade, ec=watershed_shade, linewidth=0) 
-             for pol in watershed]
     watershed.close()
-    
+
     # generate basemap
-    m = Basemap(projection='merc', ellps='WGS84', epsg=epsg,
-                llcrnrlon=minx - 1 * w, llcrnrlat=miny - 1 * h, 
-                urcrnrlon=maxx + 1 * w, urcrnrlat=maxy + 1 * h,
-                resolution='l', ax=ax1)
-    m.arcgisimage(service='Canvas/World_Dark_Gray_Base', xpixels=1000)
-    
-    # generate the collection of Patches
-    coll = PatchCollection(ptchs, cmap=cmap, match_original=True)
+    m = Basemap(projection='merc', epsg=epsg, resolution='h', ax=ax1,
+                llcrnrlon=minx-margin*w, llcrnrlat=miny-margin*h, urcrnrlon=maxx+margin*w, urcrnrlat=maxy+margin*h)
+
+    # read and transform the watershed shapefiles
+    m.readshapefile(shapefile=shapefile.replace('.shp',''), name='watershed', drawbounds=True, color='m')
+    m.arcgisimage(service=basemap_image, xpixels=500)
+
+    # load and transform each polygon in shape
+    patches = []
+    for ind, eachpol in map_df2.iterrows():        
+        mpoly = shapely.ops.transform(m, eachpol['geometry'])
+        patches.append(PolygonPatch(mpoly, fc=color_producer.to_rgba(eachpol[column]), 
+                                    linewidth=0, alpha=0.5, zorder=5.0))
+        
+    # assimilate shapes to plot axis
+    coll = PatchCollection(patches, cmap=cmap, match_original=True, zorder=5.0)
     ax1.add_collection(coll)
     coll.set_alpha(0.4)
     
-    # catalog
-    cat, n_stations = mappingfileToDF(mappingfile, colvar=colvar)
-    m.scatter(cat['LONG_'], cat['LAT'], marker='s', s=20, alpha=0.4, c=color_producer.to_rgba(.5))
+    # generate colorbar
+    coll.set_array(np.array(map_df2[column]))
+    cbar = plt.colorbar(coll, shrink=0.5)
+    cbar.ax.set_ylabel(colorbar_label, rotation=270, size=3, labelpad=5) # colorbar label
+    cbar.ax.tick_params(labelsize=3) # colorbar tick fontsize
     
     # save image
-    plt.savefig(outfilepath)
-    print('image saved')
-    return ax1
-
-
-def renderValuesInPoints(shapefile, NAmer, vardf, vardf_dateindex, outfilepath='oghcat_test.png', epsg=4326):
-
+    plt.title(plottitle, fontsize=3)
+    plt.savefig(outfilepath, dpi=500)
+    plt.show()
+    
+    
+def renderValuesInPoints(vardf, vardf_dateindex, shapefile, outfilepath, plottitle, colorbar_label,
+                         spatial_resolution=1/16, margin=0.5, epsg=3857,
+                         basemap_image='Canvas/World_Dark_Gray_Base', cmap='coolwarm'):
+    """
+    A function to render the dynamics across gridded cell centroids on the spatial landscape
+    
+    vardf: (dataframe) a time-series dataframe for a variable with time-points (rows) and gridded cell centroids (column)
+    vardf_dateindex: (datetime or float) a datetime identifier to extract a row of data for visualization
+    shapefile: (dir) the path to a shapefile
+    outfilepath: (dir) the path for the output image file
+    plottitle: (str) the title of the plot
+    colorbar_label: (str) the label for the colorbar
+    spatial_resolution: (float) the degree of longitude-latitude separation between gridded cell centroids, e.g., 1/16
+    margin: (float) the fraction of width and height to view outside of the watershed shapefile
+    epsg: (int) the epsg code for regional projection, e.g. 3857
+    basemap_image: (str) the basemap arcgis service e.g., 'Canvas/World_Dark_Gray_Base' or 'ESRI_Imagery_World_2D'
+    cmap: (str) the code for matplotlib colormaps, e.g. 'coolwarm',
+    """
+    
     # generate the figure axis
-    fig = plt.figure(figsize=(5,5), dpi=500)
+    fig = plt.figure(figsize=(2,2), dpi=500)
     ax1 = plt.subplot2grid((1,1),(0,0))
 
     # generate the polygon color-scheme
-    cmap = mpl.cm.get_cmap('jet')
-    norm = mpl.colors.Normalize(vardf.as_matrix().min(), vardf.as_matrix().max())
+    cmap = mpl.cm.get_cmap(cmap)
+    norm = mpl.colors.Normalize(vardf.values.flatten().min(), vardf.values.flatten().max())
     color_producer = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
 
     # calculate bounding box based on the watershed shapefile
     watershed = fiona.open(shapefile)
     minx, miny, maxx, maxy = watershed.bounds
     w, h = maxx - minx, maxy - miny
-
-    # watershed
-    ptchs = [PolygonPatch(shape(pol['geometry']), fc='w', ec='w', linewidth=0) for pol in watershed]
     watershed.close()
     
     # generate basemap
-    m = Basemap(projection='merc', ellps='WGS84', epsg=epsg,
-                llcrnrlon=minx - 1 * w, llcrnrlat=miny - 1 * h, 
-                urcrnrlon=maxx + 1 * w, urcrnrlat=maxy + 1 * h,
-                resolution='l', ax=ax1)
-    m.arcgisimage(service='Canvas/World_Dark_Gray_Base', xpixels=1000)
-    ax1.grid(True, which='both')
+    m = Basemap(projection='merc', epsg=epsg, resolution='h', ax=ax1,
+                llcrnrlon=minx-margin*w, llcrnrlat=miny-margin*h, urcrnrlon=maxx+margin*w, urcrnrlat=maxy+margin*h)
+    m.arcgisimage(service=basemap_image, xpixels=500)
+                         
+    # watershed
+    m.readshapefile(shapefile=shapefile.replace('.shp',''), name='watershed', drawbounds=True, color='m')
     
-    # generate the collection of Patches
-    coll = PatchCollection(ptchs, cmap=cmap, match_original=True)
-    ax1.add_collection(coll)
-    coll.set_alpha(0.3)
+    # variable dataframe
+    midpt=spatial_resolution/2
+    crs={'init':'epsg:{0}'.format(epsg)}
+    cat=vardf.T.reset_index(level=[1,2]).rename(columns={'level_1':'LAT','level_2':'LONG_'})
+    geometry = cat.apply(lambda x: 
+                         shapely.ops.transform(m, box(x['LONG_']-midpt, x['LAT']-midpt, 
+                                                      x['LONG_']+midpt, x['LAT']+midpt)), axis=1)
+    cat = gpd.GeoDataFrame(cat, crs=crs, geometry=geometry).reset_index(drop=True)
+
+    # geopandas print
+    cat.plot(column=vardf_dateindex, cmap=cmap, alpha=0.4, ax=ax1,
+             vmin=vardf.values.flatten().min(), vmax=vardf.values.flatten().max())
+
+    # assimilate the shapes to plot
+    patches = []
+    for ind, eachpol in cat2.iterrows():
+        patches.append(PolygonPatch(eachpol['geometry'], linewidth=0, zorder=5.0,
+                                    fc=color_producer.to_rgba(eachpol[vardf_dateindex])))
+
+    # assimilate shapes into a patch collection
+    coll = PatchCollection(patches, cmap=cmap, match_original=True, zorder=10.0)
     
-    # catalog
-    cat=vardf.loc[vardf_dateindex,:].reset_index(level=[1,2]).rename(columns={'level_1':'LAT','level_2':'LONG_'})
-    cat_color = cat[vardf_dateindex].apply(lambda x: color_producer.to_rgba(x))
-    m.scatter(cat['LONG_'], cat['LAT'], marker='s', s=20, alpha=0.4, c=cat_color)
-    
+    # generate colorbar
+    coll.set_array(vardf.values.flatten())
+    coll.set_clim([vardf.as_matrix().min(), vardf.as_matrix().max()])
+    cbar = plt.colorbar(coll, shrink=0.5)
+    cbar.ax.set_ylabel(colorbar_label, rotation=270, size=3, labelpad=5) # colorbar label
+    cbar.ax.tick_params(labelsize=3) # colorbar tick fontsize
+
     # save image
+    plt.title(plottitle, fontsize=3)
     plt.savefig(outfilepath)
-    print('image saved')
-    return ax1
+    plt.show()
 
 
 def findStationCode(mappingfile, colvar, colvalue):
@@ -2182,3 +2290,51 @@ def findStationCode(mappingfile, colvar, colvalue):
     mapdf = pd.read_csv(mappingfile)
     outcome = mapdf.loc[mapdf[colvar]==colvalue, :][['FID','LAT','LONG_']].reset_index(drop=True).set_index('FID')
     return(outcome.to_records())
+
+def mappingfileSummary(listofmappingfiles, listofwatershednames):
+    """
+    Generate Data Availability Table for all mappingfile summaries
+    
+    listofmappingfiles: (list) path directories to the mappingfile for each watershed to be compared
+    listofwatershednames: (list) strings for the name of each watershed
+    """
+    datainventory = []
+    
+    # loop each mappingfile
+    for mappingfile, watershedname in zip(listofmappingfiles, listofwatershednames):
+        mapdf = pd.read_csv(mappingfile)
+        
+        # summarize the total dimensions
+        tmp=[]
+        tmp.append(tuple(['Watershed',watershedname]))
+        tmp.append(tuple(['Median elevation in meters [range](No. gridded cells)',
+                          '{0}[{1}-{2}] (n={3})'.format(int(mapdf.ELEV.median()),
+                                                        int(mapdf.ELEV.min()), 
+                                                        int(mapdf.ELEV.max()),
+                                                        int(len(mapdf)))]))
+        
+        # summarize for each gridded data product
+        for each in mapdf.columns:
+            if each in meta_file.keys():
+                filesobtained = mapdf[mapdf[each].apply(lambda x: pd.notnull(x))].reset_index()
+                if len(filesobtained)>0:
+                    tmp.append(tuple([each, 
+                                      '{0}[{1}-{2}] (n={3})'.format(int(filesobtained.ELEV.median()), 
+                                                                    int(filesobtained.ELEV.min()), 
+                                                                    int(filesobtained.ELEV.max()), 
+                                                                    int(filesobtained[each].count()))]))
+
+        # interpret list to table form
+        t1 = pd.DataFrame.from_records(tmp, columns=['datasets','values']).set_index('datasets').T.set_index(['Watershed',
+                                                                      'Median elevation in meters [range](No. gridded cells)'])
+
+        # compile into summary table
+        if len(datainventory)==0:
+            datainventory=t1.copy()
+        else:
+            datainventory=pd.concat([datainventory, t1], axis=0)
+    
+    # conform into datasets by watershed summary
+    datainventory = datainventory.T.fillna(0)
+    datainventory.index.name = None
+    return(datainventory)
