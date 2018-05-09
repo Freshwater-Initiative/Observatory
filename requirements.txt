@@ -5,3 +5,4 @@ geopandas
 beautifulsoup4
 basemap
 wget
+basemap-data-hires
