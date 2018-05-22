@@ -4,6 +4,7 @@ from __future__ import (absolute_import,
                         unicode_literals)
 
 from ogh.ogh import *  # noqa
+from ogh.ogh_meta import *  # noqa
 
 __author__ = 'Jimmy Phuong'
 

@@ -5,3 +5,5 @@ geopandas
 beautifulsoup4
 basemap
 wget
+seaborn
+basemap-data-hires
