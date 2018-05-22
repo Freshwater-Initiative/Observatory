@@ -51,6 +51,7 @@ class ogh_meta:
     def values(self):
         return(self.__meta_data.values())
                
+        
 def saveDictOfDf(outfilepath, dictionaryObject):
     """
     Save a json file from a pickle'd python dictionary-of-dataframes object
@@ -64,6 +65,7 @@ def saveDictOfDf(outfilepath, dictionaryObject):
         pickle.dump(dictionaryObject, f)
         f.close()
 
+        
 def readDictOfDf(infilepath):
     """
     Read in a json file that contains pickle'd python objects
@@ -75,6 +77,7 @@ def readDictOfDf(infilepath):
         dictionaryObject = pickle.load(f)
         f.close()
     return(dictionaryObject)
+
 
 def reprojShapefile(sourcepath, outpath=None, newprojdictionary={'proj':'longlat', 'ellps':'WGS84', 'datum':'WGS84'}):
     """
@@ -93,6 +96,7 @@ def reprojShapefile(sourcepath, outpath=None, newprojdictionary={'proj':'longlat
     shpfile = shpfile.to_crs(newprojdictionary)
     shpfile.to_file(outpath)
 
+    
 def getFullShape(shapefile):
     """
     Generate a MultiPolygon to represent each shape/polygon within the shapefile
