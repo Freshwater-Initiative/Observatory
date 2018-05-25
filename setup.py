@@ -25,7 +25,6 @@ setup(
     cmdclass=versioneer.get_cmdclass(),
     description='Tools for observing the terrestrial and aquatic surfaces of Earth',
     long_description=long_description,
-    long_description_content_type='text/markdown',
     url='https://github.com/Freshwater-Initiative/Observatory',
     author='Jimmy Phuong',
     author_email='jphuong@uw.edu',
@@ -43,7 +42,7 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Scientific/Engineering'
     ],
-    keywords='Freshwater Intiative Tools',
+    keywords=['Freshwater', 'Intiative', 'Tools'],
     packages=find_packages(),
     install_requires=install_requires,
 )
