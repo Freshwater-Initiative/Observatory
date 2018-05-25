@@ -26,7 +26,7 @@ setup(
     description='Tools for observing the terrestrial and aquatic surfaces of Earth',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='',
+    url='https://github.com/Freshwater-Initiative/Observatory',
     author='Jimmy Phuong',
     author_email='jphuong@uw.edu',
     maintainer='Landung Setiawan',
