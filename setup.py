@@ -25,6 +25,7 @@ setup(
     cmdclass=versioneer.get_cmdclass(),
     description='Tools for observing the terrestrial and aquatic surfaces of Earth',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     url='',
     author='Jimmy Phuong',
     author_email='jphuong@uw.edu',
