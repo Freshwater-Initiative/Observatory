@@ -6,4 +6,6 @@ beautifulsoup4
 basemap
 wget
 seaborn
-basemap-data-hires
+# conda only requirements:
+# python-wget
+# basemap-data-hires

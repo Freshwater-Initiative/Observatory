@@ -1,3 +1,6 @@
+
+# -*- coding: utf-8 -*-
+
 import os
 import json
 
@@ -283,7 +286,7 @@ def meta_file():
     tmp['dailywrf_salathe2014']['file_format'] = 'ASCII'
 
     tmp['dailywrf_salathe2014']['reference']=dict()
-    tmp['dailywrf_salathe2014']['reference'][1]="Salathé Jr EP, Hamlet AF, Mass CF, Lee SY, Stumbaugh M, Steed R. Estimates of twenty-first-century flood risk in the Pacific Northwest based on regional climate model simulations. Journal of Hydrometeorology. 2014 Oct;15(5):1881-99. DOI: 10.1175/JHM-D-13-0137.1"
+    tmp['dailywrf_salathe2014']['reference'][1]=u"Salathé Jr EP, Hamlet AF, Mass CF, Lee SY, Stumbaugh M, Steed R. Estimates of twenty-first-century flood risk in the Pacific Northwest based on regional climate model simulations. Journal of Hydrometeorology. 2014 Oct;15(5):1881-99. DOI: 10.1175/JHM-D-13-0137.1"
     tmp['dailywrf_salathe2014']['reference'][2]="http://cses.washington.edu/rocinante/WRF/README"
 
     tmp['dailywrf_salathe2014']['start_date'] = '1950-01-01'
