@@ -29,7 +29,7 @@ import ftplib, urllib, wget, bz2
 from bs4 import BeautifulSoup as bs
 
 # ogh supplemental info
-from ogh.ogh_meta import meta_file
+from .ogh_meta import meta_file
 
 
 class ogh_meta:
