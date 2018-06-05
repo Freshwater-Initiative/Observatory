@@ -3,4 +3,4 @@ include README.md
 include *.txt
 
 include versioneer.py
-include ogh/_version.py
+recursive-include ogh *.py *.json *.ipynb
