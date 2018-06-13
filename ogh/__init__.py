@@ -3,8 +3,9 @@ from __future__ import (absolute_import,
                         print_function,
                         unicode_literals)
 
-from ogh.ogh import *  # noqa
 from ogh.ogh_meta import *  # noqa
+from ogh.ogh import *  # noqa
+
 
 __author__ = 'Jimmy Phuong'
 
