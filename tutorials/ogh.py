@@ -1347,6 +1347,7 @@ def gridclim_dict(mappingfile,dataset,gridclimname=None,metadata=None,min_elev=N
     subset_start_date: (date) the start date of a date range of interest
     subset_end_date: (date) the end date of a date range of interest
     df_dict: (dict) an existing dictionary where new computations will be stored
+    gridcell_limit: (true/false) if true, the daily dataframes for each variable will be removed if it exceeds 300 gridded cells
     """
     
     # generate the climate locations and n_stations
