@@ -1329,7 +1329,7 @@ def aggregate_space_time_sum(df_dict, suffix, start_date, end_date):
 
 def gridclim_dict(mappingfile,dataset,gridclimname=None,metadata=None,min_elev=None,max_elev=None,
                   file_start_date=None,file_end_date=None,file_time_step=None,file_colnames=None,file_delimiter=None,
-                  subset_start_date=None,subset_end_date=None,df_dict=None,colvar=None):
+                  subset_start_date=None,subset_end_date=None,df_dict=None,colvar=None, gridcell_limit=True):
     """
     # pipelined operation for assimilating data, processing it, and standardizing the plotting
     
@@ -1423,9 +1423,9 @@ def gridclim_dict(mappingfile,dataset,gridclimname=None,metadata=None,min_elev=N
                                                     start_date=subset_start_date,end_date=subset_end_date))
 
         # if the number of stations exceeds 500, remove daily time-series dataframe
-        if len(locations_df)>300:
-           del df_dict[eachvardf]
-                
+        if gridcell_limit is True & len(locations_df)>300:
+            del df_dict[eachvardf]
+            
     return(df_dict)
 
 
@@ -2566,7 +2566,7 @@ def monthlyExceedence_cfs (df_dict,daily_streamflow_dfname,gridcell_area,exceeda
         Exceed = pd.concat([Exceed, pd.DataFrame(month_res).T], axis=0)
     
     Exceed.index=months
-    df_dict['EXCEED{0}_{1}'.format(exceedance,dataset)] = Exceed
+    df_dict['EXCEED{0}_cfs_{1}'.format(exceedance,dataset)] = Exceed
     return(df_dict)
 
 
