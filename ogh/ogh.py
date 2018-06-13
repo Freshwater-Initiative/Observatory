@@ -28,10 +28,7 @@ import geopandas as gpd
 import ftplib, urllib, wget, bz2
 from bs4 import BeautifulSoup as bs
 
-<<<<<<< HEAD
 # ogh supplemental info
-=======
->>>>>>> 78eab2868f8620a8fdd0d8af707f8af5bcda0288
 from .ogh_meta import meta_file
 
 
