@@ -28,7 +28,10 @@ import geopandas as gpd
 import ftplib, urllib, wget, bz2
 from bs4 import BeautifulSoup as bs
 
+<<<<<<< HEAD
 # ogh supplemental info
+=======
+>>>>>>> 78eab2868f8620a8fdd0d8af707f8af5bcda0288
 from .ogh_meta import meta_file
 
 
@@ -51,7 +54,6 @@ class ogh_meta:
     def values(self):
         return(self.__meta_data.values())
                
-        
 def saveDictOfDf(outfilepath, dictionaryObject):
     """
     Save a json file from a pickle'd python dictionary-of-dataframes object
@@ -65,7 +67,6 @@ def saveDictOfDf(outfilepath, dictionaryObject):
         pickle.dump(dictionaryObject, f)
         f.close()
 
-        
 def readDictOfDf(infilepath):
     """
     Read in a json file that contains pickle'd python objects
@@ -77,7 +78,6 @@ def readDictOfDf(infilepath):
         dictionaryObject = pickle.load(f)
         f.close()
     return(dictionaryObject)
-
 
 def reprojShapefile(sourcepath, outpath=None, newprojdictionary={'proj':'longlat', 'ellps':'WGS84', 'datum':'WGS84'}):
     """
@@ -96,7 +96,6 @@ def reprojShapefile(sourcepath, outpath=None, newprojdictionary={'proj':'longlat
     shpfile = shpfile.to_crs(newprojdictionary)
     shpfile.to_file(outpath)
 
-    
 def getFullShape(shapefile):
     """
     Generate a MultiPolygon to represent each shape/polygon within the shapefile
@@ -1334,7 +1333,7 @@ def aggregate_space_time_sum(df_dict, suffix, start_date, end_date):
 
 def gridclim_dict(mappingfile,dataset,gridclimname=None,metadata=None,min_elev=None,max_elev=None,
                   file_start_date=None,file_end_date=None,file_time_step=None,file_colnames=None,file_delimiter=None,
-                  subset_start_date=None,subset_end_date=None,df_dict=None,colvar=None):
+                  subset_start_date=None,subset_end_date=None,df_dict=None,colvar=None, gridcell_limit=True):
     """
     # pipelined operation for assimilating data, processing it, and standardizing the plotting
     
@@ -1352,6 +1351,7 @@ def gridclim_dict(mappingfile,dataset,gridclimname=None,metadata=None,min_elev=N
     subset_start_date: (date) the start date of a date range of interest
     subset_end_date: (date) the end date of a date range of interest
     df_dict: (dict) an existing dictionary where new computations will be stored
+    gridcell_limit: (true/false) if true, the daily dataframes for each variable will be removed if it exceeds 300 gridded cells
     """
     
     # generate the climate locations and n_stations
@@ -1428,9 +1428,9 @@ def gridclim_dict(mappingfile,dataset,gridclimname=None,metadata=None,min_elev=N
                                                     start_date=subset_start_date,end_date=subset_end_date))
 
         # if the number of stations exceeds 500, remove daily time-series dataframe
-        if len(locations_df)>300:
-           del df_dict[eachvardf]
-                
+        if gridcell_limit is True & len(locations_df)>300:
+            del df_dict[eachvardf]
+            
     return(df_dict)
 
 
@@ -2571,7 +2571,7 @@ def monthlyExceedence_cfs (df_dict,daily_streamflow_dfname,gridcell_area,exceeda
         Exceed = pd.concat([Exceed, pd.DataFrame(month_res).T], axis=0)
     
     Exceed.index=months
-    df_dict['EXCEED{0}_{1}'.format(exceedance,dataset)] = Exceed
+    df_dict['EXCEED{0}_cfs_{1}'.format(exceedance,dataset)] = Exceed
     return(df_dict)
 
 
