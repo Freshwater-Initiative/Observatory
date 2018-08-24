@@ -31,7 +31,7 @@ import geopandas as gpd
 from bs4 import BeautifulSoup as bs
 
 # ogh supplemental info
-from ogh.ogh_meta import meta_file
+from .ogh_meta import meta_file
 import landlab.grid.raster as r
 
 
