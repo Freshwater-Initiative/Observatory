@@ -54,8 +54,8 @@ install:
 
 script:
   - if [[ $TEST_TARGET == 'default' ]]; then
-      cp -r tests /tmp && cd /tmp ;
-      pytest -vv tests ;
+      cp -r ogh/tests /tmp && cd /tmp ;
+      pytest -vv test_ogh.py ;
     fi
   - if [[ $TEST_TARGET == 'coding_standards' ]]; then
       flake8 --max-line-length=105 ogh;

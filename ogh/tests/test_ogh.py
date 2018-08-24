@@ -13,35 +13,23 @@ import ogh
 
 data_path = os.path.join(ogh.__path__[0], 'tests/data')
 
-# TODO: NEED TESTS!!!
-# class Testoghfunctions(object):
-
-#     def setup(self):
-#         pass
-
-#     def test_saveDictOfDf(self):
-#         pass
-    
-#     def test_saveDictOfDf(self):
-#         pass
-
-
 # loading and saving dataframes and dictionaries
 class Test_ogh_load_functions(object):
 
-    def test_ogh_meta():
+    def test_ogh_meta(self):
         keys = dict(ogh.ogh_meta())
         if len(keys)>0:
             pass
+        assert True
 
 
-    def test_DictOfDf():
+    def test_DictOfDf(self):
         path = os.path.join(data_path,'test.json')
         obj1 = pd.DataFrame({'foo':['a','b'],'bar':[1,2]})
         obj2 = ['foo','bar']
 
         # savedictofdf success
-        ogh.saveDictOfDf(path, obj1)
+        ogh.saveDictOfDf(path, obj1.to_dict())
         assert os.path.exists(path)
 
         # readdictofdf success
@@ -55,17 +43,18 @@ class Test_ogh_load_functions(object):
             os.remove(path)
             assert True
 
-    def test_ensuredir():
+    def test_ensuredir(self):
         path0 = os.getcwd()
-        path1 = os.path.join(data_path,'test_subfolder')
+        path1 = os.path.join(data_path,'test_files')
         ogh.ensuredir(path1)
         ogh.ensuredir(path0)
         assert os.path.exists(path1)
         
         
 class Test_mappingfile_ops(object):
-    def test_readmappingfile():
+    def test_readmappingfile(self):
         test_map = ogh.mappingfileToDF(mappingfile=os.path.join(data_path,'test_mappingfile.csv'), colvar='all', summary=True)
+        test_map.to_csv(os.path.join(data_path,'test_mappingfile.csv'), columns=['FID','LAT','LONG_','ELEV'], index=False)
         assert True
 
         test_compare = ogh.compareonvar(map_df=test_map, colvar=None)
@@ -75,7 +64,7 @@ class Test_mappingfile_ops(object):
 # loading and saving shapefiles
 class Test_ogh_shape_functions(object):
 
-    def test_shapefile_reading():
+    def test_shapefile_reading(self):
         path=os.path.join(data_path,'shape.shp')
 
         # getFullShape success
@@ -91,13 +80,13 @@ class Test_ogh_shape_functions(object):
         assert True
 
 
-    def test_reprojShapefile():
+    def test_reprojShapefile(self):
         ogh.reprojShapefile(sourcepath=os.path.join(data_path,'shape.shp'), 
                             newprojdictionary={'proj':'longlat', 'ellps':'WGS84', 'datum':'WGS84'})
         assert True
 
 
-    def test_treatgeoself_parts():
+    def test_treatgeoself_parts(self):
         inpath=os.path.join(data_path,'shape.shp')
         outpath=os.path.join(data_path,'test_mappingfile.csv')
 
@@ -123,17 +112,17 @@ class Test_ogh_shape_functions(object):
 # spatial mapping
 class Test_ogh_spatial_mapping(object):
 
-    def test_canadabox_bc():
+    def test_canadabox_bc(self):
         test = ogh.canadabox_bc()
         assert True
 
 
-    def test_mapContentFolder():
+    def test_mapContentFolder(self):
         test = ogh.mapContentFolder(os.path.join(data_path,'test_files'))
         assert True
 
 
-    def test_mapfilelocations():
+    def test_mapfilelocations(self):
         test_maptable = pd.read_csv(os.path.join(data_path,'test_mappingfile.csv'))
 
         # livneh 2013
@@ -157,13 +146,13 @@ class Test_ogh_spatial_mapping(object):
 # web scraping
 class Test_ogh_webscraping(object):
 
-    def test_scrapeurl():
+    def test_scrapeurl(self):
         path = os.path.join(data_path,'test_files')
         filenames=ogh.scrapeurl(path, startswith='data')
         assert len(filenames)>0
 
 
-    def test_scrapedomain():
+    def test_scrapedomain(self):
         # gridded data product metadata
         domain='livnehpublicstorage.colorado.edu'
         subdomain='/public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2'
@@ -177,7 +166,7 @@ class Test_ogh_webscraping(object):
 # web download
 class Test_ogh_webdownload(object):
 
-    def test_ftp_download():
+    def test_ftp_download(self):
         protocol = 'ftp://'
         ipaddress = 'livnehpublicstorage.colorado.edu/'
         subdomain = 'public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2/fluxes.100.95.25.36/'
@@ -203,7 +192,7 @@ class Test_ogh_webdownload(object):
             pass
 
 
-    def test_ftp_download_one():
+    def test_ftp_download_one(self):
         protocol = 'ftp://'
         ipaddress = 'livnehpublicstorage.colorado.edu/'
         subdomain = 'public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2/fluxes.100.95.25.36/'
@@ -214,7 +203,7 @@ class Test_ogh_webdownload(object):
         assert True
 
 
-    def test_ftp_download_p():
+    def test_ftp_download_p(self):
         protocol = 'ftp://'
         ipaddress = 'livnehpublicstorage.colorado.edu/'
         subdomain = 'public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2/fluxes.100.95.25.36/'
@@ -224,22 +213,22 @@ class Test_ogh_webdownload(object):
         listofinterest=[os.path.join(protocol, ipaddress, subdomain, filename1), 
                         os.path.join(protocol, ipaddress, subdomain, filename2)]
         ogh.ftp_download_p(listofinterest)
+        os.removedir(filename1)
         assert True
 
-
-    def test_wget_download():
+    def test_wget_download(self):
         listofinterest=['test1', 'test2']
         ogh.wget_download(listofinterest)
         assert True
 
 
-    def test_wget_download_one():
+    def test_wget_download_one(self):
         urlofinterest='test1'
         ogh.wget_download_one(urlofinterest)
         assert True
 
 
-    def test_wget_download_p():
+    def test_wget_download_p(self):
         listofinterest=['test1', 'test2']
         ogh.wget_download_p(listofinterest)
         assert True
@@ -250,11 +239,11 @@ class Test_ogh_cataloging(object):
 
     folderpath=os.path.join(data_path,'test_files') # has sample file
     
-    def test_catalogfiles():
+    def test_catalogfiles(self):
         test = ogh.catalogfiles(folderpath)
         assert True
 
-    def test_addCatalogToMap():
+    def test_addCatalogToMap(self):
         # read in a sample mappingfile as test_map
         test_map = ogh.mappingfileToDf(os.path.join(data_path,'test_mappingfile.csv'), colvar=None)
         ogh.addCatalogToMap(outfilepath=os.path.join(data_path,'test_catalog.csv'), 
@@ -266,55 +255,62 @@ class Test_ogh_cataloging(object):
     
 # Wrapper scripts
 class Test_ogh_wrappedget(object):
-    def test_getDailyMET_livneh2013():
+    def test_getDailyMET_livneh2013(self):
         ogh.getDailyMET_livneh2013(homedir=data_path, 
                                    mappingfile=os.path.join(data_path,'test_mappingfile.csv'), 
-                                   subdir=os.path.join(data_path,'test_files'),
+                                   subdir=os.path.join(data_path,'test_files1'),
                                    catalog_label='dailymet_livneh2013')
         assert True
     
-    def test_getDailyMET_livneh2015():
+    def test_getDailyMET_livneh2015(self):
         ogh.getDailyMET_livneh2015(homedir=os.getcwd(), 
                                    mappingfile=os.path.join(data_path,'test_mappingfile.csv'), 
-                                   subdir=os.path.join(data_path,'test_files'),
+                                   subdir=os.path.join(data_path,'test_files2'),
                                    catalog_label='dailymet_livneh2015')
         assert True
         
 
-    def test_getDailyMET_bcLivneh2013():
+    def test_getDailyMET_bcLivneh2013(self):
         ogh.getDailyMET_bcLivneh2013(homedir=data_path, 
                                      mappingfile=os.path.join(data_path,'test_mappingfile.csv'), 
-                                     subdir=os.path.join(data_path,'test_files'),
+                                     subdir=os.path.join(data_path,'test_files3'),
                                      catalog_label='dailymet_bclivneh2013')
         assert True
 
 
-    def test_getDailyVIC_livneh2013():
+    def test_getDailyVIC_livneh2013(self):
         ogh.getDailyVIC_livneh2013(homedir=data_path, 
                                    mappingfile=os.path.join(data_path,'test_mappingfile.csv'), 
-                                   subdir=os.path.join(data_path,'test_files'),
+                                   subdir=os.path.join(data_path,'test_files4'),
                                    catalog_label='dailyvic_livneh2013')
         assert True
         
-    def test_getDailyVIC_livneh2015():
+    def test_getDailyVIC_livneh2015(self):
         ogh.getDailyVIC_livneh2015(homedir=data_path, 
                                    mappingfile=os.path.join(data_path,'test_mappingfile.csv'), 
-                                   subdir=os.path.join(data_path,'test_files'),
+                                   subdir=os.path.join(data_path,'test_files5'),
                                    catalog_label='dailyvic_livneh2015')
         assert True
     
 
-    def test_getDailyWRF_salathe2014():
+    def test_getDailyWRF_salathe2014(self):
         ogh.getDailyWRF_salathe2014(homedir=data_path, 
                                     mappingfile=os.path.join(data_path,'test_mappingfile.csv'), 
-                                    subdir=os.path.join(data_path,'test_files'),
+                                    subdir=os.path.join(data_path,'test_files6'),
                                     catalog_label='dailywrf_salathe2014')
         assert True
         
 
-    def test_getDailyWRF_bcsalathe2014():
+    def test_getDailyWRF_bcsalathe2014(self):
         ogh.getDailyWRF_bcsalathe2014(homedir=data_path, 
                                       mappingfile=os.path.join(data_path,'test_mappingfile.csv'), 
-                                      subdir=os.path.join(data_path,'test_files'),
+                                      subdir=os.path.join(data_path,'test_files7'),
                                       catalog_label='dailywrf_bcsalathe2014')
+        assert True
+        
+    def test_files_remove(self):
+        for eachdir in ['test_files1','test_files2','test_files3','test_files4','test_files5','test_files6','test_files7']:
+            path = os.path.join(data_path, eachdir)
+            pd.Series(os.listdir(path)).apply(lambda x: os.removedir(os.path.join(path, x)))
+            os.removedir(path)
         assert True
