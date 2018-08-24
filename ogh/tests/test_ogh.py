@@ -6,10 +6,12 @@ from __future__ import (absolute_import,
 import os
 import pytest
 import ftplib
-import ogh
 import numpy as np
 import pandas as pd
 import geopandas as gpd
+import ogh
+
+data_path = os.path.join(ogh.__path__[0], 'tests/data')
 
 # TODO: NEED TESTS!!!
 # class Testoghfunctions(object):
@@ -34,7 +36,7 @@ class Test_ogh_load_functions(object):
 
 
     def test_DictOfDf():
-        path ='tests/data/test.json'
+        path = os.path.join(data_path,'test.json')
         obj1 = pd.DataFrame({'foo':['a','b'],'bar':[1,2]})
         obj2 = ['foo','bar']
 
@@ -55,7 +57,7 @@ class Test_ogh_load_functions(object):
 
     def test_ensuredir():
         path0 = os.getcwd()
-        path1 = 'tests/data/test_subfolder'
+        path1 = os.path.join(data_path,'test_subfolder')
         ogh.ensuredir(path1)
         ogh.ensuredir(path0)
         assert os.path.exists(path1)
@@ -63,7 +65,7 @@ class Test_ogh_load_functions(object):
         
 class Test_mappingfile_ops(object):
     def test_readmappingfile():
-        test_map = ogh.mappingfileToDF(mappingfile='tests/data/test_mapping.csv', colvar='all', summary=True)
+        test_map = ogh.mappingfileToDF(mappingfile=os.path.join(data_path,'test_mappingfile.csv'), colvar='all', summary=True)
         assert True
 
         test_compare = ogh.compareonvar(map_df=test_map, colvar=None)
@@ -74,14 +76,14 @@ class Test_mappingfile_ops(object):
 class Test_ogh_shape_functions(object):
 
     def test_shapefile_reading():
-        path='tests/data/shape.shp'
+        path=os.path.join(data_path,'shape.shp')
 
         # getFullShape success
         test = ogh.getFullShape(path)
         assert True
 
         # readShapefileTable success
-        test = ogh.readShapefileTable(shapefile='tests/data/shape.shp')
+        test = ogh.readShapefileTable(shapefile=os.path.join(data_path,'shape.shp'))
         assert True
 
         # getShapeBbox
@@ -90,14 +92,14 @@ class Test_ogh_shape_functions(object):
 
 
     def test_reprojShapefile():
-        ogh.reprojShapefile(sourcepath='tests/data/shape.shp', 
+        ogh.reprojShapefile(sourcepath=os.path.join(data_path,'shape.shp'), 
                             newprojdictionary={'proj':'longlat', 'ellps':'WGS84', 'datum':'WGS84'})
         assert True
 
 
     def test_treatgeoself_parts():
-        inpath='tests/data/shape.shp'
-        outpath='tests/data/test_mappingfile.csv'
+        inpath=os.path.join(data_path,'shape.shp')
+        outpath=os.path.join(data_path,'test_mappingfile.csv')
 
         # reading in the shapefile
         test_poly=gpd.read_file(inpath)
@@ -127,12 +129,12 @@ class Test_ogh_spatial_mapping(object):
 
 
     def test_mapContentFolder():
-        test = ogh.mapContentFolder('test')
+        test = ogh.mapContentFolder(os.path.join(data_path,'test_files'))
         assert True
 
 
     def test_mapfilelocations():
-        test_maptable = pd.read_csv('tests/data/test_mappingfile.csv')
+        test_maptable = pd.read_csv(os.path.join(data_path,'test_mappingfile.csv'))
 
         # livneh 2013
         assert ogh.compile_dailyMET_Livneh2013_locations(test_maptable) is not None
@@ -156,7 +158,7 @@ class Test_ogh_spatial_mapping(object):
 class Test_ogh_webscraping(object):
 
     def test_scrapeurl():
-        path = 'test'
+        path = os.path.join(data_path,'test_files')
         filenames=ogh.scrapeurl(path, startswith='data')
         assert len(filenames)>0
 
@@ -246,7 +248,7 @@ class Test_ogh_webdownload(object):
 # Download the files to the subdirectory
 class Test_ogh_cataloging(object):
 
-    folderpath='tests/data/test_files/' # has sample file
+    folderpath=os.path.join(data_path,'test_files') # has sample file
     
     def test_catalogfiles():
         test = ogh.catalogfiles(folderpath)
@@ -254,8 +256,8 @@ class Test_ogh_cataloging(object):
 
     def test_addCatalogToMap():
         # read in a sample mappingfile as test_map
-        test_map = ogh.mappingfileToDf('tests/data/test_mappingfile.csv', colvar=None)
-        ogh.addCatalogToMap(outfilepath='tests/data/test_catalog.csv', 
+        test_map = ogh.mappingfileToDf(os.path.join(data_path,'test_mappingfile.csv'), colvar=None)
+        ogh.addCatalogToMap(outfilepath=os.path.join(data_path,'test_catalog.csv'), 
                             maptable=test_map, 
                             folderpath=folderpath,
                             catalog_label='test')
@@ -265,40 +267,54 @@ class Test_ogh_cataloging(object):
 # Wrapper scripts
 class Test_ogh_wrappedget(object):
     def test_getDailyMET_livneh2013():
-        ogh.getDailyMET_livneh2013(homedir=os.getcwd(), mappingfile='tests/data/test_mappingfile.csv', 
-                                   subdir='tests/data/test_files', catalog_label='dailymet_livneh2013')
+        ogh.getDailyMET_livneh2013(homedir=data_path, 
+                                   mappingfile=os.path.join(data_path,'test_mappingfile.csv'), 
+                                   subdir=os.path.join(data_path,'test_files'),
+                                   catalog_label='dailymet_livneh2013')
         assert True
     
     def test_getDailyMET_livneh2015():
-        ogh.getDailyMET_livneh2015(homedir=os.getcwd(), mappingfile='tests/data/test_mappingfile.csv',
-                                   subdir='tests/data/test_files', catalog_label='dailymet_livneh2015')
+        ogh.getDailyMET_livneh2015(homedir=os.getcwd(), 
+                                   mappingfile=os.path.join(data_path,'test_mappingfile.csv'), 
+                                   subdir=os.path.join(data_path,'test_files'),
+                                   catalog_label='dailymet_livneh2015')
         assert True
         
 
     def test_getDailyMET_bcLivneh2013():
-        ogh.getDailyMET_bcLivneh2013(homedir=os.getcwd(), mappingfile='tests/data/test_mappingfile.csv',
-                                     subdir='tests/data/test_files',catalog_label='dailymet_bclivneh2013')
+        ogh.getDailyMET_bcLivneh2013(homedir=data_path, 
+                                     mappingfile=os.path.join(data_path,'test_mappingfile.csv'), 
+                                     subdir=os.path.join(data_path,'test_files'),
+                                     catalog_label='dailymet_bclivneh2013')
         assert True
 
 
     def test_getDailyVIC_livneh2013():
-        ogh.getDailyVIC_livneh2013(homedir=os.getcwd(), mappingfile='tests/data/test_mappingfile.csv',
-                                   subdir='tests/data/test_files', catalog_label='dailyvic_livneh2013')
+        ogh.getDailyVIC_livneh2013(homedir=data_path, 
+                                   mappingfile=os.path.join(data_path,'test_mappingfile.csv'), 
+                                   subdir=os.path.join(data_path,'test_files'),
+                                   catalog_label='dailyvic_livneh2013')
         assert True
         
     def test_getDailyVIC_livneh2015():
-        ogh.getDailyVIC_livneh2015(homedir=os.getcwd(), mappingfile='tests/data/test_mappingfile.csv',
-                                   subdir='tests/data/test_files', catalog_label='dailyvic_livneh2015')
+        ogh.getDailyVIC_livneh2015(homedir=data_path, 
+                                   mappingfile=os.path.join(data_path,'test_mappingfile.csv'), 
+                                   subdir=os.path.join(data_path,'test_files'),
+                                   catalog_label='dailyvic_livneh2015')
         assert True
     
 
     def test_getDailyWRF_salathe2014():
-        ogh.getDailyWRF_salathe2014(homedir=os.getcwd(), mappingfile='tests/data/test_mappingfile.csv',
-                                    subdir='tests/data/test_files', catalog_label='dailywrf_salathe2014')
+        ogh.getDailyWRF_salathe2014(homedir=data_path, 
+                                    mappingfile=os.path.join(data_path,'test_mappingfile.csv'), 
+                                    subdir=os.path.join(data_path,'test_files'),
+                                    catalog_label='dailywrf_salathe2014')
         assert True
         
 
     def test_getDailyWRF_bcsalathe2014():
-        ogh.getDailyWRF_bcsalathe2014(homedir=os.getcwd(), mappingfile='tests/data/test_mappingfile.csv', 
-                                      subdir='tests/data/test_files', catalog_label='dailywrf_bcsalathe2014')
+        ogh.getDailyWRF_bcsalathe2014(homedir=data_path, 
+                                      mappingfile=os.path.join(data_path,'test_mappingfile.csv'), 
+                                      subdir=os.path.join(data_path,'test_files'),
+                                      catalog_label='dailywrf_bcsalathe2014')
         assert True
