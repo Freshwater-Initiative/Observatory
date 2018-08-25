@@ -26,7 +26,7 @@ from matplotlib.collections import PatchCollection
 from mpl_toolkits.basemap import Basemap
 
 # data wrangling libraries
-import ftplib, urllib, wget, bz2
+import ftplib, urllib as urllib2, wget, bz2
 import geopandas as gpd
 from bs4 import BeautifulSoup as bs
 
@@ -461,7 +461,7 @@ def wget_download(listofinterest):
     for fileurl in listofinterest:
         basename = os.path.basename(fileurl)
         try:
-            ping = urllib.request.urlopen(fileurl)
+            ping = urllib2.request.urlopen(fileurl)
             if ping.getcode()!=404:
                 wget.download(fileurl)
             print('downloaded: ' + basename)
@@ -486,7 +486,7 @@ def wget_download_one(fileurl):
         os.remove(basename)
         
     try:
-        ping = urllib.request.urlopen(fileurl)
+        ping = urllib2.request.urlopen(fileurl)
         if ping.getcode()!=404:
             wget.download(fileurl)
             print('downloaded: ' + basename)

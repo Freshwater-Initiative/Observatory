@@ -8,8 +8,9 @@ import pytest
 import ftplib
 import numpy as np
 import pandas as pd
+import fiona
 import geopandas as gpd
-import ogh
+import ogh as ogh
 
 data_path = os.path.join(ogh.__path__[0], 'tests/data')
 
@@ -46,20 +47,10 @@ class Test_ogh_load_functions(object):
     def test_ensuredir(self):
         path0 = os.getcwd()
         path1 = os.path.join(data_path,'test_files')
-        ogh.ensuredir(path1)
-        ogh.ensuredir(path0)
+        ogh.ensure_dir(path1)
+        ogh.ensure_dir(path0)
         assert os.path.exists(path1)
         
-        
-class Test_mappingfile_ops(object):
-    def test_readmappingfile(self):
-        test_map = ogh.mappingfileToDF(mappingfile=os.path.join(data_path,'test_mappingfile.csv'), colvar='all', summary=True)
-        test_map.to_csv(os.path.join(data_path,'test_mappingfile.csv'), columns=['FID','LAT','LONG_','ELEV'], index=False)
-        assert True
-
-        test_compare = ogh.compareonvar(map_df=test_map, colvar=None)
-        assert True
-
     
 # loading and saving shapefiles
 class Test_ogh_shape_functions(object):
@@ -84,29 +75,6 @@ class Test_ogh_shape_functions(object):
         ogh.reprojShapefile(sourcepath=os.path.join(data_path,'shape.shp'), 
                             newprojdictionary={'proj':'longlat', 'ellps':'WGS84', 'datum':'WGS84'})
         assert True
-
-
-    def test_treatgeoself_parts(self):
-        inpath=os.path.join(data_path,'shape.shp')
-        outpath=os.path.join(data_path,'test_mappingfile.csv')
-
-        # reading in the shapefile
-        test_poly=gpd.read_file(inpath)
-        assert True
-
-        # generate lat-lon
-        test_lon, test_lat= np.array(test_poly.centroid[0])
-
-        # filterPointsinShape
-        test_maptable = ogh.filterPointsinShape(shape=test_poly.geometry[0], 
-                                                points_lat=test_lat, points_lon=test_lon, points_elev=None, 
-                                                buffer_distance=0.06, buffer_resolution=16, labels=['LAT', 'LONG_', 'ELEV'])
-        test_maptable = test_maptable.reset_index(inplace=True).rename(columns={'index': 'FID'})
-        assert len(test_maptable)>0
-
-        # print the mappingfile
-        test_maptable.to_csv(outpath, sep=',', header=True, index=False)
-        assert os.path.exists(outpath)
 
     
 # spatial mapping
@@ -147,8 +115,8 @@ class Test_ogh_spatial_mapping(object):
 class Test_ogh_webscraping(object):
 
     def test_scrapeurl(self):
-        path = os.path.join(data_path,'test_files')
-        filenames=ogh.scrapeurl(path, startswith='data')
+        #path = os.path.join(data_path,'test_files') # needs to be a url
+        #filenames=ogh.scrapeurl(path, startswith='data')
         assert len(filenames)>0
 
 
@@ -213,7 +181,7 @@ class Test_ogh_webdownload(object):
         listofinterest=[os.path.join(protocol, ipaddress, subdomain, filename1), 
                         os.path.join(protocol, ipaddress, subdomain, filename2)]
         ogh.ftp_download_p(listofinterest)
-        os.removedir(filename1)
+        os.remove(filename1.replace('.bz2',''))
         assert True
 
     def test_wget_download(self):
@@ -236,19 +204,16 @@ class Test_ogh_webdownload(object):
 
 # Download the files to the subdirectory
 class Test_ogh_cataloging(object):
-
-    folderpath=os.path.join(data_path,'test_files') # has sample file
-    
     def test_catalogfiles(self):
-        test = ogh.catalogfiles(folderpath)
+        test = ogh.catalogfiles(os.path.join(data_path,'test_files'))
         assert True
 
-    def test_addCatalogToMap(self):
+    def test_addCatalogToMap(self):        
         # read in a sample mappingfile as test_map
-        test_map = ogh.mappingfileToDf(os.path.join(data_path,'test_mappingfile.csv'), colvar=None)
+        test_map = ogh.mappingfileToDF(os.path.join(data_path,'test_mappingfile.csv'), colvar=None)
         ogh.addCatalogToMap(outfilepath=os.path.join(data_path,'test_catalog.csv'), 
                             maptable=test_map, 
-                            folderpath=folderpath,
+                            folderpath=os.path.join(data_path,'test_files'),
                             catalog_label='test')
         assert True
 
@@ -311,6 +276,39 @@ class Test_ogh_wrappedget(object):
     def test_files_remove(self):
         for eachdir in ['test_files1','test_files2','test_files3','test_files4','test_files5','test_files6','test_files7']:
             path = os.path.join(data_path, eachdir)
-            pd.Series(os.listdir(path)).apply(lambda x: os.removedir(os.path.join(path, x)))
-            os.removedir(path)
+            pd.Series(os.listdir(path)).apply(lambda x: os.remove(os.path.join(path, x)))
+            os.rmdir(path)
         assert True
+        
+        
+class Test_mappingfile_ops(object):
+    def test_readmappingfile(self):        
+        test_map, nstat = ogh.mappingfileToDF(os.path.join(data_path,'test_mappingfile.csv'), colvar=None)
+        test_map = test_map.drop_duplicates()
+        test_map.to_csv(os.path.join(data_path,'test_mappingfile.csv'), index=False, columns=['FID','LAT','LONG_','ELEV'])
+        assert True
+
+        test_compare = ogh.compareonvar(map_df=test_map, colvar=None)
+        assert True
+        
+    def test_treatgeoself_parts(self):
+        inpath=os.path.join(data_path,'shape.shp')
+        outpath=os.path.join(data_path,'test_mappingfile.csv')
+
+        # reading in the shapefile
+        test_poly=gpd.read_file(inpath)
+        assert True
+
+        # generate lat-lon
+        test_lon, test_lat= np.array(test_poly.centroid[0])
+
+        # filterPointsinShape
+        test_maptable = ogh.filterPointsinShape(shape=test_poly.geometry[0], 
+                                                points_lat=[test_lat], points_lon=[test_lon], points_elev=None, 
+                                                buffer_distance=0.06, buffer_resolution=16, labels=['LAT', 'LONG_', 'ELEV'])
+        test_maptable = test_maptable.reset_index().rename(columns={'index': 'FID'})
+        assert len(test_maptable)>0
+
+        # print the mappingfile
+        test_maptable.to_csv(outpath, sep=',', header=True, index=False)
+        assert os.path.exists(outpath)
