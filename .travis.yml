@@ -47,6 +47,7 @@ before_install:
   - source activate TEST
   # These have different names from PyPI.
   - conda install --yes python-wget basemap-data-hires
+  - conda install --yes landlab -c conda-forge
 
 # Test source distribution.
 install:
