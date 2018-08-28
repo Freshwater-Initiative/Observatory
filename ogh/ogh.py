@@ -32,7 +32,7 @@ from bs4 import BeautifulSoup as bs
 
 # ogh supplemental info
 from .ogh_meta import meta_file
-import landlab.grid.raster as r
+#import landlab.grid.raster as r
 
 
 class ogh_meta:
@@ -1955,39 +1955,39 @@ def renderValueInBoxplot(vardf,outfilepath,plottitle,time_steps,value_name,cmap,
     return(ax1)
 
 
-def mappingfileToRaster(mappingfile, spatial_resolution=0.01250, approx_distance_m_x=6000):
-    # assess raster dimensions from mappingfile
-    mf, nstations = mappingfileToDF(mappingfile, colvar=None)
-    ncol = int((mf.LONG_.max()-mf.LONG_.min())/spatial_resolution +1)
-    nrow = int((mf.LAT.max()-mf.LAT.min())/spatial_resolution +1)
+# def mappingfileToRaster(mappingfile, spatial_resolution=0.01250, approx_distance_m_x=6000):
+#     # assess raster dimensions from mappingfile
+#     mf, nstations = mappingfileToDF(mappingfile, colvar=None)
+#     ncol = int((mf.LONG_.max()-mf.LONG_.min())/spatial_resolution +1)
+#     nrow = int((mf.LAT.max()-mf.LAT.min())/spatial_resolution +1)
     
-    # dimensions of the raster
-    row_list = [mf.LAT.min() + spatial_resolution*(station) for station in range(0,nrow,1)]    
-    col_list = [mf.LONG_.min() + spatial_resolution*(station) for station in range(0,ncol,1)]
+#     # dimensions of the raster
+#     row_list = [mf.LAT.min() + spatial_resolution*(station) for station in range(0,nrow,1)]    
+#     col_list = [mf.LONG_.min() + spatial_resolution*(station) for station in range(0,ncol,1)]
     
-    # initialize RasterModelGrid
-    raster = r.RasterModelGrid(nrow, ncol, dx=approx_distance_m_x)
-    raster.add_zeros
+#     # initialize RasterModelGrid
+#     raster = r.RasterModelGrid(nrow, ncol, dx=approx_distance_m_x)
+#     raster.add_zeros
     
-    # initialize node list
-    df_list=[]
+#     # initialize node list
+#     df_list=[]
     
-    # loop through the raster nodes (bottom to top arrays)
-    for row_index, nodelist in enumerate(raster.nodes):
+#     # loop through the raster nodes (bottom to top arrays)
+#     for row_index, nodelist in enumerate(raster.nodes):
         
-        # index bottom to top arrays with ordered Latitude
-        lat = row_list[row_index]
+#         # index bottom to top arrays with ordered Latitude
+#         lat = row_list[row_index]
         
-        # index left to right with ordered Longitude
-        for nodeid, long_ in zip(nodelist, col_list):
-            df_list.append([nodeid, lat, long_])
+#         # index left to right with ordered Longitude
+#         for nodeid, long_ in zip(nodelist, col_list):
+#             df_list.append([nodeid, lat, long_])
             
-    # convert to dataframe
-    df = pd.DataFrame.from_records(df_list).rename(columns={0: 'nodeid', 1: 'LAT', 2: 'LONG_'})
+#     # convert to dataframe
+#     df = pd.DataFrame.from_records(df_list).rename(columns={0: 'nodeid', 1: 'LAT', 2: 'LONG_'})
     
-    # identify raster nodeid and equivalent mappingfile FID
-    df = df.merge(mf[['FID','LAT','LONG_','ELEV']], how='outer', on=['LAT','LONG_'])
-    return(df, raster)
+#     # identify raster nodeid and equivalent mappingfile FID
+#     df = df.merge(mf[['FID','LAT','LONG_','ELEV']], how='outer', on=['LAT','LONG_'])
+#     return(df, raster)
 
 
 def temporalSlice(vardf, vardf_dateindex):
