@@ -63,7 +63,7 @@ class Test_ogh_shape_functions(object):
         assert True
 
         # readShapefileTable success
-        test = ogh.readShapefileTable(shapefile=os.path.join(data_path,'shape.shp'))
+        test = ogh.readShapefileTable(shapefile=path)
         assert True
 
         # getShapeBbox
@@ -72,7 +72,7 @@ class Test_ogh_shape_functions(object):
 
 
     def test_reprojShapefile(self):
-        ogh.reprojShapefile(sourcepath=os.path.join(data_path,'shape.shp'), 
+        ogh.reprojShapefile(sourcepath=path, 
                             newprojdictionary={'proj':'longlat', 'ellps':'WGS84', 'datum':'WGS84'})
         assert True
 
