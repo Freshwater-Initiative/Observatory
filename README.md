@@ -1,6 +1,8 @@
 # Observatory
 [![Build status](https://travis-ci.org/Freshwater-Initiative/Observatory.svg?branch=master)](https://travis-ci.org/Freshwater-Initiative/Observatory)
 
+[![DOI](https://zenodo.org/badge/107733338.svg)](https://zenodo.org/badge/latestdoi/107733338)
+
 Tools for observing the terrestrial and aquatic surfaces of Earth 
 
 "You belong among the wildflowers, you belong somewhere you feel free." Tom Petty
