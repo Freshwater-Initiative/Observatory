@@ -47,6 +47,7 @@ before_install:
   - source activate TEST
   # These have different names from PyPI.
   - conda install --yes python-wget basemap-data-hires
+  - conda install --yes landlab -c landlab
 
 # Test source distribution.
 install:
@@ -54,8 +55,7 @@ install:
 
 script:
   - if [[ $TEST_TARGET == 'default' ]]; then
-      cp -r tests /tmp && cd /tmp ;
-      pytest -vv tests ;
+      pytest -vv ogh/tests/test_ogh.py ;
     fi
   - if [[ $TEST_TARGET == 'coding_standards' ]]; then
       flake8 --max-line-length=105 ogh;
