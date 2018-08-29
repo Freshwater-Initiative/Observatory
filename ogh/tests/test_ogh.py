@@ -221,14 +221,14 @@ class Test_ogh_cataloging(object):
 class Test_ogh_wrappedget(object):
     def test_getDailyMET_livneh2013(self):
         ogh.getDailyMET_livneh2013(homedir=data_path, 
-                                   mappingfile=os.path.join(data_path,'test_mappingfile.csv'), 
+                                   mappingfile=os.path.join(data_path,'test_catalog.csv'), 
                                    subdir=os.path.join(data_path,'test_files1'),
                                    catalog_label='dailymet_livneh2013')
         assert True
     
     def test_getDailyMET_livneh2015(self):
         ogh.getDailyMET_livneh2015(homedir=os.getcwd(), 
-                                   mappingfile=os.path.join(data_path,'test_mappingfile.csv'), 
+                                   mappingfile=os.path.join(data_path,'test_catalog.csv'), 
                                    subdir=os.path.join(data_path,'test_files2'),
                                    catalog_label='dailymet_livneh2015')
         assert True
@@ -236,7 +236,7 @@ class Test_ogh_wrappedget(object):
 
     def test_getDailyMET_bcLivneh2013(self):
         ogh.getDailyMET_bcLivneh2013(homedir=data_path, 
-                                     mappingfile=os.path.join(data_path,'test_mappingfile.csv'), 
+                                     mappingfile=os.path.join(data_path,'test_catalog.csv'), 
                                      subdir=os.path.join(data_path,'test_files3'),
                                      catalog_label='dailymet_bclivneh2013')
         assert True
@@ -244,14 +244,14 @@ class Test_ogh_wrappedget(object):
 
     def test_getDailyVIC_livneh2013(self):
         ogh.getDailyVIC_livneh2013(homedir=data_path, 
-                                   mappingfile=os.path.join(data_path,'test_mappingfile.csv'), 
+                                   mappingfile=os.path.join(data_path,'test_catalog.csv'), 
                                    subdir=os.path.join(data_path,'test_files4'),
                                    catalog_label='dailyvic_livneh2013')
         assert True
         
     def test_getDailyVIC_livneh2015(self):
         ogh.getDailyVIC_livneh2015(homedir=data_path, 
-                                   mappingfile=os.path.join(data_path,'test_mappingfile.csv'), 
+                                   mappingfile=os.path.join(data_path,'test_catalog.csv'), 
                                    subdir=os.path.join(data_path,'test_files5'),
                                    catalog_label='dailyvic_livneh2015')
         assert True
@@ -259,7 +259,7 @@ class Test_ogh_wrappedget(object):
 
     def test_getDailyWRF_salathe2014(self):
         ogh.getDailyWRF_salathe2014(homedir=data_path, 
-                                    mappingfile=os.path.join(data_path,'test_mappingfile.csv'), 
+                                    mappingfile=os.path.join(data_path,'test_catalog.csv'), 
                                     subdir=os.path.join(data_path,'test_files6'),
                                     catalog_label='dailywrf_salathe2014')
         assert True
@@ -267,7 +267,7 @@ class Test_ogh_wrappedget(object):
 
     def test_getDailyWRF_bcsalathe2014(self):
         ogh.getDailyWRF_bcsalathe2014(homedir=data_path, 
-                                      mappingfile=os.path.join(data_path,'test_mappingfile.csv'), 
+                                      mappingfile=os.path.join(data_path,'test_catalog.csv'), 
                                       subdir=os.path.join(data_path,'test_files7'),
                                       catalog_label='dailywrf_bcsalathe2014')
         assert True
@@ -277,6 +277,7 @@ class Test_ogh_wrappedget(object):
             path = os.path.join(data_path, eachdir)
             pd.Series(os.listdir(path)).apply(lambda x: os.remove(os.path.join(path, x)))
             os.rmdir(path)
+        os.remove(os.path.join(data_path,'test_catalog.csv'))
         assert True
         
         
@@ -292,7 +293,6 @@ class Test_mappingfile_ops(object):
         
     def test_treatgeoself_parts(self):
         inpath=os.path.join(data_path,'shape.shp')
-        outpath=os.path.join(data_path,'test_mappingfile.csv')
 
         # reading in the shapefile
         test_poly=gpd.read_file(inpath)
@@ -307,7 +307,3 @@ class Test_mappingfile_ops(object):
                                                 buffer_distance=0.06, buffer_resolution=16, labels=['LAT', 'LONG_', 'ELEV'])
         test_maptable = test_maptable.reset_index().rename(columns={'index': 'FID'})
         assert len(test_maptable)>0
-
-        # print the mappingfile
-        test_maptable.to_csv(outpath, sep=',', header=True, index=False)
-        assert os.path.exists(outpath)
