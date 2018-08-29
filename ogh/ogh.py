@@ -465,7 +465,6 @@ def wget_download(listofinterest):
             print('downloaded: ' + basename)
         except:
             print('File does not exist at this URL: ' + basename)
-            continue
             
             
 # Download the files to the subdirectory
@@ -491,7 +490,6 @@ def wget_download_one(fileurl):
             print('downloaded: ' + basename)
     except:
         print('File does not exist at this URL: ' + basename)
-        continue
         
         
 def wget_download_p(listofinterest, nworkers=20):
