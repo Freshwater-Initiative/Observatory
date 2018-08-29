@@ -1,12 +1,10 @@
-# Import python modules
-# data handling libraries
+# Import data handling libraries
 import json
 import os
 import pickle
 import numpy as np
 from multiprocessing import Pool
 import pandas as pd
-
 import dask
 
 # graphical control libraries
