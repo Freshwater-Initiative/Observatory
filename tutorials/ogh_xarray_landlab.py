@@ -2,14 +2,13 @@
 import os
 import numpy as np
 import pandas as pd
-import dask as da
 import xarray as xray
 import ftplib, wget, bz2, urllib
-from multiprocessing.pool import ThreadPool
-
+import dask as da
 from dask.diagnostics import ProgressBar
+from multiprocessing.pool import ThreadPool
 import ogh
-
+import landlab.grid.raster as r
 
 def compile_x_wrfnnrp_raw_Salathe2014_locations(time_increments):
     """
@@ -173,46 +172,69 @@ def netcdf_to_ascii(homedir, subdir, netcdfs, mappingfile, catalog_label, meta_f
     # update metadata file
     meta_file[catalog_label] = dict(ds_mf.attrs)
     meta_file[catalog_label]['variable_list']=np.array(ds_vars)
+    meta_file[catalog_label]['delimiter']='\t'
+    meta_file[catalog_label]['start_date']=pd.DatetimeIndex(np.array(ds_mf.TIME))[0]
+    meta_file[catalog_label]['end_date']=pd.DatetimeIndex(np.array(ds_mf.TIME))[-1]
+    meta_file[catalog_label]['variable_info'] = dict(ds_mf.variables)
     
     # catalog the output files
     ogh.addCatalogToMap(outfilepath=mappingfile, maptable=maptable, folderpath=filedir, catalog_label=catalog_label)
     os.chdir(homedir)
-    return(list(outputfiles.keys()))
+    return(list(outfiledict.keys()))
 
 
-# def mappingfileToRaster(mappingfile, spatial_resolution=0.01250, approx_distance_m_x=6000):
-#     # assess raster dimensions from mappingfile
-#     mf, nstations = mappingfileToDF(mappingfile, colvar=None)
-#     ncol = int((mf.LONG_.max()-mf.LONG_.min())/spatial_resolution +1)
-#     nrow = int((mf.LAT.max()-mf.LAT.min())/spatial_resolution +1)
+def rasterDimensions (maxx, maxy, minx=0, miny=0, dy=100, dx=100):
+    # construct the range
+    x = pd.Series(range(int(minx),int(maxx)+1,1))
+    y = pd.Series(range(int(miny),int(maxy)+1,1))
     
-#     # dimensions of the raster
-#     row_list = [mf.LAT.min() + spatial_resolution*(station) for station in range(0,nrow,1)]    
-#     col_list = [mf.LONG_.min() + spatial_resolution*(station) for station in range(0,ncol,1)]
+    # filter for values that meet the increment or is the last value
+    cols = pd.Series(x.index).apply(lambda x1: x[x1] if x1 % dx == 0 or x1==x[0] or x1==x.index[-1] else None)
+    rows = pd.Series(y.index).apply(lambda y1: y[y1] if y1 % dy == 0 or y1==y[0] or y1==y.index[-1] else None)
     
-#     # initialize RasterModelGrid
-#     raster = r.RasterModelGrid(nrow, ncol, dx=approx_distance_m_x)
-#     raster.add_zeros
+    # construct the indices
+    row_list = np.array(rows.loc[pd.notnull(rows)])
+    col_list = np.array(cols.loc[pd.notnull(cols)])
     
-#     # initialize node list
-#     df_list=[]
+    # construct the raster
+    raster = r.RasterModelGrid((len(row_list), len(col_list)), spacing=(dy, dx))
+    raster.add_zeros
+    return(raster, row_list, col_list)
+
+
+def mappingfileToRaster(mappingfile, spatial_resolution=0.01250, approx_distance_m_x=6000):
+    # assess raster dimensions from mappingfile
+    mf, nstations = ogh.mappingfileToDF(mappingfile, colvar=None)
+    ncol = int((mf.LONG_.max()-mf.LONG_.min())/spatial_resolution +1)
+    nrow = int((mf.LAT.max()-mf.LAT.min())/spatial_resolution +1)
     
-#     # loop through the raster nodes (bottom to top arrays)
-#     for row_index, nodelist in enumerate(raster.nodes):
+    # dimensions of the raster
+    row_list = [mf.LAT.min() + spatial_resolution*(station) for station in range(0,nrow,1)]    
+    col_list = [mf.LONG_.min() + spatial_resolution*(station) for station in range(0,ncol,1)]
+    
+    # initialize RasterModelGrid
+    raster = r.RasterModelGrid(nrow, ncol, dx=approx_distance_m_x)
+    raster.add_zeros
+
+    # initialize node list
+    df_list=[]
+
+    # loop through the raster nodes (bottom to top arrays)
+    for row_index, nodelist in enumerate(raster.nodes):
         
-#         # index bottom to top arrays with ordered Latitude
-#         lat = row_list[row_index]
+        # index bottom to top arrays with ordered Latitude
+        lat = row_list[row_index]
         
-#         # index left to right with ordered Longitude
-#         for nodeid, long_ in zip(nodelist, col_list):
-#             df_list.append([nodeid, lat, long_])
-            
-#     # convert to dataframe
-#     df = pd.DataFrame.from_records(df_list).rename(columns={0: 'nodeid', 1: 'LAT', 2: 'LONG_'})
+        # index left to right with ordered Longitude
+        for nodeid, long_ in zip(nodelist, col_list):
+            df_list.append([nodeid, lat, long_])
+
+    # convert to dataframe
+    df = pd.DataFrame.from_records(df_list).rename(columns={0:'nodeid',1:'LAT',2:'LONG_'})
     
-#     # identify raster nodeid and equivalent mappingfile FID
-#     df = df.merge(mf[['FID','LAT','LONG_','ELEV']], how='outer', on=['LAT','LONG_'])
-#     return(df, raster)
+    # identify raster nodeid and equivalent mappingfile FID
+    df = df.merge(mf[['FID','LAT','LONG_','ELEV']], how='outer', on=['LAT','LONG_'])
+    return(df, raster)
 
 
 def temporalSlice(vardf, vardf_dateindex):

@@ -5,6 +5,7 @@ from __future__ import (absolute_import,
 
 from .ogh_meta import *  # noqa
 from .ogh import *  # noqa
+from .ogh_xarray_landlab import *
 
 
 __author__ = 'Jimmy Phuong'
