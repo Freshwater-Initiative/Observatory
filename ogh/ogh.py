@@ -9,7 +9,6 @@ import dask
 
 # graphical control libraries
 import matplotlib as mpl
-mpl.use('Agg')
 import fiona
 import matplotlib.pyplot as plt
 mpl.style.use('tableau-colorblind10')
@@ -28,7 +27,6 @@ from bs4 import BeautifulSoup as bs
 
 # ogh supplemental info
 from .ogh_meta import meta_file
-# import landlab.grid.raster as r
 
 
 class ogh_meta:
@@ -157,14 +155,11 @@ def filterPointsinShape(shape, points_lat, points_lon, points_elev=None, buffer_
         points_elev=np.repeat(np.nan, len(points_lon))
         
     # filter the points to the regional bounds
-    point_filter = points_lat.map(lambda y:(y>=miny)and(y<=maxy)) & points_lon.map(lambda x:(x>=minx)and(x<=maxx))
-    points_lon = points_lon.loc[point_filter]
-    points_lat = points_lat.loc[point_filter]
-    points_elev = points_elev.loc[point_filter]
+    bound_filter = points_lat.map(lambda y:(y>=miny)and(y<=maxy)) & points_lon.map(lambda x:(x>=minx)and(x<=maxx))
     
     # Intersection each coordinate with the region
     limited_list = []    
-    for lon, lat, elev in zip(points_lon, points_lat, points_elev):
+    for lon, lat, elev in zip(points_lon[bound_filter], points_lat[bound_filter], points_elev[bound_filter]):
         gpoint = point.Point(lon, lat)
         if gpoint.intersects(region):
             limited_list.append([lat, lon, elev])
@@ -2006,21 +2001,21 @@ def renderValueInBoxplot(vardf, outfilepath, plottitle, time_steps, value_name, 
 #     return(df, raster)
 
 
-def temporalSlice(vardf, vardf_dateindex):
-    values = vardf.loc[vardf_dateindex, :].reset_index(level=0)
-    values = values.rename(columns={'level_0': 'FID', vardf_dateindex: 'value'}).reset_index(drop=True)
-    return(values)
+# def temporalSlice(vardf, vardf_dateindex):
+#     values = vardf.loc[vardf_dateindex, :].reset_index(level=0)
+#     values = values.rename(columns={'level_0': 'FID', vardf_dateindex: 'value'}).reset_index(drop=True)
+#     return(values)
 
 
-def rasterVector(vardf, vardf_dateindex, crossmap, nodata=-9999):
-    values = temporalSlice(vardf=vardf, vardf_dateindex=vardf_dateindex)
-    vector = crossmap.merge(values, on='FID', how='left').fillna(nodata)['value']
-    return(vector)
+# def rasterVector(vardf, vardf_dateindex, crossmap, nodata=-9999):
+#     values = temporalSlice(vardf=vardf, vardf_dateindex=vardf_dateindex)
+#     vector = crossmap.merge(values, on='FID', how='left').fillna(nodata)['value']
+#     return(vector)
 
     
-def valueRange(listOfDf):
-    all_values = pd.concat(listOfDf, axis=1).as_matrix()
-    return(all_values)
+# def valueRange(listOfDf):
+#     all_values = pd.concat(listOfDf, axis=1).as_matrix()
+#     return(all_values)
 
     
 def multiSiteVisual(listOfShapefiles, listOfNames,
