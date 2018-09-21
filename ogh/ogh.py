@@ -149,18 +149,27 @@ def filterPointsinShape(shape, points_lat, points_lon, points_elev=None, buffer_
     # add buffer region
     region = shape.buffer(buffer_distance, resolution=buffer_resolution)
     
+    # construct bounds
+    minx, miny, maxx, maxy = region.bounds
+    
     # construct points_elev if null
     if isinstance(points_elev, type(None)):
         points_elev=np.repeat(np.nan, len(points_lon))
         
+    # filter the points to the regional bounds
+    point_filter = points_lat.map(lambda y:(y>=miny)and(y<=maxy)) & points_lon.map(lambda x:(x>=minx)and(x<=maxx))
+    points_lon = points_lon.loc[point_filter]
+    points_lat = points_lat.loc[point_filter]
+    points_elev = points_elev.loc[point_filter]
+    
     # Intersection each coordinate with the region
-    limited_list = []
+    limited_list = []    
     for lon, lat, elev in zip(points_lon, points_lat, points_elev):
         gpoint = point.Point(lon, lat)
         if gpoint.intersects(region):
             limited_list.append([lat, lon, elev])
+
     maptable = pd.DataFrame.from_records(limited_list, columns=labels)
-    
     return(maptable)
 
 
@@ -1313,20 +1322,22 @@ def gridclim_dict(mappingfile, dataset, gridclimname=None, metadata=None,
     """
     # pipelined operation for assimilating data, processing it, and standardizing the plotting
     
-    mappingfile: (dir) the path directory to the mappingfile
-    dataset: (str) the name of the dataset within mappingfile to use
-    gridclimname: (str) the suffix for the dataset to be named; if None is provided, default to the dataset name
-    metadata: (str) the dictionary that contains the metadata explanations; default is None
-    min_elev: (float) the minimum elevation criteria; default is None
-    max_elev: (float) the maximum elevation criteria; default is None
-    file_start_date: (date) the start date of the files that will be read-in; default is None
-    file_end_date: (date) the end date for the files that will be read in; default is None
-    file_time_step: (str) the timedelta code that represents the difference between time points; default is 'D' (daily)    
-    file_colnames: (list) the list of shorthand variables; default is None
-    file_delimiter: (str) a file parsing character to be used for file reading
-    subset_start_date: (date) the start date of a date range of interest
-    subset_end_date: (date) the end date of a date range of interest
-    df_dict: (dict) an existing dictionary where new computations will be stored
+    mappingfile: (dir) mapping file path
+    dataset: (str) gridded data product shortname as suffix
+    gridclimname: (str) user-defined suffix
+    metadata: (dict) dictionary of metadata annotations
+    variable_list: (list - optional) list of variables to read in
+    min_elev: (float64 - optional) min. elevation criteria
+    max_elev: (float64 - optional) max. elevation criteria
+    file_start_date: (date - optional) time-series start date
+    file_end_date: (date - optional) time-series end date
+    file_time_step: (str) pandas notation for time-increment
+    file_colnames: (list) column names from left to right
+    file_delimiter: (str) character to parse columns
+    subset_start_date: (date) startdate of analysis
+    subset_end_date: (date) enddate of analysis
+    df_dict: (dict - optional) existing output dictionary object
+    colvar: (str - optional) gridded data product short name for complete file reading
     """
     # generate the climate locations and n_stations
     locations_df, n_stations = mappingfileToDF(mappingfile, colvar=colvar, summary=False)
@@ -1838,16 +1849,23 @@ def renderValueInBoxplot(vardf, outfilepath, plottitle, time_steps, value_name, 
                          reference_lines=False, ref_legend=True, ref_legend_loc=1,
                          obs_datavector=[], obs_datalabel=[], obs_legend=True, obs_legend_loc=2):
     """
-    vardf: (dataframe) a dataframe with dates in the rows and stations as the columns
-    outfilepath: (dir) the path for the boxplot png file
-    plottitle: (str) the figure title
-    time_steps: (str) 'month' or 'year' for the axis display
-    value_name: (str) the x-axis label for the data categories being plotted
-    cmap: (str) the colormap code e.g., 'seismic_r'
-    wateryear: (True/False) for monthly displays in a wateryear order
-    vmin: (float) the minimum value for the color display
-    vmax: (float) the maximum value for the color display
-    figsize: (tuple) the shape of the figure dimensions
+    vardf: (dataframe) dataframe of values
+    outfilepath: (dir) output file path
+    plottitle: (str) title of figure
+    time_steps: (month or year) x-axis time-scale
+    value_name: (str) y-axis label
+    cmap: (str) reference color gradient for colorbar
+    wateryear: (logic) organize months using wateryear
+    vmin: (float64 - optional) colorbar minimum
+    vmax:(float64 - optional) colorbar maximum
+    figsize: (tuple) figure height and width in inches 
+    reference_lines: (list - optional) list of gridded cells to identify as reference lines
+    ref_legend: (logic) display reference line legend
+    ref_legend_loc: (int) matplotlib code for the legend location
+    obs_datavector: (vector) a vector of values to display as dashed lines
+    obs_datalabel: (str) the name of the vector
+    obs_legend: (logic) display the observation data legend
+    obs_legend_loc: (int) matplotlib code for the legend location
     """    
     # generate long table    
     longtable = pd.melt(vardf.T, value_name=value_name).rename(columns={'variable': time_steps})
@@ -2229,7 +2247,6 @@ def computeSurfaceArea(shapefile):
     Data-driven computation of surface area using a watershed shapefile
     
     shapefile: (dir) the path to the study site shapefile for selecting the UTM boundary
-    spatial_resolution: (float) the spatial resolution in degree coordinate reference system e.g., 1/16
     
     return: (surface area in square meters)
     """
