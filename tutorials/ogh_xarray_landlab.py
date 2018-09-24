@@ -7,8 +7,18 @@ import ftplib, wget, bz2, urllib
 import dask as da
 from dask.diagnostics import ProgressBar
 from multiprocessing.pool import ThreadPool
+
 import ogh
 import landlab.grid.raster as r
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+mpl.style.use('tableau-colorblind10')
+import shapely.ops
+from shapely.geometry import MultiPolygon, shape, point, box, Polygon
+from mpl_toolkits.basemap import Basemap
+import geopandas as gpd
+
 
 def compile_x_wrfnnrp_raw_Salathe2014_locations(time_increments):
     """
@@ -29,7 +39,7 @@ def compile_x_wrfnnrp_raw_Salathe2014_locations(time_increments):
 
 def wget_x_download_spSubset(fileurl, 
                              spatialbounds, 
-                             file_prefix='sp_', 
+                             file_prefix='sp_',
                              rename_latlong_names={'LAT':'LAT','LON':'LON'}, 
                              replace_file=True):
     """
@@ -132,7 +142,7 @@ def get_x_dailywrf_Salathe2014(homedir,
     return(outputfiles)
 
 
-def netcdf_to_ascii(homedir, subdir, netcdfs, mappingfile, catalog_label, meta_file):
+def netcdf_to_ascii(homedir, subdir, netcdfs, mappingfile, catalog_label, meta_file, variable_list=None):
     # initialize list of dataframe outputs
     outfiledict = {}
     
@@ -144,14 +154,17 @@ def netcdf_to_ascii(homedir, subdir, netcdfs, mappingfile, catalog_label, meta_f
     ds_mf = xray.open_mfdataset(netcdfs, engine = 'netcdf4')
 
     # generate list of variables
-    ds_vars = [ds_var for ds_var in dict(ds_mf.variables).keys() 
-               if ds_var not in ['YEAR','MONTH','DAY','TIME','LAT','LON']]
+    if not isinstance(variable_list, type(None)):
+        ds_vars = variable_list.copy()
+    else:
+        ds_vars = [ds_var for ds_var in dict(ds_mf.variables).keys() 
+                   if ds_var not in ['YEAR','MONTH','DAY','TIME','LAT','LON']]
 
     # convert netcdfs to pandas.Panel API
     ds_pan = ds_mf.to_dataframe()[ds_vars]
 
     # read in gridded cells of interest
-    maptable, nstation = ogh.mappingfileToDF(mappingfile, colvar=None)
+    maptable, nstation = ogh.mappingfileToDF(mappingfile, colvar=None, summary=False)
 
     # at each latlong of interest
     for ind, eachrow in maptable.iterrows():
@@ -164,17 +177,18 @@ def netcdf_to_ascii(homedir, subdir, netcdfs, mappingfile, catalog_label, meta_f
 
         # save ds_df
         outfiledict[outfilename] = da.delayed(ds_df.to_csv)(path_or_buf=outfilename, sep='\t', header=False, index=False)
-
+    
     # compute ASCII time-series files
     ProgressBar().register()
     outfiledict = da.compute(outfiledict)[0]
     
-    # update metadata file
+    # annotate metadata file
     meta_file[catalog_label] = dict(ds_mf.attrs)
-    meta_file[catalog_label]['variable_list']=np.array(ds_vars)
+    meta_file[catalog_label]['variable_list']=list(np.array(ds_vars))
     meta_file[catalog_label]['delimiter']='\t'
     meta_file[catalog_label]['start_date']=pd.DatetimeIndex(np.array(ds_mf.TIME))[0]
     meta_file[catalog_label]['end_date']=pd.DatetimeIndex(np.array(ds_mf.TIME))[-1]
+    meta_file[catalog_label]['temporal_resolution']='D'
     meta_file[catalog_label]['variable_info'] = dict(ds_mf.variables)
     
     # catalog the output files
@@ -235,6 +249,50 @@ def mappingfileToRaster(mappingfile, spatial_resolution=0.01250, approx_distance
     # identify raster nodeid and equivalent mappingfile FID
     df = df.merge(mf[['FID','LAT','LONG_','ELEV']], how='outer', on=['LAT','LONG_'])
     return(df, raster)
+
+
+def calculateUTMbounds(mappingfile, mappingfile_crs={'init':'epsg:4326'}, spatial_resolution=0.06250):
+    # read in the mappingfile
+    map_df, nstation = ogh.mappingfileToDF(mappingfile)
+
+    # loop though each LAT/LONG_ +/-0.06250 centroid into gridded cells
+    geom=[]
+    midpt = spatial_resolution
+    for ind in map_df.index:
+        mid = map_df.loc[ind]
+        geom.append(box(mid.LONG_- midpt, mid.LAT - midpt, mid.LONG_ + midpt, mid.LAT + midpt, ccw=True))
+
+    # generate the GeoDataFrame
+    test = gpd.GeoDataFrame(map_df, crs=mappingfile_crs, geometry=geom)
+
+    # compile gridded cells to extract bounding box
+    test['shapeName'] = 1
+
+    # dissolve shape into new shapefile
+    newShape = test.dissolve(by='shapeName').reset_index()
+    newShape.bounds
+
+    # take the minx and miny, and centroid_x and centroid_y
+    minx, miny, maxx, maxy = newShape.bounds.loc[0]
+    lon0, lat0 = np.array(newShape.centroid[0])
+
+    # generate the basemap raster
+    fig = plt.figure(figsize=(10,10), dpi=500)
+    ax1 = plt.subplot2grid((1,1),(0,0))
+    m = Basemap(projection='tmerc', resolution='h', ax=ax1, lat_0=lat0, lon_0=lon0,
+                llcrnrlon=minx, llcrnrlat=miny, urcrnrlon=maxx, urcrnrlat=maxy)
+
+    # transform each polygon to the utm basemap projection
+    for ind in newShape.index:
+        eachpol = newShape.loc[ind]
+        newShape.loc[ind,'g2'] = shapely.ops.transform(m, eachpol['geometry'])
+    
+    # remove the plot
+    plt.gcf().clear()
+
+    # establish the UTM basemap bounding box dimensions
+    minx2, miny2, maxx2, maxy2 = newShape['g2'].iloc[0].bounds
+    return(minx2, miny2, maxx2, maxy2)
 
 
 def temporalSlice(vardf, vardf_dateindex):
