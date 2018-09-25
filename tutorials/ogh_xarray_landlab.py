@@ -142,7 +142,8 @@ def get_x_dailywrf_Salathe2014(homedir,
     return(outputfiles)
 
 
-def netcdf_to_ascii(homedir, subdir, netcdfs, mappingfile, catalog_label, meta_file, variable_list=None):
+def netcdf_to_ascii(homedir, subdir, source_directory, mappingfile, catalog_label, meta_file, 
+                    temporal_resolution='D', netcdfs=None, variable_list=None):
     # initialize list of dataframe outputs
     outfiledict = {}
     
@@ -151,6 +152,8 @@ def netcdf_to_ascii(homedir, subdir, netcdfs, mappingfile, catalog_label, meta_f
     ogh.ensure_dir(filedir)
 
     # connect with collection of netcdfs
+    if isinstance(netcdfs, type(None)):
+        netcdfs=[os.path.join(source_directory,file) for file in os.listdir(source_directory) if file.endswith('.nc')]
     ds_mf = xray.open_mfdataset(netcdfs, engine = 'netcdf4')
 
     # generate list of variables
@@ -188,7 +191,7 @@ def netcdf_to_ascii(homedir, subdir, netcdfs, mappingfile, catalog_label, meta_f
     meta_file[catalog_label]['delimiter']='\t'
     meta_file[catalog_label]['start_date']=pd.DatetimeIndex(np.array(ds_mf.TIME))[0]
     meta_file[catalog_label]['end_date']=pd.DatetimeIndex(np.array(ds_mf.TIME))[-1]
-    meta_file[catalog_label]['temporal_resolution']='D'
+    meta_file[catalog_label]['temporal_resolution']=temporal_resolution
     meta_file[catalog_label]['variable_info'] = dict(ds_mf.variables)
     
     # catalog the output files
