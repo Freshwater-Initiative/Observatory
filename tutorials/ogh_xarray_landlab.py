@@ -154,7 +154,7 @@ def netcdf_to_ascii(homedir, subdir, source_directory, mappingfile, catalog_labe
     # connect with collection of netcdfs
     if isinstance(netcdfs, type(None)):
         netcdfs=[os.path.join(source_directory,file) for file in os.listdir(source_directory) if file.endswith('.nc')]
-    ds_mf = xray.open_mfdataset(netcdfs, engine = 'netcdf4')
+    ds_mf = xray.open_mfdataset(netcdfs, engine = 'netcdf4').sortby('TIME')
 
     # generate list of variables
     if not isinstance(variable_list, type(None)):
@@ -189,8 +189,8 @@ def netcdf_to_ascii(homedir, subdir, source_directory, mappingfile, catalog_labe
     meta_file[catalog_label] = dict(ds_mf.attrs)
     meta_file[catalog_label]['variable_list']=list(np.array(ds_vars))
     meta_file[catalog_label]['delimiter']='\t'
-    meta_file[catalog_label]['start_date']=pd.DatetimeIndex(np.array(ds_mf.TIME))[0]
-    meta_file[catalog_label]['end_date']=pd.DatetimeIndex(np.array(ds_mf.TIME))[-1]
+    meta_file[catalog_label]['start_date']=pd.Series(ds_mf.TIME).sort_values().iloc[0].strftime('%Y-%m-%d %H:%M:%S')
+    meta_file[catalog_label]['end_date']=pd.Series(ds_mf.TIME).sort_values().iloc[-1].strftime('%Y-%m-%d %H:%M:%S')
     meta_file[catalog_label]['temporal_resolution']=temporal_resolution
     meta_file[catalog_label]['variable_info'] = dict(ds_mf.variables)
     
@@ -219,19 +219,12 @@ def rasterDimensions (maxx, maxy, minx=0, miny=0, dy=100, dx=100):
     return(raster, row_list, col_list)
 
 
-def mappingfileToRaster(mappingfile, spatial_resolution=0.01250, approx_distance_m_x=6000):
+def mappingfileToRaster(mappingfile, maxx, maxy, minx=0, miny=0, dx=100, dy=100, spatial_resolution=0.01250):
     # assess raster dimensions from mappingfile
     mf, nstations = ogh.mappingfileToDF(mappingfile, colvar=None)
-    ncol = int((mf.LONG_.max()-mf.LONG_.min())/spatial_resolution +1)
-    nrow = int((mf.LAT.max()-mf.LAT.min())/spatial_resolution +1)
-    
-    # dimensions of the raster
-    row_list = [mf.LAT.min() + spatial_resolution*(station) for station in range(0,nrow,1)]    
-    col_list = [mf.LONG_.min() + spatial_resolution*(station) for station in range(0,ncol,1)]
-    
-    # initialize RasterModelGrid
-    raster = r.RasterModelGrid(nrow, ncol, dx=approx_distance_m_x)
-    raster.add_zeros
+
+    # construct the raster
+    raster, row_list, col_list = rasterDimensions(maxx, maxy, minx=0, miny=0, dy=dy, dx=dx)
 
     # initialize node list
     df_list=[]
