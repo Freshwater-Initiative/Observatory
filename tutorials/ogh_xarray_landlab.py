@@ -307,8 +307,8 @@ def rasterDimensions (maxx, maxy, minx=0, miny=0, dy=100, dx=100):
     return(raster, row_list, col_list)
 
 
-def mappingfileToRaster(mappingfile, spatial_resolution=0.06250, mappingfile_crs={'init':'epsg:4326'}, 
-                        maxx, maxy, minx=0, miny=0, dx=100, dy=100, raster_crs={'init':'epsg:3857'}):
+def mappingfileToRaster(mappingfile, maxx, maxy, minx=0, miny=0, dx=100, dy=100, 
+                        spatial_resolution=0.06250, mappingfile_crs={'init':'epsg:4326'}, raster_crs={'init':'epsg:3857'}):
     
     # generate the mappingfile with UTM cells
     UTMmappingfile, m = calculateUTMcells(mappingfile=mappingfile,
