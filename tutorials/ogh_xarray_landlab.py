@@ -200,60 +200,13 @@ def netcdf_to_ascii(homedir, subdir, source_directory, mappingfile, catalog_labe
     return(list(outfiledict.keys()))
 
 
-def rasterDimensions (maxx, maxy, minx=0, miny=0, dy=100, dx=100):
-    # construct the range
-    x = pd.Series(range(int(minx),int(maxx)+1,1))
-    y = pd.Series(range(int(miny),int(maxy)+1,1))
-    
-    # filter for values that meet the increment or is the last value
-    cols = pd.Series(x.index).apply(lambda x1: x[x1] if x1 % dx == 0 or x1==x[0] or x1==x.index[-1] else None)
-    rows = pd.Series(y.index).apply(lambda y1: y[y1] if y1 % dy == 0 or y1==y[0] or y1==y.index[-1] else None)
-    
-    # construct the indices
-    row_list = np.array(rows.loc[pd.notnull(rows)])
-    col_list = np.array(cols.loc[pd.notnull(cols)])
-    
-    # construct the raster
-    raster = r.RasterModelGrid((len(row_list), len(col_list)), spacing=(dy, dx))
-    raster.add_zeros
-    return(raster, row_list, col_list)
-
-
-def mappingfileToRaster(mappingfile, maxx, maxy, minx=0, miny=0, dx=100, dy=100, spatial_resolution=0.01250):
-    # assess raster dimensions from mappingfile
-    mf, nstations = ogh.mappingfileToDF(mappingfile, colvar=None)
-
-    # construct the raster
-    raster, row_list, col_list = rasterDimensions(maxx, maxy, minx=0, miny=0, dy=dy, dx=dx)
-
-    # initialize node list
-    df_list=[]
-
-    # loop through the raster nodes (bottom to top arrays)
-    for row_index, nodelist in enumerate(raster.nodes):
-        
-        # index bottom to top arrays with ordered Latitude
-        lat = row_list[row_index]
-        
-        # index left to right with ordered Longitude
-        for nodeid, long_ in zip(nodelist, col_list):
-            df_list.append([nodeid, lat, long_])
-
-    # convert to dataframe
-    df = pd.DataFrame.from_records(df_list).rename(columns={0:'nodeid',1:'LAT',2:'LONG_'})
-    
-    # identify raster nodeid and equivalent mappingfile FID
-    df = df.merge(mf[['FID','LAT','LONG_','ELEV']], how='outer', on=['LAT','LONG_'])
-    return(df, raster)
-
-
 def calculateUTMbounds(mappingfile, mappingfile_crs={'init':'epsg:4326'}, spatial_resolution=0.06250):
     # read in the mappingfile
     map_df, nstation = ogh.mappingfileToDF(mappingfile)
 
     # loop though each LAT/LONG_ +/-0.06250 centroid into gridded cells
     geom=[]
-    midpt = spatial_resolution
+    midpt = spatial_resolution/2
     for ind in map_df.index:
         mid = map_df.loc[ind]
         geom.append(box(mid.LONG_- midpt, mid.LAT - midpt, mid.LONG_ + midpt, mid.LAT + midpt, ccw=True))
@@ -282,6 +235,9 @@ def calculateUTMbounds(mappingfile, mappingfile_crs={'init':'epsg:4326'}, spatia
     for ind in newShape.index:
         eachpol = newShape.loc[ind]
         newShape.loc[ind,'g2'] = shapely.ops.transform(m, eachpol['geometry'])
+
+    # transform each polygon to the utm basemap projection
+    newShape['g2'] = newShape.apply(lambda x: shapely.ops.transform(m, x['geometry']), axis=1)
     
     # remove the plot
     plt.gcf().clear()
@@ -289,6 +245,101 @@ def calculateUTMbounds(mappingfile, mappingfile_crs={'init':'epsg:4326'}, spatia
     # establish the UTM basemap bounding box dimensions
     minx2, miny2, maxx2, maxy2 = newShape['g2'].iloc[0].bounds
     return(minx2, miny2, maxx2, maxy2)
+
+
+def calculateUTMcells(mappingfile, mappingfile_crs={'init':'epsg:4326'}, spatial_resolution=0.06250):
+    # read in the mappingfile
+    map_df, nstation = ogh.mappingfileToDF(mappingfile)
+
+    # loop though each LAT/LONG_ +/-0.06250 centroid into gridded cells
+    geom=[]
+    midpt = spatial_resolution/2
+    for ind in map_df.index:
+        mid = map_df.loc[ind]
+        geom.append(box(mid.LONG_- midpt, mid.LAT - midpt, mid.LONG_ + midpt, mid.LAT + midpt, ccw=True))
+
+    # generate the GeoDataFrame
+    test = gpd.GeoDataFrame(map_df, crs=mappingfile_crs, geometry=geom)
+
+    # compile gridded cells to extract bounding box
+    test['shapeName'] = 1
+
+    # dissolve shape into new shapefile
+    newShape = test.dissolve(by='shapeName').reset_index()
+
+    # take the minx and miny, and centroid_x and centroid_y
+    minx, miny, maxx, maxy = newShape.bounds.loc[0]
+    lon0, lat0 = np.array(newShape.centroid[0])
+
+    # generate the basemap raster
+    fig = plt.figure(figsize=(10,10), dpi=500)
+    ax1 = plt.subplot2grid((1,1),(0,0))
+    m = Basemap(projection='tmerc', resolution='h', ax=ax1, lat_0=lat0, lon_0=lon0,
+                llcrnrlon=minx, llcrnrlat=miny, urcrnrlon=maxx, urcrnrlat=maxy)
+
+    # transform each polygon to the utm basemap projection
+    test['geometry'] = test.apply(lambda x: shapely.ops.transform(m, x['geometry']), axis=1)
+    test = test.drop('shapeName', axis=1)
+    
+    # remove the plot
+    plt.gcf().clear()
+
+    # return the geodataframe and the spatial transformation from WGS84
+    return(test, m)
+
+
+def rasterDimensions (maxx, maxy, minx=0, miny=0, dy=100, dx=100):
+    # construct the range
+    x = pd.Series(range(int(minx),int(maxx)+1,1))
+    y = pd.Series(range(int(miny),int(maxy)+1,1))
+    
+    # filter for values that meet the increment or is the last value
+    cols = pd.Series(x.index).apply(lambda x1: x[x1] if x1 % dx == 0 or x1==x[0] or x1==x.index[-1] else None)
+    rows = pd.Series(y.index).apply(lambda y1: y[y1] if y1 % dy == 0 or y1==y[0] or y1==y.index[-1] else None)
+    
+    # construct the indices
+    row_list = np.array(rows.loc[pd.notnull(rows)])
+    col_list = np.array(cols.loc[pd.notnull(cols)])
+    
+    # construct the raster
+    raster = r.RasterModelGrid((len(row_list), len(col_list)), spacing=(dy, dx))
+    raster.add_zeros
+    return(raster, row_list, col_list)
+
+
+def mappingfileToRaster(mappingfile, spatial_resolution=0.06250, mappingfile_crs={'init':'epsg:4326'}, 
+                        maxx, maxy, minx=0, miny=0, dx=100, dy=100, raster_crs={'init':'epsg:3857'}):
+    
+    # generate the mappingfile with UTM cells
+    UTMmappingfile, m = calculateUTMcells(mappingfile=mappingfile,
+                                          mappingfile_crs=mappingfile_crs,
+                                          spatial_resolution=spatial_resolution)
+    
+    # construct the raster
+    raster, row_list, col_list = rasterDimensions(maxx, maxy, minx=0, miny=0, dy=dy, dx=dx)
+    
+    # initialize node list
+    df_list=[]
+    
+    # loop through the raster nodes (bottom to top arrays)
+    for row_index, nodelist in enumerate(raster.nodes):
+        
+        # index bottom to top arrays with ordered Latitude
+        lat = row_list[row_index]
+        
+        # index left to right with ordered Longitude
+        for nodeid, long_ in zip(nodelist, col_list):
+            df_list.append([nodeid, box(long_, lat, long_+dx, lat+dy, ccw=True)])
+            
+    # convert to dataframe
+    df = pd.DataFrame.from_records(df_list).rename(columns={0:'nodeid',1:'raster_geom'})
+    raster_map = gpd.GeoDataFrame(df, geometry='raster_geom', crs=raster_crs)
+    
+    # identify raster nodeid and equivalent mappingfile FID
+    raster_df = gpd.sjoin(raster_map, UTMmappingfile, how='left', op='intersects')
+    
+    # return the raster node to mappingfile FID cross-map, and the rastermodelgrid
+    return(raster_df, raster)
 
 
 def temporalSlice(vardf, vardf_dateindex):

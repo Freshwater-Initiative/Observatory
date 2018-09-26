@@ -394,6 +394,9 @@ def run_ecohydrology_model(grid, input_data, input_file,
             if yrs % 100 == 0:
                 print('Elapsed time = ', yrs, ' years')
             VegType[yrs] = grid.at_cell['vegetation__plant_functional_type']
+            print(VegType[yrs], type(VegType[yrs]))
+            print(water_stress, type(water_stress))
+                  
             WS_ = np.choose(VegType[yrs], water_stress)
             grid.at_cell['vegetation__cumulative_water_stress'] = WS_/Tg
             vegca.update()
