@@ -37,10 +37,47 @@ def compile_x_wrfnnrp_raw_Salathe2014_locations(time_increments):
     return(locations)
 
 
+def compile_x_dailymet_Livneh2013_raw_locations(time_increments):
+    """
+    Compile a list of file URLs for Livneh et al., 2013 raw MET data
+    
+    time_increments: (list) a list of dates that identify each netcdf file
+    """
+    locations=[]
+    domain='ftp://livnehpublicstorage.colorado.edu'
+    subdomain='/public/Livneh.2013.CONUS.Dataset/Meteorology.nc.v.1.2.1915.2011.bz2'
+
+    for ind, yearmo in enumerate(time_increments):
+        if yearmo.startswith('1915') or (yearmo=='191601'):
+            basename='/Meteorology_Livneh_CONUSExt_v.1.2_2013.{0}.nc'.format(yearmo)
+        else:
+            basename='/Meteorology_Livneh_CONUSExt_v.1.2_2013.{0}.nc.bz2'.format(yearmo)
+        url='{0}{1}{2}'.format(domain, subdomain, basename)
+        locations.append(url)
+    return(locations)
+
+
+def compile_x_wrfpnnl2018_raw_locations(time_increments):
+    """
+    Compile a list of file URLs for PNNL 2018 raw WRF data
+    time_increments: (list) a list of dates that identify each netcdf file
+    """
+    locations=[]
+    domain='http://cses.washington.edu'
+    subdomain='/rocinante/WRF/PNNL_NARR_6km'
+
+    for ind, ymd in enumerate(time_increments):
+        subfolder = '/{0}'.format(ymd[0:4])
+        basename='/data.{0}-{1}-{2}.nc'.format(ymd[0:4], ymd[4:6], ymd[6:8])
+        url='{0}{1}{2}{3}'.format(domain, subdomain, subfolder, basename)
+        locations.append(url)
+    return(locations)
+
+
 def wget_x_download_spSubset(fileurl, 
                              spatialbounds, 
                              file_prefix='sp_',
-                             rename_latlong_names={'LAT':'LAT','LON':'LON'}, 
+                             rename_timelatlong_names={'LAT':'LAT','LON':'LON'}, 
                              replace_file=True):
     """
     Download files from an http domain
@@ -48,7 +85,7 @@ def wget_x_download_spSubset(fileurl,
     fileurl: (str) a urls to request a netcdf file
     spatialbounds: (dict) dictionary providing the minx, miny, maxx, and maxy of the spatial region
     file_prefix: (str) a string to mark the output file as a spatial subset
-    rename_latlong_names: (dict) a dictionary to standardize latitude/longitude synonyms to LAT/LON, respectively
+    rename_timelatlong_names: (dict) a dictionary to standardize latitude/longitude synonyms to LAT/LON, respectively
     replace_file: (logic) If True, the existing file will be replaced; if False, the file download is skipped
     """
     
@@ -64,7 +101,6 @@ def wget_x_download_spSubset(fileurl,
         return(os.path.join(os.getcwd(), file_prefix+basename))
         
     # try the file connection
-    #print('connecting to: '+basename)
     try:
         ping = urllib.request.urlopen(fileurl)
         
@@ -77,8 +113,8 @@ def wget_x_download_spSubset(fileurl,
             ds = xray.open_dataset(basename, engine = 'netcdf4')
             
             # rename latlong if they are not LAT and LON, respectively
-            if not isinstance(rename_latlong_names, type(None)):
-                ds = ds.rename(rename_latlong_names)
+            if not isinstance(rename_timelatlong_names, type(None)):
+                ds = ds.rename(rename_timelatlong_names)
                 
             # slice by the bounding box
             spSubset = ds.sel(LON=slice(spatialbounds['minx'], spatialbounds['maxx']),
@@ -86,7 +122,6 @@ def wget_x_download_spSubset(fileurl,
 
             # print the spatial subset
             spSubset.to_netcdf(file_prefix+basename)
-            #print('downloaded: spatial subset of ' + basename)
             
             # remove the parent
             ds.close()
@@ -98,6 +133,72 @@ def wget_x_download_spSubset(fileurl,
     except:
         print('File does not exist at this URL: ' + basename)
 
+
+def ftp_x_download_spSubset(fileurl,
+                            spatialbounds,
+                            file_prefix='sp_',
+                            rename_timelatlong_names={'LAT':'LAT','LON':'LON','TIME':'TIME'},
+                            replace_file=True):
+    """
+    Download files from an http domain
+    
+    fileurl: (str) a urls to request a netcdf file
+    spatialbounds: (dict) dictionary providing the minx, miny, maxx, and maxy of the spatial region
+    file_prefix: (str) a string to mark the output file as a spatial subset
+    rename_timelatlong_names: (dict) a dictionary to standardize latitude/longitude synonyms to LAT/LON, respectively
+    replace_file: (logic) If True, the existing file will be replaced; if False, the file download is skipped
+    """
+    # establish path info
+    fileurl=fileurl.replace('ftp://', '') # loci is already the url with the domain already appended
+    ipaddress=fileurl.split('/', 1)[0] # ip address
+    path=os.path.dirname(fileurl.split('/', 1)[1]) # folder path
+    filename = os.path.basename(fileurl)
+    
+    # check if the file path already exists; if so, apply replace_file logic
+    if os.path.isfile(filename):
+        os.remove(filename)
+        
+    if os.path.isfile(file_prefix+filename) and replace_file:
+        os.remove(file_prefix+filename)
+    elif os.path.isfile(file_prefix+filename) and not replace_file:
+        # replace_file is False; return file path and skip
+        return(os.path.join(os.getcwd(), file_prefix+filename))
+        
+    # download the file from the ftp server
+    ftp=ftplib.FTP(ipaddress)
+    ftp.login()
+    ftp.cwd(path)
+    try:
+        # try the file connection
+        ftp.retrbinary('RETR ' + filename , open(filename, 'wb').write)
+        ftp.close()
+        
+        # decompress the file
+        if filename.endswith('.bz2'):
+            ogh.decompbz2(filename)
+            filename = filename.replace('.bz2','')
+            
+        # open the parent netcdf file
+        ds = xray.open_dataset(filename, engine = 'netcdf4')
+        
+        if not isinstance(rename_timelatlong_names, type(None)):
+            ds = ds.rename(rename_timelatlong_names)
+
+        # slice by the bounding box
+        spSubset = ds.sel(LON=slice(spatialbounds['minx'], spatialbounds['maxx']),
+                          LAT=slice(spatialbounds['miny'], spatialbounds['maxy']))
+
+        # print the spatial subset
+        spSubset.to_netcdf(file_prefix+filename)
+
+        # remove the parent
+        ds.close()
+        os.remove(filename)
+        return(os.path.join(os.getcwd(), file_prefix+filename))
+    except:
+        #os.remove(filename)
+        print('File does not exist at this URL: '+fileurl)
+        
         
 def get_x_dailywrf_Salathe2014(homedir,
                                spatialbounds,
@@ -105,7 +206,7 @@ def get_x_dailywrf_Salathe2014(homedir,
                                nworkers=4,
                                start_date='1970-01-01',
                                end_date='1989-12-31',
-                               rename_timelatlong_names={'LAT':'LAT','LON':'LON'},
+                               rename_timelatlong_names={'LAT':'LAT','LON':'LON','TIME':'TIME'},
                                file_prefix='sp_',
                                replace_file=True):
     """
@@ -131,8 +232,94 @@ def get_x_dailywrf_Salathe2014(homedir,
         NetCDFs.append(da.delayed(wget_x_download_spSubset)(fileurl=url,
                                                             spatialbounds=spatialbounds,
                                                             file_prefix=file_prefix,
+                                                            rename_timelatlong_names=rename_timelatlong_names,
+                                                            replace_file=replace_file))
+
+    # run operations
+    outputfiles = da.compute(NetCDFs)[0]
+
+    # reset working directory
+    os.chdir(homedir)
+    return(outputfiles)
+
+
+def get_x_hourlywrf_PNNL2018(homedir,
+                             spatialbounds,
+                             subdir='PNNL2018/Hourly_WRF_1981_2015/noBC',
+                             nworkers=4,
+                             start_date='1981-01-01',
+                             end_date='2015-12-31',
+                             rename_timelatlong_names={'LAT':'LAT','LON':'LON','TIME':'TIME'},
+                             file_prefix='sp_',
+                             replace_file=True):
+    """
+    get hourly WRF data from a 2018 PNNL WRF run using xarray on netcdf files
+    """
+    # check and generate data directory
+    filedir=os.path.join(homedir, subdir)
+    ogh.ensure_dir(filedir)
+    
+    # modify each month between start_date and end_date to year-month
+    dates = [x.strftime('%Y%m%d') for x in pd.date_range(start=start_date, end=end_date, freq='D')]
+    
+    # initialize parallel workers
+    da.set_options(pool=ThreadPool(nworkers))
+    ProgressBar().register()
+    
+    # generate the list of files to download
+    filelist = compile_x_wrfpnnl2018_raw_locations(dates)
+    
+    # download files of interest
+    NetCDFs=[]
+    for url in filelist:
+        NetCDFs.append(da.delayed(wget_x_download_spSubset)(fileurl=url,
+                                                            spatialbounds=spatialbounds,
+                                                            file_prefix=file_prefix,
                                                             rename_latlong_names=rename_timelatlong_names,
                                                             replace_file=replace_file))
+    
+    # run operations
+    outputfiles = da.compute(NetCDFs)[0]
+    
+    # reset working directory
+    os.chdir(homedir)
+    return(outputfiles)
+
+
+def get_x_dailymet_Livneh2013_raw(homedir,
+                                  spatialbounds,
+                                  subdir='livneh2013/Daily_MET_1915_2011/raw_netcdf',
+                                  nworkers=4,
+                                  start_date='1915-01-01',
+                                  end_date='2011-12-31',
+                                  rename_timelatlong_names={'lat':'LAT','lon':'LON','time':'TIME'},
+                                  file_prefix='sp_',
+                                  replace_file=True):
+    """
+    get Daily MET data from Livneh et al. (2013) using xarray on netcdf files
+    """
+    # check and generate DailyMET livneh 2013 data directory
+    filedir=os.path.join(homedir, subdir)
+    ogh.ensure_dir(filedir)
+    
+    # modify each month between start_date and end_date to year-month
+    dates = [x.strftime('%Y%m') for x in pd.date_range(start=start_date, end=end_date, freq='M')]
+
+    # initialize parallel workers
+    da.set_options(pool=ThreadPool(nworkers))
+    ProgressBar().register()
+    
+    # generate the list of files to download
+    filelist = compile_x_dailymet_Livneh2013_raw_locations(dates)
+
+    # download files of interest
+    NetCDFs=[]
+    for url in filelist:
+        NetCDFs.append(da.delayed(ftp_x_download_spSubset)(fileurl=url,
+                                                           spatialbounds=spatialbounds,
+                                                           file_prefix=file_prefix,
+                                                           rename_timelatlong_names=rename_timelatlong_names,
+                                                           replace_file=replace_file))
 
     # run operations
     outputfiles = da.compute(NetCDFs)[0]
@@ -316,30 +503,33 @@ def mappingfileToRaster(mappingfile, maxx, maxy, minx=0, miny=0, dx=100, dy=100,
                                           spatial_resolution=spatial_resolution)
     
     # construct the raster
-    raster, row_list, col_list = rasterDimensions(maxx, maxy, minx=0, miny=0, dy=dy, dx=dx)
+    raster, row_list, col_list = rasterDimensions(maxx, maxy, minx=minx, miny=miny, dy=dy, dx=dx)
     
     # initialize node list
     df_list=[]
     
     # loop through the raster nodes (bottom to top arrays)
     for row_index, nodelist in enumerate(raster.nodes):
-        
+
         # index bottom to top arrays with ordered Latitude
         lat = row_list[row_index]
-        
+
         # index left to right with ordered Longitude
         for nodeid, long_ in zip(nodelist, col_list):
-            df_list.append([nodeid, box(long_, lat, long_+dx, lat+dy, ccw=True)])
+            df_list.append([nodeid, 
+                            box(long_, lat, long_+dx, lat+dy, ccw=True),
+                            box(long_, lat, long_+dx, lat+dy, ccw=True).centroid])
             
     # convert to dataframe
-    df = pd.DataFrame.from_records(df_list).rename(columns={0:'nodeid',1:'raster_geom'})
-    raster_map = gpd.GeoDataFrame(df, geometry='raster_geom', crs=raster_crs)
-    
+    df = pd.DataFrame.from_records(df_list).rename(columns={0:'nodeid',1:'raster_geom', 2:'raster_centroid'})
+    raster_map = gpd.GeoDataFrame(df, geometry='raster_centroid', crs=raster_crs)
+
     # identify raster nodeid and equivalent mappingfile FID
     raster_df = gpd.sjoin(raster_map, UTMmappingfile, how='left', op='intersects')
+    raster_df = raster_df.drop('raster_centroid', axis=1).set_geometry('raster_geom')
     
     # return the raster node to mappingfile FID cross-map, and the rastermodelgrid
-    return(raster_df, raster)
+    return(raster_df, raster, m)
 
 
 def temporalSlice(vardf, vardf_dateindex):
@@ -357,3 +547,39 @@ def rasterVector(vardf, vardf_dateindex, crossmap, nodata=-9999):
 def valueRange(listOfDf):
     all_values = pd.concat(listOfDf, axis=1).as_matrix()
     return(all_values)
+
+
+def rasterVectorToWGS(value_vector, nodeXmap, UTM_transformer):
+    # name the vector column
+    t1 = value_vector.reset_index().rename(columns={'index':'nodeid'})
+
+    # reduce the nodeXmap
+    t2 = nodeXmap[pd.notnull(nodeXmap.FID)]
+
+    # merge the node vector information with the crossmap
+    t3 = pd.merge(t1, t2, how='right', on='nodeid')
+
+    # transform raster_geom into WGS84
+    ids=[]
+    newpol = []
+
+    for ind, eachpoly in t3.iterrows():
+        # reverse polygon centroid mapping to WGS84
+        ras_x, ras_y = np.array(eachpoly['raster_geom'].centroid)
+        newcent = UTM_transformer(ras_x, ras_y, inverse=True)
+
+        # indexed by nodeid, LAT, LON
+        ids.append(tuple([eachpoly['nodeid'],newcent[1], newcent[0]]))
+
+        # reverse polygon mapping to WGS84
+        newpol.append(Polygon([UTM_transformer(x, y, inverse=True) 
+                               for x, y in eachpoly['raster_geom'].__geo_interface__['coordinates'][0]]))
+
+    # index each raster node by nodeid, LAT, LON
+    t4 = t3.set_index(pd.MultiIndex.from_tuples(ids, names=['','','']))
+    t4['wgs_raster'] = newpol
+    t4 = t4.set_geometry('wgs_raster')
+
+    # assimilate t5 as wide table
+    t5 = t4[['value']].T.reset_index(drop=True)
+    return(t4, t5)

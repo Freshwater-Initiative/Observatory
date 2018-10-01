@@ -501,6 +501,11 @@ def wget_download_p(listofinterest, nworkers=20):
     listofinterest: (list) a list of urls to request
     nworkers: (int) the number of processors to distribute tasks; default is 20
     """
+    # initialize parallel workers
+    #da.set_options(pool=ThreadPool(nworkers))
+    #ProgressBar().register()
+    #pool = dask.delayed(wget_download_one)(each for each in listofinterest)
+    #dask.compute(pool)
     pool = Pool(int(nworkers))
     pool.map(wget_download_one, listofinterest)
     pool.close()
@@ -569,6 +574,11 @@ def ftp_download_p(listofinterest, nworkers=5):
     listofinterest: (list) a list of urls to request
     nworkers: (int) the number of processors to distribute tasks; default is 5
     """
+    # initialize parallel workers
+    #da.set_options(pool=ThreadPool(nworkers))
+    #ProgressBar().register()
+    #pool = dask.delayed(ftp_download_one)(each for each in listofinterest)
+    #dask.compute(pool)
     pool = Pool(int(nworkers))
     pool.map(ftp_download_one, listofinterest)
     pool.close()
@@ -588,7 +598,7 @@ def decompbz2(filename):
     os.remove(filename)
     zipfile.close()
     new_file.close()
-    print(os.path.splitext(filename)[0] + ' unzipped')
+    #print(os.path.splitext(filename)[0] + ' unzipped')
 
     
 def catalogfiles(folderpath):

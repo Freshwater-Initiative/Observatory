@@ -593,7 +593,7 @@ def decompbz2(filename):
     os.remove(filename)
     zipfile.close()
     new_file.close()
-    print(os.path.splitext(filename)[0] + ' unzipped')
+    #print(os.path.splitext(filename)[0] + ' unzipped')
 
     
 def catalogfiles(folderpath):
