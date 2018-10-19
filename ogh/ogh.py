@@ -11,7 +11,7 @@ import dask
 import matplotlib as mpl
 import fiona
 import matplotlib.pyplot as plt
-mpl.style.use('tableau-colorblind10')
+mpl.style.use('seaborn-colorblind')
 import seaborn as sns
 
 # shape and layer libraries
