@@ -13,7 +13,7 @@ import landlab.grid.raster as r
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-mpl.style.use('tableau-colorblind10')
+mpl.style.use('seaborn-colorblind')
 import shapely.ops
 from shapely.geometry import MultiPolygon, shape, point, box, Polygon
 from mpl_toolkits.basemap import Basemap

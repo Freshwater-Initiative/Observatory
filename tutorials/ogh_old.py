@@ -9,10 +9,9 @@ import dask
 
 # graphical control libraries
 import matplotlib as mpl
-mpl.use('Agg')
 import fiona
 import matplotlib.pyplot as plt
-mpl.style.use('tableau-colorblind10')
+mpl.style.use('seaborn-colorblind')
 import seaborn as sns
 
 # shape and layer libraries
@@ -28,12 +27,12 @@ from bs4 import BeautifulSoup as bs
 
 # ogh supplemental info
 from .ogh_meta import meta_file
-# import landlab.grid.raster as r
+from .ogh_xarray_landlab import oxl
 
 
 class ogh_meta:
     """
-    The json file that describes the Gridded climate data products
+    The json object that describes the Gridded climate data products
     """
     def __init__(self):
         self.__meta_data = dict(meta_file())
@@ -157,14 +156,11 @@ def filterPointsinShape(shape, points_lat, points_lon, points_elev=None, buffer_
         points_elev=np.repeat(np.nan, len(points_lon))
         
     # filter the points to the regional bounds
-    point_filter = points_lat.map(lambda y:(y>=miny)and(y<=maxy)) & points_lon.map(lambda x:(x>=minx)and(x<=maxx))
-    points_lon = points_lon.loc[point_filter]
-    points_lat = points_lat.loc[point_filter]
-    points_elev = points_elev.loc[point_filter]
+    bound_filter = points_lat.map(lambda y:(y>=miny)and(y<=maxy)) & points_lon.map(lambda x:(x>=minx)and(x<=maxx))
     
     # Intersection each coordinate with the region
     limited_list = []    
-    for lon, lat, elev in zip(points_lon, points_lat, points_elev):
+    for lon, lat, elev in zip(points_lon[bound_filter], points_lat[bound_filter], points_elev[bound_filter]):
         gpoint = point.Point(lon, lat)
         if gpoint.intersects(region):
             limited_list.append([lat, lon, elev])
@@ -506,6 +502,11 @@ def wget_download_p(listofinterest, nworkers=20):
     listofinterest: (list) a list of urls to request
     nworkers: (int) the number of processors to distribute tasks; default is 20
     """
+    # initialize parallel workers
+    #da.set_options(pool=ThreadPool(nworkers))
+    #ProgressBar().register()
+    #pool = dask.delayed(wget_download_one)(each for each in listofinterest)
+    #dask.compute(pool)
     pool = Pool(int(nworkers))
     pool.map(wget_download_one, listofinterest)
     pool.close()
@@ -574,6 +575,11 @@ def ftp_download_p(listofinterest, nworkers=5):
     listofinterest: (list) a list of urls to request
     nworkers: (int) the number of processors to distribute tasks; default is 5
     """
+    # initialize parallel workers
+    #da.set_options(pool=ThreadPool(nworkers))
+    #ProgressBar().register()
+    #pool = dask.delayed(ftp_download_one)(each for each in listofinterest)
+    #dask.compute(pool)
     pool = Pool(int(nworkers))
     pool.map(ftp_download_one, listofinterest)
     pool.close()
@@ -2006,21 +2012,21 @@ def renderValueInBoxplot(vardf, outfilepath, plottitle, time_steps, value_name, 
 #     return(df, raster)
 
 
-def temporalSlice(vardf, vardf_dateindex):
-    values = vardf.loc[vardf_dateindex, :].reset_index(level=0)
-    values = values.rename(columns={'level_0': 'FID', vardf_dateindex: 'value'}).reset_index(drop=True)
-    return(values)
+# def temporalSlice(vardf, vardf_dateindex):
+#     values = vardf.loc[vardf_dateindex, :].reset_index(level=0)
+#     values = values.rename(columns={'level_0': 'FID', vardf_dateindex: 'value'}).reset_index(drop=True)
+#     return(values)
 
 
-def rasterVector(vardf, vardf_dateindex, crossmap, nodata=-9999):
-    values = temporalSlice(vardf=vardf, vardf_dateindex=vardf_dateindex)
-    vector = crossmap.merge(values, on='FID', how='left').fillna(nodata)['value']
-    return(vector)
+# def rasterVector(vardf, vardf_dateindex, crossmap, nodata=-9999):
+#     values = temporalSlice(vardf=vardf, vardf_dateindex=vardf_dateindex)
+#     vector = crossmap.merge(values, on='FID', how='left').fillna(nodata)['value']
+#     return(vector)
 
     
-def valueRange(listOfDf):
-    all_values = pd.concat(listOfDf, axis=1).as_matrix()
-    return(all_values)
+# def valueRange(listOfDf):
+#     all_values = pd.concat(listOfDf, axis=1).as_matrix()
+#     return(all_values)
 
     
 def multiSiteVisual(listOfShapefiles, listOfNames,

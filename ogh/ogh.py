@@ -27,11 +27,12 @@ from bs4 import BeautifulSoup as bs
 
 # ogh supplemental info
 from .ogh_meta import meta_file
+from .ogh_xarray_landlab import oxl
 
 
 class ogh_meta:
     """
-    The json file that describes the Gridded climate data products
+    The json object that describes the Gridded climate data products
     """
     def __init__(self):
         self.__meta_data = dict(meta_file())

@@ -4,6 +4,7 @@ from __future__ import (absolute_import,
                         unicode_literals)
 
 import os
+import sys
 import pytest
 import ftplib
 import numpy as np
@@ -23,6 +24,9 @@ class Test_ogh_load_functions(object):
             pass
         assert True
 
+    def test_oxl(self):
+        if 'ogh.ogh_xarray_landlab' in sys.modules:
+            assert True
 
     def test_DictOfDf(self):
         path = os.path.join(data_path,'test.json')
