@@ -230,7 +230,7 @@ def wget_netcdfmap_spSubset(url, datetime, spatialbounds, netcdfmap,
     # slice by the bounding box
     spSubset = ds_c.sel(LON=slice(spatialbounds['minx'], spatialbounds['maxx']),
                         LAT=slice(spatialbounds['miny'], spatialbounds['maxy']))
-
+    
     # print the spatial subset
     spSubset.to_netcdf(file_prefix+os.path.basename(url))
     
@@ -312,6 +312,31 @@ def get_netcdfmap_hourlywrf_PNNL2018(spatialbounds,
         wget.download('{0}/{1}/{2}'.format(domain, subdomain, netcdfmap))
     pnnlxy=xray.open_dataset(netcdfmap)
 
+    # incorporate metadata
+    pnnlxy.Q2.attrs = ([('stagger', ''),('MemoryOrder', 'XY '),('FieldType', 104),
+                        ('units', 'kg kg-1'),
+                        ('description', 'QV at 2 M')])
+    
+    pnnlxy.PSFC.attrs = ([('stagger', ''),('MemoryOrder', 'XY '),('FieldType', 104),
+                          ('units', 'Pa'),
+                          ('description', 'SFC PRESSURE')])
+    
+    pnnlxy.GLW.attrs = ([('stagger', ''),('MemoryOrder', 'XY '),('FieldType', 104),
+                         ('units', 'W m-2'),
+                         ('description', 'DOWNWARD LONG WAVE FLUX AT GROUND SURFACE')])
+    
+    pnnlxy.SWDOWN.attrs = ([('stagger', ''),('MemoryOrder', 'XY '),('FieldType', 104),
+                            ('units', 'W m-2'),
+                            ('description', 'DOWNWARD SHORT WAVE FLUX AT GROUND SURFACE')])
+    
+    pnnlxy.PREC_ACC_NC.attrs = ([('stagger', ''),('MemoryOrder', 'XY '),('FieldType', 104),
+                                 ('units', 'mm'),
+                                 ('description', 'GRID SCALE  PRECIPITATION')])
+    
+    pnnlxy.SNOW_ACC_NC.attrs = ([('stagger', ''),('MemoryOrder', 'XY '),('FieldType', 104),
+                                 ('units', 'mm'),
+                                 ('description', 'SNOW WATER EQUIVALENT')])
+    
     # retrieve data files
     dr = pd.date_range(start=start_date, end=end_date, freq='D')
 
