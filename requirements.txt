@@ -6,6 +6,8 @@ beautifulsoup4
 basemap
 wget
 seaborn
+landlab
+xarray
 # conda only requirements:
 # python-wget
 # basemap-data-hires

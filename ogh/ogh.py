@@ -11,7 +11,6 @@ import dask
 import matplotlib as mpl
 import fiona
 import matplotlib.pyplot as plt
-mpl.style.use('seaborn-colorblind')
 import seaborn as sns
 
 # shape and layer libraries
@@ -23,11 +22,12 @@ import ftplib, urllib as urllib2, wget, bz2
 from mpl_toolkits.basemap import Basemap
 import geopandas as gpd
 from bs4 import BeautifulSoup as bs
-# from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 # ogh supplemental info
 from .ogh_meta import meta_file
-from .ogh_xarray_landlab import oxl
+import ogh_xarray_landlab
+# mpl.style.use('seaborn-colorblind')
+# from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
 class ogh_meta:
