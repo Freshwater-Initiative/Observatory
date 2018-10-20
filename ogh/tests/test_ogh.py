@@ -74,9 +74,11 @@ class Test_ogh_shape_functions(object):
 
 
     def test_reprojShapefile(self):
-        ogh.reprojShapefile(sourcepath=os.path.join(data_path,'shape.shp'), 
+        ogh.reprojShapefile(sourcepath=os.path.join(data_path,'shape.shp'),
+                            outpath=os.path.join(data_path,'shape2.shp'),
                             newprojdictionary={'proj':'longlat', 'ellps':'WGS84', 'datum':'WGS84'})
         assert True
+        os.remove(os.path.join(data_path,'shape2.shp'))
 
     
 # spatial mapping
@@ -307,7 +309,7 @@ class Test_mappingfile_ops(object):
 
         # filterPointsinShape
         test_maptable = ogh.filterPointsinShape(shape=test_poly.geometry[0], 
-                                                points_lat=[test_lat], points_lon=[test_lon], points_elev=None, 
+                                                points_lat=pd.Series(test_lat), points_lon=pd.Series(test_lon), points_elev=None, 
                                                 buffer_distance=0.06, buffer_resolution=16, labels=['LAT', 'LONG_', 'ELEV'])
         test_maptable = test_maptable.reset_index().rename(columns={'index': 'FID'})
         assert len(test_maptable)>0

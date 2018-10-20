@@ -7,7 +7,6 @@ import ftplib, wget, bz2, urllib
 import dask as da
 from dask.diagnostics import ProgressBar
 from multiprocessing.pool import ThreadPool
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import shapely.ops
 from shapely.geometry import MultiPolygon, shape, point, box, Polygon
