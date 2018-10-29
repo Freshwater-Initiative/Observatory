@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import fiona
 import geopandas as gpd
-import ogh as ogh
+import ogh
 
 data_path = os.path.join(ogh.__path__[0], 'tests/data')
 
@@ -77,9 +77,11 @@ class Test_ogh_shape_functions(object):
         ogh.reprojShapefile(sourcepath=os.path.join(data_path,'shape.shp'),
                             outpath=os.path.join(data_path,'shape2.shp'),
                             newprojdictionary={'proj':'longlat', 'ellps':'WGS84', 'datum':'WGS84'})
-        assert True
-        os.remove(os.path.join(data_path,'shape2.shp'))
 
+        for fil in os.listdir(os.path.join(ogh.__path__[0],'tests/data')):
+            if fil.startswith('shape2'):
+                os.remove(os.path.join(ogh.__path__[0],'tests/data',fil))
+        assert True
     
 # spatial mapping
 class Test_ogh_spatial_mapping(object):

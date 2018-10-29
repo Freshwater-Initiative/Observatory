@@ -8,6 +8,7 @@ wget
 seaborn
 landlab
 xarray
+matplotlib=2.2.3
 # conda only requirements:
 # python-wget
 # basemap-data-hires

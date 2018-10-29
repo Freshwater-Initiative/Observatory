@@ -5,51 +5,51 @@ import pickle
 import numpy as np
 from multiprocessing import Pool
 import pandas as pd
-import dask
+import dask as da
 
 # graphical control libraries
 import matplotlib as mpl
-import fiona
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 # shape and layer libraries
 from descartes import PolygonPatch
 import shapely.ops
-from matplotlib.collections import PatchCollection
 from shapely.geometry import MultiPolygon, Polygon, box, point, shape
+import fiona
+from matplotlib.collections import PatchCollection
 import ftplib, urllib as urllib2, wget, bz2
 from mpl_toolkits.basemap import Basemap
 import geopandas as gpd
 from bs4 import BeautifulSoup as bs
 
+
 # ogh supplemental info
-from .ogh_meta import meta_file
-import ogh_xarray_landlab
+#from .ogh_meta import meta_file
+#import ogh_xarray_landlab
 # mpl.style.use('seaborn-colorblind')
 # from mpl_toolkits.axes_grid1 import make_axes_locatable
+#
+# class ogh_meta:
+#     """
+#     The json object that describes the Gridded climate data products
+#     """
+#     def __init__(self):
+#         self.__meta_data = dict(meta_file())
+#        
+#     # key-value retrieval
+#     def __getitem__(self, key):
+#         return(self.__meta_data[key])
+#    
+#     # key list
+#     def keys(self):
+#         return(self.__meta_data.keys())
+#    
+#     # value list
+#     def values(self):
+#         return(self.__meta_data.values())
 
 
-class ogh_meta:
-    """
-    The json object that describes the Gridded climate data products
-    """
-    def __init__(self):
-        self.__meta_data = dict(meta_file())
-        
-    # key-value retrieval
-    def __getitem__(self, key):
-        return(self.__meta_data[key])
-    
-    # key list
-    def keys(self):
-        return(self.__meta_data.keys())
-    
-    # value list
-    def values(self):
-        return(self.__meta_data.values())
-    
-    
 def saveDictOfDf(outfilepath, dictionaryObject):
     """
     Save a json file from a pickle'd python dictionary-of-dataframes object

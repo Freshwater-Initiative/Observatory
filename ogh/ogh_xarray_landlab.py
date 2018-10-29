@@ -538,152 +538,124 @@ def compile_x_wrfpnnl2018_raw_locations(time_increments,
     return(locations)
 
 
-def wget_netcdfmap_spSubset(url, datetime, spatialbounds, netcdfmap,
-                            nworkers=20, time_resolution='H', time_steps=24, file_prefix='sp_',
-                            rename_timelatlong_names={'LAT':'LAT','LON':'LON'},
-                            replace_file=True):
-    
-    # retrieve the file
-    ogh.wget_download(url)
-    
-    # open the file
-    ds = xray.open_dataset(os.path.basename(url), engine='netcdf4')
+def wget_x_download_spSubset_PNNL(fileurl,
+                                  filedate,
+                                  spatialbounds,
+                                  time_resolution='H',
+                                  time_steps=24,
+                                  file_prefix='sp_',
+                                  rename_timelatlong_names={'south_north':'SN','west_east':'WE'},
+                                  replace_file=True):
+        """
+        Download files from an http domain
 
-    #merge pnnl lat long data with climate data
-    ds_new = xr.merge([ds, netcdfmap], compat='no_conflicts')
+        fileurl: (str) a urls to request a netcdf file
+        spatialbounds: (dict) dict providing the minx, miny, maxx, and maxy of the spatial region
+        file_prefix: (str) a string to mark the output file as a spatial subset
+        rename_latlong_names: (dict) a dict to standardize latitude/longitude synonyms to LAT/LON, respectively
+        replace_file: (logic) If True, the existing file will be replaced; if False, the file download is skipped
+        """
 
-    #convert variables LAT, LON and Z to coordinates
-    ds_c = ds_new.set_coords({'LAT','LON','Z'}, inplace=False)
+        # check if the file path already exists; if so, apply replace_file logic
+        basename = os.path.basename(fileurl)
+        if os.path.isfile(basename):
+            os.remove(basename)
 
-    #create series of dates to add to dataset
-    time_inc = pd.date_range(start=ymd, periods=time_steps, freq=time_resolution)
+        if os.path.isfile(file_prefix+basename) and replace_file:
+            os.remove(file_prefix+basename)
+        elif os.path.isfile(file_prefix+basename) and not replace_file:
+            # replace_file is False; return file path and skip
+            return(os.path.join(os.getcwd(), file_prefix+basename))
 
-    #add coordinates using series of dates
-    ds_c.update({'time': ('time', time_inc)})
-    
-    # rename latlong if they are not LAT and LON, respectively
-    if not isinstance(rename_timelatlong_names, type(None)):
-        ds_c = ds_c.rename(rename_timelatlong_names)
+        # try the file connection
+        #print('connecting to: '+basename)
+        try:
+            ping = urllib.request.urlopen(fileurl)
 
-    # slice by the bounding box
-    spSubset = ds_c.sel(LON=slice(spatialbounds['minx'], spatialbounds['maxx']),
-                        LAT=slice(spatialbounds['miny'], spatialbounds['maxy']))
-    
-    # print the spatial subset
-    spSubset.to_netcdf(file_prefix+os.path.basename(url))
-    
-    # remove the parents
-    ds.close()
-    netcdfmap.close()
-    os.remove(os.path.basename(url))
-    return(os.path.join(os.getcwd(), file_prefix+os.path.basename(url)))
+            # if the file exists, download it
+            if ping.getcode() != 404:
+                ping.close()
+                wget.download(fileurl)
 
+                # open the parent netcdf file
+                ds = xray.open_dataset(basename, engine = 'netcdf4')
+                #print('file read in')
+                # rename latlong if they are not LAT and LON, respectively
+                if not isinstance(rename_timelatlong_names, type(None)):
+                    ds = ds.rename(rename_timelatlong_names)
+                    #print('renamed columns')
 
-def wget_netcdfmap_hourlywrf_PNNL2018(url, datetime, spatialbounds, netcdfmap,
-                                      nworkers=20, time_resolution='H', time_steps=24, file_prefix='sp_',
-                                      rename_timelatlong_names={'LAT':'LAT','LON':'LON'},
-                                      replace_file=True):
-    
-    # retrieve the file
-    ogh.wget_download(url)
-    
-    # open the file
-    ds = xray.open_dataset(os.path.basename(url), engine='netcdf4')
+                # slice by the bounding box NOTE:dataframe slice includes last index
+                ds=ds.assign_coords(SN=ds.SN, WE=ds.WE)
+                spSubset = ds.sel(WE=slice(spatialbounds['minx'], spatialbounds['maxx']),
+                                  SN=slice(spatialbounds['miny'], spatialbounds['maxy']))
+                #print('cropped')
+                
+                # change time to datetimeindex
+                hour = [x.strftime('%Y-%m-%d %H:%M:%S') for x in pd.date_range(start=filedate,
+                                                                               periods=time_steps,
+                                                                               freq=time_resolution)]
+                spSubset['TIME']=pd.DatetimeIndex(hour)
+                
+                # print the spatial subset
+                spSubset.to_netcdf(file_prefix+basename)
+                print('downloaded: spatial subset of ' + basename)
 
-    #merge pnnl lat long data with climate data
-    ds_new = xr.merge([ds, netcdfmap], compat='no_conflicts')
+                # remove the parent
+                ds.close()
+                os.remove(basename)
+                #print('closed')
+                return(os.path.join(os.getcwd(), file_prefix+basename))
 
-    #convert variables LAT, LON and Z to coordinates
-    ds_c = ds_new.set_coords({'LAT','LON','Z'}, inplace=False)
+            else:
+                ping.close()
+        except:
+            print('File does not exist at this URL: ' + basename)
+    
 
-    #create series of dates to add to dataset
-    time_inc = pd.date_range(start=ymd, periods=time_steps, freq=time_resolution)
-
-    #add coordinates using series of dates
-    ds_c.update({'time': ('time', time_inc)})
-    
-    # rename latlong if they are not LAT and LON, respectively
-    if not isinstance(rename_timelatlong_names, type(None)):
-        ds_c = ds_c.rename(rename_timelatlong_names)
-
-    # slice by the bounding box
-    spSubset = ds_c.sel(LON=slice(spatialbounds['minx'], spatialbounds['maxx']),
-                        LAT=slice(spatialbounds['miny'], spatialbounds['maxy']))
-    
-    # incorporate metadata
-    spSubset.Q2.attrs = ([('stagger', ''),('MemoryOrder', 'XY '),('FieldType', 104),
-                          ('units', 'kg kg-1'), ('description', 'QV at 2 M')])
-    
-    spSubset.PSFC.attrs = ([('stagger', ''),('MemoryOrder', 'XY '),('FieldType', 104),
-                            ('units', 'Pa'),('description', 'SFC PRESSURE')])
-    
-    spSubset.GLW.attrs = ([('stagger', ''),('MemoryOrder', 'XY '),('FieldType', 104),
-                           ('units', 'W m-2'),('description', 'DOWNWARD LONG WAVE FLUX AT GROUND SURFACE')])
-    
-    spSubset.SWDOWN.attrs = ([('stagger', ''),('MemoryOrder', 'XY '),('FieldType', 104),
-                              ('units', 'W m-2'),('description', 'DOWNWARD SHORT WAVE FLUX AT GROUND SURFACE')])
-    
-    spSubset.PREC_ACC_NC.attrs = ([('stagger', ''),('MemoryOrder', 'XY '),('FieldType', 104),
-                                   ('units', 'mm'),('description', 'GRID SCALE  PRECIPITATION')])
-    
-    spSubset.SNOW_ACC_NC.attrs = ([('stagger', ''),('MemoryOrder', 'XY '),('FieldType', 104),
-                                   ('units', 'mm'),('description', 'SNOW WATER EQUIVALENT')])
-    
-    # print the spatial subset
-    spSubset.to_netcdf(file_prefix+os.path.basename(url))
-    
-    # remove the parents
-    ds.close()
-    os.remove(os.path.basename(url))
-    return(os.path.join(os.getcwd(), file_prefix+os.path.basename(url)))
-
-
-def get_netcdfmap_hourlywrf_PNNL2018(spatialbounds,
-                                     homedir,
-                                     subdir='PNNL2018/Hourly_WRF_1981_2015/noBC',
-                                     start_date='1970-01-01',
-                                     end_date='1970-02-28',
-                                     nworkers=20):
+def get_x_hourlywrf_PNNL2018(homedir,
+                             spatialbounds,
+                             subdir='PNNL2018/Hourly_WRF_1981_2015/SaukSpatialBounds',
+                             nworkers=4,
+                             start_date='2005-01-01',
+                             end_date='2007-12-31',
+                             time_resolution='H',
+                             time_steps=24,
+                             file_prefix='sp_',
+                             rename_timelatlong_names={'south_north':'SN','west_east':'WE', 'time':'TIME'},
+                             replace_file=True):
     """
     get hourly WRF data from a 2018 PNNL WRF run using xarray on netcdf files
     """
-    
     # check and generate data directory
     filedir=os.path.join(homedir, subdir)
     ogh.ensure_dir(filedir)
-
-    locations=[]
-    domain='http://cses.washington.edu'
-    subdomain='rocinante/WRF/PNNL_NARR_6km'
-
+    
+    # modify each month between start_date and end_date to year-month
+    dates = [x.strftime('%Y%m%d') for x in pd.date_range(start=start_date, end=end_date, freq='D')]
+    
     # initialize parallel workers
     da.set_options(pool=ThreadPool(nworkers))
     ProgressBar().register()
     
-    # retrieve the netcdf map
-    netcdfmap = 'data_LatLonGht.nc'
-    if not os.path.exists(netcdfmap):
-        wget.download('{0}/{1}/{2}'.format(domain, subdomain, netcdfmap))
-    pnnlxy=xray.open_dataset(netcdfmap)
-
-    # retrieve data files
-    dr = pd.date_range(start=start_date, end=end_date, freq='D')
-
-    # map to the data files
-    filelist = compile_x_wrfpnnl2018_raw_locations(time_increments=dr, domain=domain, subdomain=subdomain)
+    # generate the list of files to download
+    filelist = compile_x_wrfpnnl2018_raw_locations(dates)
     
-    # retrieve and subset each netcdf datafile
-    for eachurl in filelist:
-        pnnl_files=append(da.delayed(wget_netcdfmap_spSubset)(url=eachurl,
-                                                              datetime=ymd,
-                                                              spatialbounds=spatialbounds,
-                                                              netcdfmap=pnnlxy,
-                                                              nworkers=nworkers,
-                                                              time_resolution='H',
-                                                              file_prefix='sp_',
-                                                              rename_timelatlong_names={'LAT':'LAT','LON':'LON'},
-                                                              replace_file=True))
-    # execute retrieval and spSubsetting
-    pnnl_spSubset = da.compute(pnnl_files)[0]
-    pnnlxy.close()
-    return(pnnl_spSubset)
+    # download files of interest
+    NetCDFs=[]
+    for url, date in zip(filelist, dates):
+        NetCDFs.append(da.delayed(wget_x_download_spSubset_PNNL)(fileurl=url,
+                                                                 filedate=date,
+                                                                 time_resolution=time_resolution,
+                                                                 time_steps=time_steps,
+                                                                 spatialbounds=spatialbounds,
+                                                                 file_prefix=file_prefix,
+                                                                 rename_timelatlong_names=rename_timelatlong_names,
+                                                                 replace_file=replace_file))
+    
+    # run operations
+    outputfiles = da.compute(NetCDFs)[0]
+    
+    # reset working directory
+    os.chdir(homedir)
+    return(outputfiles)
