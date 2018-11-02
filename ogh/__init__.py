@@ -10,15 +10,16 @@ from __future__ import (absolute_import,
 import warnings
 warnings.filterwarnings("ignore")
 
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions
+
+
 from .ogh import *
 from . import ogh_xarray_landlab as oxl
 from .ogh_meta import meta_file
 
 __author__ = 'Jimmy Phuong'
-
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
 
 
 class ogh_meta:
