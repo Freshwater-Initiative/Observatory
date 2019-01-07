@@ -2348,6 +2348,16 @@ def cms_to_cfs(cms):
     return(cfs)
 
 
+def in_to_mm(inch):
+    mm = inch*25.4
+    return(mm)
+
+
+def F_to_C(F):
+    C = (32*F - 32) * (5/9)
+    return(C)
+
+
 def monthlyExceedence_cfs (df_dict, daily_streamflow_dfname, gridcell_area, exceedance):
     """
     df_dict: (dict) dictionary of spatial-temporal computation dataframes

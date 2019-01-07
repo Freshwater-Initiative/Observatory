@@ -2335,7 +2335,8 @@ def cfs_to_mmday(cfs, SA_sq_ft):
     cfs: (float) flow rate in cubic feet per second
     SA_sq_ft: (float) surface area in square feet
     """
-    return(cfs/SA_sq_ft * 24 * 60 * 60 * 304.8) # cfs / sqft * s/min * min*hr * hr/day * mm/ft
+    # cfs / sqft * s/min * min*hr * hr/day * mm/ft
+    return(cfs/SA_sq_ft * 24 * 60 * 60 * 304.8)
 
 
 def sec_to_day(sec):
@@ -2346,6 +2347,16 @@ def sec_to_day(sec):
 def cms_to_cfs(cms):
     cfs = cms*(3.28084**3)
     return(cfs)
+
+
+def in_to_mm(inch):
+    mm = inch*25.4
+    return(mm)
+
+
+def F_to_C(F):
+    C = (32*F - 32) * (5/9)
+    return(C)
 
 
 def monthlyExceedence_cfs (df_dict, daily_streamflow_dfname, gridcell_area, exceedance):

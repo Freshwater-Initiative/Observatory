@@ -1,13 +1,12 @@
 
 # -*- coding:  utf-8 -*-
 
-#import os
-#import json
+# import os
+# import json
 
-
-def meta_file(): 
+def meta_file():
     tmp = {}
-    
+
     """
     Daily Meteorology -  Livneh et al.,  2013
     """
@@ -19,31 +18,31 @@ def meta_file():
     tmp['dailymet_livneh2013']['decision_steps'] = 'files organized by spatial bounding boxes'
     tmp['dailymet_livneh2013']['filename_structure'] = 'Meteorology_Livneh_CONUSExt_v.1.2_2013_{LAT}_{LONG}'
     tmp['dailymet_livneh2013']['file_format'] = 'bz2-compressed ASCII'
-    
+
     tmp['dailymet_livneh2013']['reference']={}
     tmp['dailymet_livneh2013']['reference'][1] = 'Livneh,  B.,  E. A. Rosenberg,  C. Lin,  B. Nijssen,  V. Mishra,  K. M. Andreadis,  E. P. Maurer,  and D. P. Lettenmaier,  2013:  A Long-Term Hydrologically Based Dataset of Land Surface Fluxes and States for the Conterminous United States:  Update and Extensions. J. Climate,  26,  9384-9392.'
     tmp['dailymet_livneh2013']['reference'][2]='ftp://livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset/readme.txt'
-    
+
     tmp['dailymet_livneh2013']['start_date'] = '1915-01-01'
     tmp['dailymet_livneh2013']['end_date'] = '2011-12-31'
     tmp['dailymet_livneh2013']['temporal_resolution'] = 'D'
     tmp['dailymet_livneh2013']['delimiter'] = '\t'
     tmp['dailymet_livneh2013']['variable_list'] = ['PRECIP',  'TMAX',  'TMIN',  'WINDSPD']
-    
+
     tmp['dailymet_livneh2013']['variable_info']={}
     tmp['dailymet_livneh2013']['variable_info']['PRECIP']={}
-    tmp['dailymet_livneh2013']['variable_info']['PRECIP']={'desc': 'daily precipitation (mm)', 
+    tmp['dailymet_livneh2013']['variable_info']['PRECIP']={'desc': 'daily precipitation (mm)',
                                                            'dtypes': 'float64', 'units': 'mm'}
     tmp['dailymet_livneh2013']['variable_info']['TMAX']={}
-    tmp['dailymet_livneh2013']['variable_info']['TMAX']={'desc': 'daily maximum temperature (C)', 
+    tmp['dailymet_livneh2013']['variable_info']['TMAX']={'desc': 'daily maximum temperature (C)',
                                                          'dtypes': 'float64', 'units': 'C'}
     tmp['dailymet_livneh2013']['variable_info']['TMIN']={}
-    tmp['dailymet_livneh2013']['variable_info']['TMIN']={'desc': 'daily minimum temperature (C)', 
+    tmp['dailymet_livneh2013']['variable_info']['TMIN']={'desc': 'daily minimum temperature (C)',
                                                          'dtypes': 'float64', 'units': 'C'}
     tmp['dailymet_livneh2013']['variable_info']['WINDSPD']={}
-    tmp['dailymet_livneh2013']['variable_info']['WINDSPD']={'desc': 'daily mean wind speed (m/s)', 
+    tmp['dailymet_livneh2013']['variable_info']['WINDSPD']={'desc': 'daily mean wind speed (m/s)',
                                                             'dtypes': 'float64', 'units': 'm/s'}
-    
+
     """
     Daily Meteorology - Livneh et al.,  2015
     """
@@ -55,31 +54,31 @@ def meta_file():
     tmp['dailymet_livneh2015']['decision_steps'] = 'files organized by Latitude'
     tmp['dailymet_livneh2015']['filename_structure'] = 'Meteorology_Livneh_NAmerExt_15Oct2014_{LAT}_{LONG}'
     tmp['dailymet_livneh2015']['file_format'] = 'bz2-compressed ASCII'
-    
+
     tmp['dailymet_livneh2015']['reference']={}
     tmp['dailymet_livneh2015']['reference'][1]= 'Livneh B.,  T.J. Bohn,  D.S. Pierce,  F. Munoz-Ariola,  B. Nijssen,  R. Vose,  D. Cayan,  and L.D. Brekke,  2015:  A spatially comprehensive,  hydrometeorological data set for Mexico,  the U.S.,  and southern Canada 1950-2013,  Nature Scientific Data,  5: 150042,  doi: 10.1038/sdata.2015.42.'
     tmp['dailymet_livneh2015']['reference'][2]='ftp: //livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset/readme.txt'
-    
+
     tmp['dailymet_livneh2015']['start_date'] = '1950-01-01'
     tmp['dailymet_livneh2015']['end_date'] = '2013-12-31'
     tmp['dailymet_livneh2015']['temporal_resolution'] = 'D'
     tmp['dailymet_livneh2015']['delimiter'] = '\\s+'
     tmp['dailymet_livneh2015']['variable_list'] = ['PRECIP',  'TMAX',  'TMIN',  'WINDSPD']
-    
+
     tmp['dailymet_livneh2015']['variable_info']={}
     tmp['dailymet_livneh2015']['variable_info']['PRECIP']={}
-    tmp['dailymet_livneh2015']['variable_info']['PRECIP']={'desc': 'daily precipitation (mm)', 
+    tmp['dailymet_livneh2015']['variable_info']['PRECIP']={'desc': 'daily precipitation (mm)',
                                                            'dtypes': 'float64', 'units': 'mm'}
     tmp['dailymet_livneh2015']['variable_info']['TMAX']={}
-    tmp['dailymet_livneh2015']['variable_info']['TMAX']={'desc': 'daily maximum temperature (C)', 
+    tmp['dailymet_livneh2015']['variable_info']['TMAX']={'desc': 'daily maximum temperature (C)',
                                                          'dtypes': 'float64', 'units': 'C'}
     tmp['dailymet_livneh2015']['variable_info']['TMIN']={}
-    tmp['dailymet_livneh2015']['variable_info']['TMIN']={'desc': 'daily minimum temperature (C)', 
+    tmp['dailymet_livneh2015']['variable_info']['TMIN']={'desc': 'daily minimum temperature (C)',
                                                          'dtypes': 'float64', 'units': 'C'}
     tmp['dailymet_livneh2015']['variable_info']['WINDSPD']={}
-    tmp['dailymet_livneh2015']['variable_info']['WINDSPD']={'desc': 'daily mean wind speed (m/s)', 
+    tmp['dailymet_livneh2015']['variable_info']['WINDSPD']={'desc': 'daily mean wind speed (m/s)',
                                                             'dtypes': 'float64', 'units': 'm/s'}
-    
+
     """
     Daily VIC - Livneh et al.,  2013
     """
@@ -91,68 +90,68 @@ def meta_file():
     tmp['dailyvic_livneh2013']['decision_steps'] = 'files organized by spatial bounding boxes'
     tmp['dailyvic_livneh2013']['filename_structure'] = 'VIC_fluxes_Livneh_CONUSExt_v.1.2_2013_{LAT}_{LONG}'
     tmp['dailyvic_livneh2013']['file_format'] = 'bz2-compressed ASCII'
-    
+
     tmp['dailyvic_livneh2013']['reference']={}
     tmp['dailyvic_livneh2013']['reference'][1] = 'Livneh,  B.,  E. A. Rosenberg,  C. Lin,  B. Nijssen,  V. Mishra,  K. M. Andreadis,  E. P. Maurer,  and D. P. Lettenmaier,  2013:  A Long-Term Hydrologically Based Dataset of Land Surface Fluxes and States for the Conterminous United States:  Update and Extensions. J. Climate,  26,  9384-9392.'
     tmp['dailyvic_livneh2013']['reference'][2] = 'ftp: //livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset/readme.txt'
-    
+
     tmp['dailyvic_livneh2013']['start_date'] = '1915-01-01'
     tmp['dailyvic_livneh2013']['end_date'] = '2011-12-31'
     tmp['dailyvic_livneh2013']['temporal_resolution'] = 'D'
     tmp['dailyvic_livneh2013']['delimiter'] = '\t'
     tmp['dailyvic_livneh2013']['variable_list'] = ['YEAR', 'MONTH', 'DAY', 'EVAP', 'RUNOFF', 'BASEFLOW', 'SMTOP', 'SMMID', 'SMBOT', 'SWE', 'WDEW', 'SENSIBLE', 'LATENT', 'GRNDFLUX', 'RNET', 'RADTEMP', 'PREC']
-    
+
     tmp['dailyvic_livneh2013']['variable_info']={}
     tmp['dailyvic_livneh2013']['variable_info']['YEAR']={}
-    tmp['dailyvic_livneh2013']['variable_info']['YEAR']={'desc': 'year', 
+    tmp['dailyvic_livneh2013']['variable_info']['YEAR']={'desc': 'year',
                                                          'dtypes': 'int8', 'units': 'yr'}
     tmp['dailyvic_livneh2013']['variable_info']['MONTH']={}
-    tmp['dailyvic_livneh2013']['variable_info']['MONTH']={'desc': 'month', 
+    tmp['dailyvic_livneh2013']['variable_info']['MONTH']={'desc': 'month',
                                                           'dtypes': 'int8', 'units': 'mo'}
     tmp['dailyvic_livneh2013']['variable_info']['DAY']={}
-    tmp['dailyvic_livneh2013']['variable_info']['DAY']={'desc': 'day', 
+    tmp['dailyvic_livneh2013']['variable_info']['DAY']={'desc': 'day',
                                                         'dtypes': 'int8', 'units': 'day'}
     tmp['dailyvic_livneh2013']['variable_info']['EVAP']={}
     tmp['dailyvic_livneh2013']['variable_info']['EVAP']={'desc': 'Total ET rate-- includes Canopy,  Sub-canopy Evaporation,  Transpiration,  and Snow Sublimation', 
                                                          'dtypes': 'float64', 'units': 'mm/s'}
     tmp['dailyvic_livneh2013']['variable_info']['RUNOFF']={}
-    tmp['dailyvic_livneh2013']['variable_info']['RUNOFF']={'desc': 'Runoff', 
+    tmp['dailyvic_livneh2013']['variable_info']['RUNOFF']={'desc': 'Runoff',
                                                            'dtypes': 'float64', 'units': 'mm/s'}
     tmp['dailyvic_livneh2013']['variable_info']['BASEFLOW']={}
-    tmp['dailyvic_livneh2013']['variable_info']['BASEFLOW']={'desc': 'Baseflow', 
+    tmp['dailyvic_livneh2013']['variable_info']['BASEFLOW']={'desc': 'Baseflow',
                                                              'dtypes': 'float64', 'units': 'mm/s'}
     tmp['dailyvic_livneh2013']['variable_info']['SMTOP']={}
-    tmp['dailyvic_livneh2013']['variable_info']['SMTOP']={'desc': 'Soil moisture top layer', 
+    tmp['dailyvic_livneh2013']['variable_info']['SMTOP']={'desc': 'Soil moisture top layer',
                                                           'dtypes': 'float64', 'units': 'mm'}
     tmp['dailyvic_livneh2013']['variable_info']['SMMID']={}
-    tmp['dailyvic_livneh2013']['variable_info']['SMMID']={'desc': 'Soil moisture middle layer', 
+    tmp['dailyvic_livneh2013']['variable_info']['SMMID']={'desc': 'Soil moisture middle layer',
                                                           'dtypes': 'float64', 'units': 'mm'}
     tmp['dailyvic_livneh2013']['variable_info']['SMBOT']={}
-    tmp['dailyvic_livneh2013']['variable_info']['SMBOT']={'desc': 'Soil moisture bottom layer', 
+    tmp['dailyvic_livneh2013']['variable_info']['SMBOT']={'desc': 'Soil moisture bottom layer',
                                                           'dtypes': 'float64', 'units': 'mm'}
     tmp['dailyvic_livneh2013']['variable_info']['SWE']={}
-    tmp['dailyvic_livneh2013']['variable_info']['SWE']={'desc': 'Snow water equivalent (SWE)', 
+    tmp['dailyvic_livneh2013']['variable_info']['SWE']={'desc': 'Snow water equivalent (SWE)',
                                                         'dtypes': 'float64', 'units': 'mm'}
     tmp['dailyvic_livneh2013']['variable_info']['WDEW']={}
-    tmp['dailyvic_livneh2013']['variable_info']['WDEW']={'desc': 'Canopy water', 
+    tmp['dailyvic_livneh2013']['variable_info']['WDEW']={'desc': 'Canopy water',
                                                          'dtypes': 'float64', 'units': 'mm'}
     tmp['dailyvic_livneh2013']['variable_info']['SENSIBLE']={}
-    tmp['dailyvic_livneh2013']['variable_info']['SENSIBLE']={'desc': 'Net sensible heat flux', 
+    tmp['dailyvic_livneh2013']['variable_info']['SENSIBLE']={'desc': 'Net sensible heat flux',
                                                              'dtypes': 'float64', 'units': 'W/m^2'}
     tmp['dailyvic_livneh2013']['variable_info']['LATENT']={}
-    tmp['dailyvic_livneh2013']['variable_info']['LATENT']={'desc': 'Net latent heat flux', 
+    tmp['dailyvic_livneh2013']['variable_info']['LATENT']={'desc': 'Net latent heat flux',
                                                            'dtypes': 'float64', 'units': 'W/m^2'}
     tmp['dailyvic_livneh2013']['variable_info']['GRNDFLUX']={}
-    tmp['dailyvic_livneh2013']['variable_info']['GRNDFLUX']={'desc': 'Net heat flux into ground', 
+    tmp['dailyvic_livneh2013']['variable_info']['GRNDFLUX']={'desc': 'Net heat flux into ground',
                                                              'dtypes': 'float64', 'units': 'W/m^2'}
     tmp['dailyvic_livneh2013']['variable_info']['RNET']={}
-    tmp['dailyvic_livneh2013']['variable_info']['RNET']={'desc': 'Net downward radiation flux', 
+    tmp['dailyvic_livneh2013']['variable_info']['RNET']={'desc': 'Net downward radiation flux',
                                                          'dtypes': 'float64', 'units': 'W/m^2'}
     tmp['dailyvic_livneh2013']['variable_info']['RADTEMP']={}
-    tmp['dailyvic_livneh2013']['variable_info']['RADTEMP']={'desc': 'Mean radiative surface temperature', 
+    tmp['dailyvic_livneh2013']['variable_info']['RADTEMP']={'desc': 'Mean radiative surface temperature',
                                                             'dtypes': 'float64', 'units': 'K'}
     tmp['dailyvic_livneh2013']['variable_info']['PREC']={}
-    tmp['dailyvic_livneh2013']['variable_info']['PREC']={'desc': 'Incoming precipitation rate', 
+    tmp['dailyvic_livneh2013']['variable_info']['PREC']={'desc': 'Incoming precipitation rate',
                                                          'dtypes': 'float64', 'units': 'mm/s'}
 
     """
@@ -166,11 +165,11 @@ def meta_file():
     tmp['dailymet_bclivneh2013']['decision_steps'] = ''
     tmp['dailymet_bclivneh2013']['filename_structure'] = 'data_{LAT}_{LONG}'
     tmp['dailymet_bclivneh2013']['file_format'] = 'ASCII'
-    
+
     tmp['dailymet_bclivneh2013']['reference']={}
     tmp['dailymet_bclivneh2013']['reference'][1] = 'Livneh,  B.,  E. A. Rosenberg,  C. Lin,  B. Nijssen,  V. Mishra,  K. M. Andreadis,  E. P. Maurer,  and D. P. Lettenmaier,  2013:  A Long-Term Hydrologically Based Dataset of Land Surface Fluxes and States for the Conterminous United States:  Update and Extensions. J. Climate,  26,  9384-9392.'
     tmp['dailymet_bclivneh2013']['reference'][2]='ftp: //livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset/readme.txt'
-    
+
     tmp['dailymet_bclivneh2013']['start_date'] = '1915-01-01'
     tmp['dailymet_bclivneh2013']['end_date'] = '2011-12-31'
     tmp['dailymet_bclivneh2013']['temporal_resolution'] = 'D'
@@ -179,18 +178,18 @@ def meta_file():
 
     tmp['dailymet_bclivneh2013']['variable_info']={}
     tmp['dailymet_bclivneh2013']['variable_info']['PRECIP']={}
-    tmp['dailymet_bclivneh2013']['variable_info']['PRECIP']={'desc': 'daily precipitation (mm)', 
+    tmp['dailymet_bclivneh2013']['variable_info']['PRECIP']={'desc': 'daily precipitation (mm)',
                                                              'dtypes': 'float64', 'units': 'mm'}
     tmp['dailymet_bclivneh2013']['variable_info']['TMAX']={}
-    tmp['dailymet_bclivneh2013']['variable_info']['TMAX']={'desc': 'daily maximum temperature (C)', 
+    tmp['dailymet_bclivneh2013']['variable_info']['TMAX']={'desc': 'daily maximum temperature (C)',
                                                            'dtypes': 'float64', 'units': 'C'}
     tmp['dailymet_bclivneh2013']['variable_info']['TMIN']={}
-    tmp['dailymet_bclivneh2013']['variable_info']['TMIN']={'desc': 'daily minimum temperature (C)', 
+    tmp['dailymet_bclivneh2013']['variable_info']['TMIN']={'desc': 'daily minimum temperature (C)',
                                                            'dtypes': 'float64', 'units': 'C'}
     tmp['dailymet_bclivneh2013']['variable_info']['WINDSPD']={}
-    tmp['dailymet_bclivneh2013']['variable_info']['WINDSPD']={'desc': 'daily mean wind speed (m/s)', 
+    tmp['dailymet_bclivneh2013']['variable_info']['WINDSPD']={'desc': 'daily mean wind speed (m/s)',
                                                               'dtypes': 'float64', 'units': 'm/s'}
-    
+
     """
     Daily VIC - Livneh et al.,  2015
     """
@@ -202,71 +201,71 @@ def meta_file():
     tmp['dailyvic_livneh2015']['decision_steps']='files organized by Latitude'
     tmp['dailyvic_livneh2015']['filename_structure']='Fluxes_Livneh_NAmerExt_15Oct2014_{LAT}_{LONG}'
     tmp['dailyvic_livneh2015']['file_format']='bz2-compressed ASCII'
-    
+
     tmp['dailyvic_livneh2015']['reference']={}
     tmp['dailyvic_livneh2015']['reference'][1]="Livneh B.,  T.J. Bohn,  D.S. Pierce,  F. Munoz-Ariola,  B. Nijssen,  R. Vose,  D. Cayan,  and L.D. Brekke,  2015:  A spatially comprehensive,  hydrometeorological data set for Mexico,  the U.S.,  and southern Canada 1950-2013,  Nature Scientific Data,  5: 150042,  doi: 10.1038/sdata.2015.42."
     tmp['dailyvic_livneh2015']['reference'][2]="ftp: //192.12.137.7/pub/dcp/archive/OBS/livneh2014.1_16deg/README.Livneh.Grids.txt.v3.txt"
-    
+
     tmp['dailyvic_livneh2015']['start_date']='1950-01-01'
     tmp['dailyvic_livneh2015']['end_date']='2013-12-31'
     tmp['dailyvic_livneh2015']['temporal_resolution']='D'
     tmp['dailyvic_livneh2015']['delimiter']='\t'
     tmp['dailyvic_livneh2015']['variable_list']=['YEAR', 'MONTH', 'DAY', 'EVAP', 'RUNOFF', 'BASEFLOW', 'SMTOP', 'SMMID', 'SMBOT', 'SWE', 'WDEW', 'SENSIBLE', 'LATENT', 'GRNDFLUX', 'RNET', 'PETTALL', 'PETSHORT', 'PETNATVEG']
-    
+
     tmp['dailyvic_livneh2015']['variable_info']={}
     tmp['dailyvic_livneh2015']['variable_info']['YEAR']={}
-    tmp['dailyvic_livneh2015']['variable_info']['YEAR']={'desc': 'year', 
+    tmp['dailyvic_livneh2015']['variable_info']['YEAR']={'desc': 'year',
                                                          'dtypes': 'int8', 'units': 'yr'}
     tmp['dailyvic_livneh2015']['variable_info']['MONTH']={}
-    tmp['dailyvic_livneh2015']['variable_info']['MONTH']={'desc': 'month', 
+    tmp['dailyvic_livneh2015']['variable_info']['MONTH']={'desc': 'month',
                                                           'dtypes': 'int8', 'units': 'mo'}
     tmp['dailyvic_livneh2015']['variable_info']['DAY']={}
-    tmp['dailyvic_livneh2015']['variable_info']['DAY']={'desc': 'day', 
+    tmp['dailyvic_livneh2015']['variable_info']['DAY']={'desc': 'day',
                                                         'dtypes': 'int8', 'units': 'day'}
     tmp['dailyvic_livneh2015']['variable_info']['EVAP']={}
     tmp['dailyvic_livneh2015']['variable_info']['EVAP']={'desc': 'Total ET rate-- includes Canopy,  Sub-canopy Evaporation,  Transpiration,  and Snow Sublimation', 
                                                          'dtypes': 'float64', 'units': 'mm/day'}
     tmp['dailyvic_livneh2015']['variable_info']['RUNOFF']={}
-    tmp['dailyvic_livneh2015']['variable_info']['RUNOFF']={'desc': 'Runoff', 
+    tmp['dailyvic_livneh2015']['variable_info']['RUNOFF']={'desc': 'Runoff',
                                                            'dtypes': 'float64', 'units': 'mm/day'}
     tmp['dailyvic_livneh2015']['variable_info']['BASEFLOW']={}
-    tmp['dailyvic_livneh2015']['variable_info']['BASEFLOW']={'desc': 'Baseflow', 
+    tmp['dailyvic_livneh2015']['variable_info']['BASEFLOW']={'desc': 'Baseflow',
                                                              'dtypes': 'float64', 'units': 'mm/day'}
     tmp['dailyvic_livneh2015']['variable_info']['SMTOP']={}
-    tmp['dailyvic_livneh2015']['variable_info']['SMTOP']={'desc': 'Soil moisture top layer', 
+    tmp['dailyvic_livneh2015']['variable_info']['SMTOP']={'desc': 'Soil moisture top layer',
                                                           'dtypes': 'float64', 'units': 'mm'}
     tmp['dailyvic_livneh2015']['variable_info']['SMMID']={}
-    tmp['dailyvic_livneh2015']['variable_info']['SMMID']={'desc': 'Soil moisture middle layer', 
+    tmp['dailyvic_livneh2015']['variable_info']['SMMID']={'desc': 'Soil moisture middle layer',
                                                           'dtypes': 'float64', 'units': 'mm'}
     tmp['dailyvic_livneh2015']['variable_info']['SMBOT']={}
-    tmp['dailyvic_livneh2015']['variable_info']['SMBOT']={'desc': 'Soil moisture bottom layer', 
+    tmp['dailyvic_livneh2015']['variable_info']['SMBOT']={'desc': 'Soil moisture bottom layer',
                                                           'dtypes': 'float64', 'units': 'mm'}
     tmp['dailyvic_livneh2015']['variable_info']['SWE']={}
-    tmp['dailyvic_livneh2015']['variable_info']['SWE']={'desc': 'Snow water equivalent (SWE)', 
+    tmp['dailyvic_livneh2015']['variable_info']['SWE']={'desc': 'Snow water equivalent (SWE)',
                                                         'dtypes': 'float64', 'units': 'mm'}
     tmp['dailyvic_livneh2015']['variable_info']['WDEW']={}
-    tmp['dailyvic_livneh2015']['variable_info']['WDEW']={'desc': 'Canopy water', 
+    tmp['dailyvic_livneh2015']['variable_info']['WDEW']={'desc': 'Canopy water',
                                                          'dtypes': 'float64', 'units': 'mm'}
     tmp['dailyvic_livneh2015']['variable_info']['SENSIBLE']={}
-    tmp['dailyvic_livneh2015']['variable_info']['SENSIBLE']={'desc': 'Net sensible heat flux', 
+    tmp['dailyvic_livneh2015']['variable_info']['SENSIBLE']={'desc': 'Net sensible heat flux',
                                                              'dtypes': 'float64', 'units': 'W/m^2'}
     tmp['dailyvic_livneh2015']['variable_info']['LATENT']={}
-    tmp['dailyvic_livneh2015']['variable_info']['LATENT']={'desc': 'Net latent heat flux', 
+    tmp['dailyvic_livneh2015']['variable_info']['LATENT']={'desc': 'Net latent heat flux',
                                                            'dtypes': 'float64',  'units': 'W/m^2'}
     tmp['dailyvic_livneh2015']['variable_info']['GRNDFLUX']={}
-    tmp['dailyvic_livneh2015']['variable_info']['GRNDFLUX']={'desc': 'Net heat flux into ground', 
+    tmp['dailyvic_livneh2015']['variable_info']['GRNDFLUX']={'desc': 'Net heat flux into ground',
                                                              'dtypes': 'float64', 'units': 'W/m^2'}
     tmp['dailyvic_livneh2015']['variable_info']['RNET']={}
-    tmp['dailyvic_livneh2015']['variable_info']['RNET']={'desc': 'Net downward radiation flux', 
+    tmp['dailyvic_livneh2015']['variable_info']['RNET']={'desc': 'Net downward radiation flux',
                                                          'dtypes': 'float64', 'units': 'W/m^2'}
     tmp['dailyvic_livneh2015']['variable_info']['PETTALL']={}
-    tmp['dailyvic_livneh2015']['variable_info']['PETTALL']={'desc': 'Potential Evapotranspiration from tall crop (Alfalfa)', 
+    tmp['dailyvic_livneh2015']['variable_info']['PETTALL']={'desc': 'Potential Evapotranspiration from tall crop (Alfalfa)',
                                                             'dtypes': 'float64', 'units': 'mm/day'}
     tmp['dailyvic_livneh2015']['variable_info']['PETSHORT']={}
-    tmp['dailyvic_livneh2015']['variable_info']['PETSHORT']={'desc': 'Potential Evapotranspiration from short crop (Grass)', 
+    tmp['dailyvic_livneh2015']['variable_info']['PETSHORT']={'desc': 'Potential Evapotranspiration from short crop (Grass)',
                                                              'dtypes': 'float64', 'units': 'mm/day'}
     tmp['dailyvic_livneh2015']['variable_info']['PETNATVEG']={}
-    tmp['dailyvic_livneh2015']['variable_info']['PETNATVEG']={'desc': 'Potential Evapotranspiration from current vegetation', 
+    tmp['dailyvic_livneh2015']['variable_info']['PETNATVEG']={'desc': 'Potential Evapotranspiration from current vegetation',
                                                               'dtypes': 'float64', 'units': 'mm/day'}
 
     """
@@ -293,16 +292,16 @@ def meta_file():
 
     tmp['dailywrf_salathe2014']['variable_info']={}
     tmp['dailywrf_salathe2014']['variable_info']['PRECIP']={}
-    tmp['dailywrf_salathe2014']['variable_info']['PRECIP']={'desc': 'Daily accumulated precipitation', 
+    tmp['dailywrf_salathe2014']['variable_info']['PRECIP']={'desc': 'Daily accumulated precipitation',
                                                             'dtypes': 'float64', 'units': 'mm'}
     tmp['dailywrf_salathe2014']['variable_info']['TMAX']={}
-    tmp['dailywrf_salathe2014']['variable_info']['TMAX']={'desc': 'Maximum temperature at 2m', 
+    tmp['dailywrf_salathe2014']['variable_info']['TMAX']={'desc': 'Maximum temperature at 2m',
                                                           'dtypes': 'float64', 'units': 'C'}
     tmp['dailywrf_salathe2014']['variable_info']['TMIN']={}
-    tmp['dailywrf_salathe2014']['variable_info']['TMIN']={'desc': 'Minimum temperature at 2m', 
+    tmp['dailywrf_salathe2014']['variable_info']['TMIN']={'desc': 'Minimum temperature at 2m',
                                                           'dtypes': 'float64', 'units': 'C'}
     tmp['dailywrf_salathe2014']['variable_info']['WINDSPD']={}
-    tmp['dailywrf_salathe2014']['variable_info']['WINDSPD']={'desc': 'Wind Speed', 
+    tmp['dailywrf_salathe2014']['variable_info']['WINDSPD']={'desc': 'Wind Speed',
                                                              'dtypes': 'float64', 'units': 'm/s'}
 
     """
@@ -325,26 +324,74 @@ def meta_file():
     tmp['dailywrf_bcsalathe2014']['end_date'] = '2010-12-31'
     tmp['dailywrf_bcsalathe2014']['temporal_resolution'] = 'D'
     tmp['dailywrf_bcsalathe2014']['delimiter'] = '\\s+'
-    tmp['dailywrf_bcsalathe2014']['variable_list'] = ['PRECIP',  'TMAX',  'TMIN',  'WINDSPD']
+    tmp['dailywrf_bcsalathe2014']['variable_list'] = ['PRECIP', 'TMAX', 'TMIN', 'WINDSPD']
 
     tmp['dailywrf_bcsalathe2014']['variable_info']={}
     tmp['dailywrf_bcsalathe2014']['variable_info']['PRECIP']={}
-    tmp['dailywrf_bcsalathe2014']['variable_info']['PRECIP']={'desc': 'Daily accumulated precipitation', 
+    tmp['dailywrf_bcsalathe2014']['variable_info']['PRECIP']={'desc': 'Daily accumulated precipitation',
                                                               'dtypes': 'float64', 'units': 'mm'}
     tmp['dailywrf_bcsalathe2014']['variable_info']['TMAX']={}
-    tmp['dailywrf_bcsalathe2014']['variable_info']['TMAX']={'desc': 'Maximum temperature at 2m', 
+    tmp['dailywrf_bcsalathe2014']['variable_info']['TMAX']={'desc': 'Maximum temperature at 2m',
                                                             'dtypes': 'float64', 'units': 'C'}
     tmp['dailywrf_bcsalathe2014']['variable_info']['TMIN']={}
-    tmp['dailywrf_bcsalathe2014']['variable_info']['TMIN']={'desc': 'Minimum temperature at 2m', 
+    tmp['dailywrf_bcsalathe2014']['variable_info']['TMIN']={'desc': 'Minimum temperature at 2m',
                                                             'dtypes': 'float64', 'units': 'C'}
     tmp['dailywrf_bcsalathe2014']['variable_info']['WINDSPD']={}
-    tmp['dailywrf_bcsalathe2014']['variable_info']['WINDSPD']={'desc': 'Wind Speed', 
+    tmp['dailywrf_bcsalathe2014']['variable_info']['WINDSPD']={'desc': 'Wind Speed',
                                                                'dtypes': 'float64', 'units': 'm/s'}
 
-    # output the file
-    #json.dump(tmp,  open('ogh_meta.json',  'w'),  ensure_ascii=False)
+    """
+    Hourly WRF-pnnl - hourly WRF model output by the pnnl
+    """
+    tmp['hourlywrf_pnnl']={}
+    tmp['hourlywrf_pnnl']['spatial_resolution'] = '1/16-degree'
+    tmp['hourlywrf_pnnl']['web_protocol'] = 'http'
+    tmp['hourlywrf_pnnl']['domain'] = 'cses.washington.edu/'
+    tmp['hourlywrf_pnnl']['subdomain'] = '/rocinante/WRF/PNNL_NARR_6km/{year}/'
+    tmp['hourlywrf_pnnl']['decision_steps'] = ''
+    tmp['hourlywrf_pnnl']['filename_structure'] = 'data.{year}-{month}-{day}.nc'
+    tmp['hourlywrf_pnnl']['file_format'] = 'NetCDF'
 
-    # perform a test read
-    #json.load(open('ogh_meta.json'))
+    tmp['hourlywrf_pnnl']['reference']={}
+    tmp['hourlywrf_pnnl']['reference'][1]='Pacific Northwest National Laboratory, 2018'
+    tmp['hourlywrf_pnnl']['reference'][2]='http://cses.washington.edu//rocinante/WRF/PNNL_NARR_6km/README'
+
+    tmp['hourlywrf_pnnl']['start_date'] = '1980-10-01'
+    tmp['hourlywrf_pnnl']['end_date'] = '2015-12-31'
+    tmp['hourlywrf_pnnl']['temporal_resolution'] = 'H'
+    #tmp['hourlywrf_pnnl']['delimiter'] = '\\s+'
+    tmp['hourlywrf_pnnl']['variable_list'] = ['T2', 'Q2', 'PSFC', 'GLW', 'SWDOWN', 'U10', 'V10', 'PREC_ACC_NC', 'SNOW_ACC_NC']
+
+    tmp['hourlywrf_pnnl']['variable_info']={}
+    tmp['hourlywrf_pnnl']['variable_info']['T2']={}
+    tmp['hourlywrf_pnnl']['variable_info']['T2']={'desc': 'air temperature at 2m',
+                                                  'dtypes': 'float64', 'units': 'K'}
+    tmp['hourlywrf_pnnl']['variable_info']['Q2']={}
+    tmp['hourlywrf_pnnl']['variable_info']['Q2']={'desc': 'QV, mixing ratio (ratio of mass water vapor to mass dry air) at 2m',
+                                                  'dtypes': 'float64', 'units': 'kg*kg^-1'}
+    tmp['hourlywrf_pnnl']['variable_info']['PSFC']={}
+    tmp['hourlywrf_pnnl']['variable_info']['PSFC']={'desc': 'surface air pressure',
+                                                    'dtypes': 'float64', 'units': 'Pa'}
+    tmp['hourlywrf_pnnl']['variable_info']['GLW']={}
+    tmp['hourlywrf_pnnl']['variable_info']['GLW']={'desc': 'downward long wave flux at ground surface',
+                                                   'dtypes': 'float64', 'units': 'W*m^-2'}
+    tmp['hourlywrf_pnnl']['variable_info']['SWDOWN']={}
+    tmp['hourlywrf_pnnl']['variable_info']['SWDOWN']={'desc': 'downward short wave flux at ground surface',
+                                                      'dtypes': 'float64', 'units': 'W*m^-2'}
+    tmp['hourlywrf_pnnl']['variable_info']['U10']={}
+    tmp['hourlywrf_pnnl']['variable_info']['U10']={'desc': 'wind, u (west(+)-east(-)) component at 10m',
+                                                   'dtypes': 'float64', 'units': 'm*s^-1'}
+    tmp['hourlywrf_pnnl']['variable_info']['V10']={}
+    tmp['hourlywrf_pnnl']['variable_info']['V10']={'desc': 'wind, v (north(+)-south(-)) component, at 10m',
+                                                   'dtypes': 'float64', 'units': 'm*s^-1'}
+    tmp['hourlywrf_pnnl']['variable_info']['PREC_ACC_NC']={}
+    tmp['hourlywrf_pnnl']['variable_info']['PREC_ACC_NC']={'desc': 'grid scale precipitation',
+                                                           'dtypes': 'float64', 'units': 'mm'}
+    tmp['hourlywrf_pnnl']['variable_info']['SNOW_ACC_NC']={}
+    tmp['hourlywrf_pnnl']['variable_info']['SNOW_ACC_NC']={'desc': 'snow water equivalent',
+                                                           'dtypes': 'float64', 'units': 'mm'}
+
+    ## output the file
+    # json.dump(tmp,  open('ogh_meta.json',  'w'),  ensure_ascii=False)
 
     return(tmp)

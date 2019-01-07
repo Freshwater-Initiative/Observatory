@@ -311,7 +311,12 @@ class Test_mappingfile_ops(object):
 
         # filterPointsinShape
         test_maptable = ogh.filterPointsinShape(shape=test_poly.geometry[0], 
-                                                points_lat=pd.Series(test_lat), points_lon=pd.Series(test_lon), points_elev=None, 
-                                                buffer_distance=0.06, buffer_resolution=16, labels=['LAT', 'LONG_', 'ELEV'])
+                                                points_lat=pd.Series(test_lat), 
+                                                points_lon=pd.Series(test_lon), 
+                                                points_elev=None, 
+                                                buffer_distance=0.06, 
+                                                buffer_resolution=16, 
+                                                labels=['LAT', 'LONG_', 'ELEV'])
         test_maptable = test_maptable.reset_index().rename(columns={'index': 'FID'})
         assert len(test_maptable)>0
+        
