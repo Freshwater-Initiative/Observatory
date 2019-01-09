@@ -328,7 +328,7 @@ def compile_VICASCII_Livneh2013_locations(maptable):
     """
     # gridded data product metadata
     domain='livnehpublicstorage.colorado.edu'
-    subdomain='/public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2'
+    subdomain='public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2'
     
     # identify the subfolder blocks
     blocks = scrape_domain(domain=domain, subdomain=subdomain, startswith='fluxes')
@@ -339,7 +339,7 @@ def compile_VICASCII_Livneh2013_locations(maptable):
     locations=[]
     for ind, row in maptable.iterrows():
         loci='_'.join(['VIC_fluxes_Livneh_CONUSExt_v.1.2_2013', str(row['LAT']), str(row['LONG_'])])
-        url='/'.join(['ftp://'+domain+subdomain, str(row['blocks']), loci+'.bz2'])
+        url=os.path.join('ftp://'+domain, subdomain, str(row['blocks']), loci+'.bz2')
         locations.append(url)
     return(locations)
 
@@ -352,12 +352,12 @@ def compile_VICASCII_Livneh2015_locations(maptable):
     """
     # gridded data product metadata
     domain='192.12.137.7'
-    subdomain='/pub/dcp/archive/OBS/livneh2014.1_16deg/VIC.ASCII'
+    subdomain='pub/dcp/archive/OBS/livneh2014.1_16deg/VIC.ASCII'
     
     locations=[]
     for ind, row in maptable.iterrows():
         loci='_'.join(['Fluxes_Livneh_NAmerExt_15Oct2014', str(row['LAT']), str(row['LONG_'])])
-        url='/'.join(['ftp://'+domain+subdomain, 'latitude.'+str(row['LAT']), loci+'.bz2'])
+        url=os.path.join('ftp://'+domain, subdomain, 'latitude.'+str(row['LAT']), loci+'.bz2')
         locations.append(url)
     return(locations)
 
@@ -373,7 +373,7 @@ def compile_dailyMET_Livneh2013_locations(maptable):
     """
     # gridded data product metadata
     domain='livnehpublicstorage.colorado.edu'
-    subdomain='/public/Livneh.2013.CONUS.Dataset/Meteorology.asc.v.1.2.1915.2011.bz2/'
+    subdomain='public/Livneh.2013.CONUS.Dataset/Meteorology.asc.v.1.2.1915.2011.bz2'
     
     # identify the subfolder blocks
     blocks = scrape_domain(domain=domain, subdomain=subdomain, startswith='data')
@@ -384,7 +384,7 @@ def compile_dailyMET_Livneh2013_locations(maptable):
     locations=[]
     for ind, row in maptable.iterrows():
         loci='_'.join(['Meteorology_Livneh_CONUSExt_v.1.2_2013', str(row['LAT']), str(row['LONG_'])])
-        url='/'.join(['ftp://'+domain+subdomain, str(row['blocks']), loci+'.bz2'])
+        url=os.path.join('ftp://'+domain, subdomain, str(row['blocks']), loci+'.bz2')
         locations.append(url)
     return(locations)
 
@@ -397,12 +397,12 @@ def compile_dailyMET_Livneh2015_locations(maptable):
     """
     # gridded data product metadata
     domain='192.12.137.7'
-    subdomain='/pub/dcp/archive/OBS/livneh2014.1_16deg/ascii/daily'
+    subdomain='pub/dcp/archive/OBS/livneh2014.1_16deg/ascii/daily'
     
     locations=[]
     for ind, row in maptable.iterrows():
         loci='_'.join(['Meteorology_Livneh_NAmerExt_15Oct2014', str(row['LAT']), str(row['LONG_'])])
-        url='/'.join(['ftp://'+domain+subdomain, 'latitude.'+str(row['LAT']), loci+'.bz2'])
+        url=os.path.join('ftp://'+domain, subdomain, 'latitude.'+str(row['LAT']), loci+'.bz2')
         locations.append(url)
     return(locations)
 
@@ -592,7 +592,7 @@ def decompbz2(filename):
     
     filename: (dir) the file path for a bz2 compressed file
     """
-    with open(filename.split('.bz2',1)[0], 'wb') as new_file, open(filename, 'rb') as zipfile:
+    with open(filename.split('.bz2', 1)[0], 'wb') as new_file, open(filename, 'rb') as zipfile:
         decompressor = bz2.BZ2Decompressor()
         for data in iter(lambda : zipfile.read(100 * 1024), b''):
             new_file.write(decompressor.decompress(data))
