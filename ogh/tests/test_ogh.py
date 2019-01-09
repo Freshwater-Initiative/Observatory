@@ -130,7 +130,7 @@ class Test_ogh_webscraping(object):
     def test_scrapedomain(self):
         # gridded data product metadata
         domain='livnehpublicstorage.colorado.edu'
-        subdomain='/public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2'
+        subdomain='public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2'
 
         # identify the subfolder blocks
         blocks = ogh.scrape_domain(domain=domain, subdomain=subdomain, startswith='fluxes')
@@ -143,8 +143,8 @@ class Test_ogh_webdownload(object):
 
     def test_ftp_download(self):
         protocol = 'ftp://'
-        ipaddress = 'livnehpublicstorage.colorado.edu/'
-        subdomain = 'public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2/fluxes.100.95.25.36/'
+        ipaddress = 'livnehpublicstorage.colorado.edu'
+        subdomain = 'public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2/fluxes.100.95.25.36'
         filename1 = 'VIC_fluxes_Livneh_CONUSExt_v.1.2_2013_25.90625_-97.40625.bz2' # real
         filename2 = 'VIC_fluxes_Livneh_CONUSExt_v.1.2_2013_25.90625_-97.40626.bz2' # fake
 
@@ -169,8 +169,8 @@ class Test_ogh_webdownload(object):
 
     def test_ftp_download_one(self):
         protocol = 'ftp://'
-        ipaddress = 'livnehpublicstorage.colorado.edu/'
-        subdomain = 'public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2/fluxes.100.95.25.36/'
+        ipaddress = 'livnehpublicstorage.colorado.edu'
+        subdomain = 'public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2/fluxes.100.95.25.36'
         filename1 = 'VIC_fluxes_Livneh_CONUSExt_v.1.2_2013_25.90625_-97.40626.bz2' # fake
 
         urlofinterest=os.path.join(protocol, ipaddress, subdomain, filename1)
@@ -180,8 +180,8 @@ class Test_ogh_webdownload(object):
 
     def test_ftp_download_p(self):
         protocol = 'ftp://'
-        ipaddress = 'livnehpublicstorage.colorado.edu/'
-        subdomain = 'public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2/fluxes.100.95.25.36/'
+        ipaddress = 'livnehpublicstorage.colorado.edu'
+        subdomain = 'public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2/fluxes.100.95.25.36'
         filename1 = 'VIC_fluxes_Livneh_CONUSExt_v.1.2_2013_25.90625_-97.40625.bz2' # real
         filename2 = 'VIC_fluxes_Livneh_CONUSExt_v.1.2_2013_25.90625_-97.40626.bz2' # fake
 
