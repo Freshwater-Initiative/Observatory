@@ -101,7 +101,7 @@ class Test_ogh_spatial_mapping(object):
 
         # livneh 2013
         assert ogh.compile_dailyMET_Livneh2013_locations(test_maptable) is not None
-        #assert ogh.compile_VICASCII_Livneh2013_locations(test_maptable) is not None
+        assert ogh.compile_VICASCII_Livneh2013_locations(test_maptable) is not None
 
         # livneh 2013 (CIG)
         assert ogh.compile_Livneh2013_locations(test_maptable) is not None
@@ -187,8 +187,8 @@ class Test_ogh_webdownload(object):
 
         listofinterest=[os.path.join(protocol, ipaddress, subdomain, filename1), 
                         os.path.join(protocol, ipaddress, subdomain, filename2)]
-        ogh.ftp_download_p(listofinterest)
-        os.remove(filename1.replace('.bz2',''))
+        ogh.ftp_download_p(listofinterest, nworkers=2)
+        #os.remove(filename1.replace('.bz2',''))
         assert True
 
     def test_wget_download(self):
@@ -234,23 +234,6 @@ class Test_ogh_wrappedget(object):
     #                               catalog_label='dailymet_livneh2013')
     #    assert True
     
-    
-    def test_getDailyMET_livneh2015(self):
-        ogh.getDailyMET_livneh2015(homedir=os.getcwd(),
-                                   mappingfile=os.path.join(data_path,'test_catalog.csv'),
-                                   subdir=os.path.join(data_path,'test_files2'),
-                                   catalog_label='dailymet_livneh2015')
-        assert True
-
-
-    def test_getDailyMET_bcLivneh2013(self):
-        ogh.getDailyMET_bcLivneh2013(homedir=data_path,
-                                     mappingfile=os.path.join(data_path,'test_catalog.csv'),
-                                     subdir=os.path.join(data_path,'test_files3'),
-                                     catalog_label='dailymet_bclivneh2013')
-        assert True
-
-
     # def test_getDailyVIC_livneh2013(self):
     #    ogh.getDailyVIC_livneh2013(homedir=data_path,
     #                               mappingfile=os.path.join(data_path,'test_catalog.csv'),
@@ -258,15 +241,14 @@ class Test_ogh_wrappedget(object):
     #                               catalog_label='dailyvic_livneh2013')
     #    assert True
 
-
-    def test_getDailyVIC_livneh2015(self):
-        ogh.getDailyVIC_livneh2015(homedir=data_path,
-                                   mappingfile=os.path.join(data_path,'test_catalog.csv'),
-                                   subdir=os.path.join(data_path,'test_files5'),
-                                   catalog_label='dailyvic_livneh2015')
+    def test_getDailyMET_bcLivneh2013(self):
+        ogh.getDailyMET_bcLivneh2013(homedir=data_path,
+                                     mappingfile=os.path.join(data_path,'test_catalog.csv'),
+                                     subdir=os.path.join(data_path,'test_files3'),
+                                     catalog_label='dailymet_bclivneh2013')
         assert True
-
-
+        
+        
     def test_getDailyWRF_salathe2014(self):
         ogh.getDailyWRF_salathe2014(homedir=data_path,
                                     mappingfile=os.path.join(data_path,'test_catalog.csv'),
@@ -283,19 +265,38 @@ class Test_ogh_wrappedget(object):
         assert True
 
 
-    def test_files_remove(self):
-        for eachdir in ['test_files1', 'test_files2', 'test_files3', 'test_files4', 
-                        'test_files5', 'test_files6', 'test_files7']:
-            path = os.path.join(data_path, eachdir)
-            pd.Series(os.listdir(path)).apply(lambda x: os.remove(os.path.join(path, x)))
-            os.rmdir(path)
-        os.remove(os.path.join(data_path,'test_catalog.csv'))
+    def test_getDailyMET_livneh2015(self):
+        ogh.getDailyMET_livneh2015(homedir=os.getcwd(),
+                                   mappingfile=os.path.join(data_path,'test_catalog.csv'),
+                                   subdir=os.path.join(data_path,'test_files2'),
+                                   catalog_label='dailymet_livneh2015')
         assert True
 
 
-class Test_mappingfile_ops(object):
-    
-    
+    def test_getDailyVIC_livneh2015(self):
+        ogh.getDailyVIC_livneh2015(homedir=data_path,
+                                   mappingfile=os.path.join(data_path,'test_catalog.csv'),
+                                   subdir=os.path.join(data_path,'test_files5'),
+                                   catalog_label='dailyvic_livneh2015')
+        assert True
+
+
+    def test_files_remove(self):
+        # remove 1 file
+        os.remove(os.path.join(data_path, 'test_catalog.csv'))
+        assert True
+        
+        # remove a directory of files
+        path = os.path.join(data_path, 'data', 'test_files')
+        pd.Series(os.listdir(path)).apply(lambda x: os.remove(os.path.join(path, x)))
+        assert True
+
+        # remove empty directory
+        os.rmdir(path)
+        assert True
+
+
+class Test_mappingfile_ops(object):    
     def test_readmappingfile(self):        
         test_map, nstat = ogh.mappingfileToDF(os.path.join(data_path,'test_mappingfile.csv'), colvar=None)
         test_map = test_map.drop_duplicates()

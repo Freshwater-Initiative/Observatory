@@ -113,7 +113,7 @@ def meta_file():
     tmp['dailyvic_livneh2013']['variable_info']['DAY'] = {'desc': 'day',
                                                         'dtypes': 'int8', 'units': 'day'}
     tmp['dailyvic_livneh2013']['variable_info']['EVAP'] = {}
-    tmp['dailyvic_livneh2013']['variable_info']['EVAP'] = {'desc': 'Total ET rate-- includes Canopy,  Sub-canopy Evaporation,  Transpiration,  and Snow Sublimation', 
+    tmp['dailyvic_livneh2013']['variable_info']['EVAP'] = {'desc': 'Total ET rate-- includes Canopy,  Sub-canopy Evaporation,  Transpiration,  and Snow Sublimation',
                                                          'dtypes': 'float64', 'units': 'mm/s'}
     tmp['dailyvic_livneh2013']['variable_info']['RUNOFF'] = {}
     tmp['dailyvic_livneh2013']['variable_info']['RUNOFF'] = {'desc': 'Runoff',
@@ -204,14 +204,14 @@ def meta_file():
     tmp['dailyvic_livneh2015']['file_format'] = 'bz2-compressed ASCII'
 
     tmp['dailyvic_livneh2015']['reference'] = {}
-    tmp['dailyvic_livneh2015']['reference'][1] = "Livneh B.,  T.J. Bohn,  D.S. Pierce,  F. Munoz-Ariola,  B. Nijssen,  R. Vose,  D. Cayan,  and L.D. Brekke,  2015:  A spatially comprehensive,  hydrometeorological data set for Mexico,  the U.S.,  and southern Canada 1950-2013,  Nature Scientific Data,  5: 150042,  doi: 10.1038/sdata.2015.42."
-    tmp['dailyvic_livneh2015']['reference'][2] = "ftp: //192.12.137.7/pub/dcp/archive/OBS/livneh2014.1_16deg/README.Livneh.Grids.txt.v3.txt"
+    tmp['dailyvic_livneh2015']['reference'][1] = 'Livneh B.,  T.J. Bohn,  D.S. Pierce,  F. Munoz-Ariola,  B. Nijssen,  R. Vose,  D. Cayan,  and L.D. Brekke,  2015:  A spatially comprehensive,  hydrometeorological data set for Mexico,  the U.S.,  and southern Canada 1950-2013,  Nature Scientific Data,  5: 150042,  doi: 10.1038/sdata.2015.42.'
+    tmp['dailyvic_livneh2015']['reference'][2] = 'ftp: //192.12.137.7/pub/dcp/archive/OBS/livneh2014.1_16deg/README.Livneh.Grids.txt.v3.txt'
 
-    tmp['dailyvic_livneh2015']['start_date']='1950-01-01'
-    tmp['dailyvic_livneh2015']['end_date']='2013-12-31'
-    tmp['dailyvic_livneh2015']['temporal_resolution']='D'
-    tmp['dailyvic_livneh2015']['delimiter']='\t'
-    tmp['dailyvic_livneh2015']['variable_list']=['YEAR', 'MONTH', 'DAY', 'EVAP', 'RUNOFF', 'BASEFLOW', 'SMTOP', 'SMMID', 'SMBOT', 'SWE', 'WDEW', 'SENSIBLE', 'LATENT', 'GRNDFLUX', 'RNET', 'PETTALL', 'PETSHORT', 'PETNATVEG']
+    tmp['dailyvic_livneh2015']['start_date'] = '1950-01-01'
+    tmp['dailyvic_livneh2015']['end_date'] = '2013-12-31'
+    tmp['dailyvic_livneh2015']['temporal_resolution'] = 'D'
+    tmp['dailyvic_livneh2015']['delimiter'] = '\t'
+    tmp['dailyvic_livneh2015']['variable_list'] = ['YEAR', 'MONTH', 'DAY', 'EVAP', 'RUNOFF', 'BASEFLOW', 'SMTOP', 'SMMID', 'SMBOT', 'SWE', 'WDEW', 'SENSIBLE', 'LATENT', 'GRNDFLUX', 'RNET', 'PETTALL', 'PETSHORT', 'PETNATVEG']
 
     tmp['dailyvic_livneh2015']['variable_info'] = {}
     tmp['dailyvic_livneh2015']['variable_info']['YEAR'] = {}
@@ -224,7 +224,7 @@ def meta_file():
     tmp['dailyvic_livneh2015']['variable_info']['DAY'] = {'desc': 'day',
                                                         'dtypes': 'int8', 'units': 'day'}
     tmp['dailyvic_livneh2015']['variable_info']['EVAP'] = {}
-    tmp['dailyvic_livneh2015']['variable_info']['EVAP'] = {'desc': 'Total ET rate-- includes Canopy,  Sub-canopy Evaporation,  Transpiration,  and Snow Sublimation', 
+    tmp['dailyvic_livneh2015']['variable_info']['EVAP'] = {'desc': 'Total ET rate-- includes Canopy,  Sub-canopy Evaporation,  Transpiration,  and Snow Sublimation',
                                                          'dtypes': 'float64', 'units': 'mm/day'}
     tmp['dailyvic_livneh2015']['variable_info']['RUNOFF'] = {}
     tmp['dailyvic_livneh2015']['variable_info']['RUNOFF'] = {'desc': 'Runoff',

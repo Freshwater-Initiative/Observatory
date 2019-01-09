@@ -44,11 +44,11 @@ def compile_x_dailymet_Livneh2013_raw_locations(time_increments):
     subdomain = 'public/Livneh.2013.CONUS.Dataset/Meteorology.nc.v.1.2.1915.2011.bz2'
 
     for ind, yearmo in enumerate(time_increments):
-        if yearmo.startswith('1915') or (yearmo=='191601'):
-            basename='Meteorology_Livneh_CONUSExt_v.1.2_2013.{0}.nc'.format(yearmo)
+        if yearmo.startswith('1915') or (yearmo == '191601'):
+            basename = 'Meteorology_Livneh_CONUSExt_v.1.2_2013.{0}.nc'.format(yearmo)
         else:
-            basename='Meteorology_Livneh_CONUSExt_v.1.2_2013.{0}.nc.bz2'.format(yearmo)
-        url='{0}{1}{2}'.format(domain, subdomain, basename)
+            basename = 'Meteorology_Livneh_CONUSExt_v.1.2_2013.{0}.nc.bz2'.format(yearmo)
+        url = '{0}{1}{2}'.format(domain, subdomain, basename)
         locations.append(url)
     return(locations)
 
@@ -56,7 +56,7 @@ def compile_x_dailymet_Livneh2013_raw_locations(time_increments):
 def wget_x_download_spSubset(fileurl,
                              spatialbounds,
                              file_prefix='sp_',
-                             rename_timelatlong_names={'LAT': 'LAT', 'LON': 'LON'}, 
+                             rename_timelatlong_names={'LAT': 'LAT', 'LON': 'LON'},
                              replace_file=True):
     """
     Download files from an http domain
@@ -120,7 +120,7 @@ def ftp_x_download_spSubset(fileurl,
                             replace_file=True):
     """
     Download files from an http domain
-    
+
     fileurl: (str) a urls to request a netcdf file
     spatialbounds: (dict) dictionary providing the minx, miny, maxx, and maxy of the spatial region
     file_prefix: (str) a string to mark the output file as a spatial subset
@@ -128,9 +128,9 @@ def ftp_x_download_spSubset(fileurl,
     replace_file: (logic) If True, the existing file will be replaced; if False, the file download is skipped
     """
     # establish path info
-    fileurl = fileurl.replace('ftp://', '') # loci is already the url with the domain already appended
-    ipaddress = fileurl.split('/', 1)[0] # ip address
-    path = os.path.dirname(fileurl.split('/', 1)[1]) # folder path
+    fileurl = fileurl.replace('ftp://', '')  # fileurl is url with the domain appended
+    ipaddress = fileurl.split('/', 1)[0]  # ip address
+    path = os.path.dirname(fileurl.split('/', 1)[1])  # folder path
     filename = os.path.basename(fileurl)
 
     # check if the file path already exists; if so, apply replace_file logic
@@ -155,7 +155,7 @@ def ftp_x_download_spSubset(fileurl,
         # decompress the file
         if filename.endswith('.bz2'):
             ogh.decompbz2(filename)
-            filename = filename.replace('.bz2','')
+            filename = filename.replace('.bz2', '')
 
         # open the parent netcdf file
         ds = xray.open_dataset(filename, engine='netcdf4')
@@ -175,7 +175,7 @@ def ftp_x_download_spSubset(fileurl,
         os.remove(filename)
         return(os.path.join(os.getcwd(), file_prefix+filename))
     except:
-        #os.remove(filename)
+        # os.remove(filename)
         print('File does not exist at this URL: '+fileurl)
 
 
@@ -235,7 +235,7 @@ def get_x_dailymet_Livneh2013_raw(homedir,
     get Daily MET data from Livneh et al. (2013) using xarray on netcdf files
     """
     # check and generate DailyMET livneh 2013 data directory
-    filedir=os.path.join(homedir, subdir)
+    filedir = os.path.join(homedir, subdir)
     ogh.ensure_dir(filedir)
 
     # modify each month between start_date and end_date to year-month
@@ -265,7 +265,7 @@ def get_x_dailymet_Livneh2013_raw(homedir,
     return(outputfiles)
 
 
-def netcdf_to_ascii(homedir, subdir, source_directory, mappingfile, catalog_label, meta_file, 
+def netcdf_to_ascii(homedir, subdir, source_directory, mappingfile, catalog_label, meta_file,
                     temporal_resolution='D', netcdfs=None, variable_list=None):
     # initialize list of dataframe outputs
     outfiledict = {}
@@ -276,14 +276,14 @@ def netcdf_to_ascii(homedir, subdir, source_directory, mappingfile, catalog_labe
 
     # connect with collection of netcdfs
     if isinstance(netcdfs, type(None)):
-        netcdfs=[os.path.join(source_directory,file) for file in os.listdir(source_directory) if file.endswith('.nc')]
-    ds_mf = xray.open_mfdataset(netcdfs, engine = 'netcdf4').sortby('TIME')
+        netcdfs = [os.path.join(source_directory, file) for file in os.listdir(source_directory) if file.endswith('.nc')]
+    ds_mf = xray.open_mfdataset(netcdfs, engine='netcdf4').sortby('TIME')
 
     # generate list of variables
     if not isinstance(variable_list, type(None)):
         ds_vars = variable_list.copy()
     else:
-        ds_vars = [ds_var for ds_var in dict(ds_mf.variables).keys() 
+        ds_vars = [ds_var for ds_var in dict(ds_mf.variables).keys()
                    if ds_var not in ['YEAR', 'MONTH', 'DAY', 'TIME', 'LAT', 'LON']]
 
     # convert netcdfs to pandas.Panel API
@@ -296,7 +296,7 @@ def netcdf_to_ascii(homedir, subdir, source_directory, mappingfile, catalog_labe
     for ind, eachrow in maptable.iterrows():
 
         # generate ASCII time-series
-        ds_df = ds_pan.loc[eachrow['LAT'],eachrow['LONG_'], :].reset_index(drop=True, level=[0, 1])
+        ds_df = ds_pan.loc[eachrow['LAT'], eachrow['LONG_'], :].reset_index(drop=True, level=[0, 1])
 
         # create file name
         outfilename = os.path.join(filedir, 'data_{0}_{1}'.format(eachrow['LAT'], eachrow['LONG_']))
@@ -328,7 +328,7 @@ def calculateUTMbounds(mappingfile, mappingfile_crs={'init': 'epsg:4326'}, spati
     map_df, nstation = ogh.mappingfileToDF(mappingfile)
 
     # loop though each LAT/LONG_ +/-0.06250 centroid into gridded cells
-    geom=[]
+    geom = []
     midpt = spatial_resolution/2
     for ind in map_df.index:
         mid = map_df.loc[ind]
@@ -403,7 +403,7 @@ def calculateUTMcells(mappingfile, mappingfile_crs={'init': 'epsg:4326'}, spatia
     # transform each polygon to the utm basemap projection
     test['geometry'] = test.apply(lambda x: shapely.ops.transform(m, x['geometry']), axis=1)
     test = test.drop('shapeName', axis=1)
-    
+
     # remove the plot
     plt.gcf().clear()
 
@@ -411,14 +411,14 @@ def calculateUTMcells(mappingfile, mappingfile_crs={'init': 'epsg:4326'}, spatia
     return(test, m)
 
 
-def rasterDimensions (maxx, maxy, minx=0, miny=0, dy=100, dx=100):
+def rasterDimensions(maxx, maxy, minx=0, miny=0, dy=100, dx=100):
     # construct the range
-    x = pd.Series(range(int(minx),int(maxx)+1, 1))
-    y = pd.Series(range(int(miny),int(maxy)+1, 1))
+    x = pd.Series(range(int(minx), int(maxx)+1, 1))
+    y = pd.Series(range(int(miny), int(maxy)+1, 1))
 
     # filter for values that meet the increment or is the last value
-    cols = pd.Series(x.index).apply(lambda x1: x[x1] if x1 % dx == 0 or x1==x[0] or x1==x.index[-1] else None)
-    rows = pd.Series(y.index).apply(lambda y1: y[y1] if y1 % dy == 0 or y1==y[0] or y1==y.index[-1] else None)
+    cols = pd.Series(x.index).apply(lambda x1: x[x1] if x1 % dx == 0 or x1==x[0] or x1 == x.index[-1] else None)
+    rows = pd.Series(y.index).apply(lambda y1: y[y1] if y1 % dy == 0 or y1==y[0] or y1 == y.index[-1] else None)
 
     # construct the indices
     row_list = np.array(rows.loc[pd.notnull(rows)])
@@ -431,7 +431,7 @@ def rasterDimensions (maxx, maxy, minx=0, miny=0, dy=100, dx=100):
 
 
 def mappingfileToRaster(mappingfile, maxx, maxy, minx=0, miny=0, dx=100, dy=100,
-                        spatial_resolution=0.06250, mappingfile_crs={'init':'epsg:4326'}, raster_crs={'init':'epsg:3857'}):
+                        spatial_resolution=0.06250, mappingfile_crs={'init': 'epsg:4326'}, raster_crs={'init': 'epsg:3857'}):
 
     # generate the mappingfile with UTM cells
     UTMmappingfile, m = calculateUTMcells(mappingfile=mappingfile,
@@ -452,12 +452,12 @@ def mappingfileToRaster(mappingfile, maxx, maxy, minx=0, miny=0, dx=100, dy=100,
 
         # index left to right with ordered Longitude
         for nodeid, long_ in zip(nodelist, col_list):
-            df_list.append([nodeid, 
+            df_list.append([nodeid,
                             box(long_, lat, long_+dx, lat+dy, ccw=True),
                             box(long_, lat, long_+dx, lat+dy, ccw=True).centroid])
 
     # convert to dataframe
-    df = pd.DataFrame.from_records(df_list).rename(columns={0:'nodeid',1:'raster_geom', 2:'raster_centroid'})
+    df = pd.DataFrame.from_records(df_list).rename(columns={0: 'nodeid', 1: 'raster_geom', 2: 'raster_centroid'})
     raster_map = gpd.GeoDataFrame(df, geometry='raster_centroid', crs=raster_crs)
 
     # identify raster nodeid and equivalent mappingfile FID
@@ -487,7 +487,7 @@ def valueRange(listOfDf):
 
 def rasterVectorToWGS(value_vector, nodeXmap, UTM_transformer):
     # name the vector column
-    t1 = value_vector.reset_index().rename(columns={'index':'nodeid'})
+    t1 = value_vector.reset_index().rename(columns={'index': 'nodeid'})
 
     # reduce the nodeXmap
     t2 = nodeXmap[pd.notnull(nodeXmap.FID)]
@@ -496,7 +496,7 @@ def rasterVectorToWGS(value_vector, nodeXmap, UTM_transformer):
     t3 = pd.merge(t1, t2, how='right', on='nodeid')
 
     # transform raster_geom into WGS84
-    ids=[]
+    ids = []
     newpol = []
 
     for ind, eachpoly in t3.iterrows():
@@ -508,7 +508,7 @@ def rasterVectorToWGS(value_vector, nodeXmap, UTM_transformer):
         ids.append(tuple([eachpoly['nodeid'], newcent[1], newcent[0]]))
 
         # reverse polygon mapping to WGS84
-        newpol.append(Polygon([UTM_transformer(x, y, inverse=True) 
+        newpol.append(Polygon([UTM_transformer(x, y, inverse=True)
                                for x, y in eachpoly['raster_geom'].__geo_interface__['coordinates'][0]]))
 
     # index each raster node by nodeid, LAT, LON
@@ -568,7 +568,8 @@ def wget_x_download_spSubset_PNNL(fileurl,
             return(os.path.join(os.getcwd(), file_prefix+basename))
 
         # try the file connection
-        #print('connecting to: '+basename)
+        # print('connecting to: '+basename)
+
         try:
             ping = urllib.request.urlopen(fileurl)
 
@@ -579,17 +580,18 @@ def wget_x_download_spSubset_PNNL(fileurl,
 
                 # open the parent netcdf file
                 ds = xray.open_dataset(basename, engine='netcdf4')
-                #print('file read in')
+                # print('file read in')
+
                 # rename latlong if they are not LAT and LON, respectively
                 if not isinstance(rename_timelatlong_names, type(None)):
                     ds = ds.rename(rename_timelatlong_names)
-                    #print('renamed columns')
+                    # print('renamed columns')
 
                 # slice by the bounding box NOTE:dataframe slice includes last index
                 ds=ds.assign_coords(SN=ds.SN, WE=ds.WE)
                 spSubset = ds.sel(WE=slice(spatialbounds['minx'], spatialbounds['maxx']),
                                   SN=slice(spatialbounds['miny'], spatialbounds['maxy']))
-                #print('cropped')
+                # print('cropped')
 
                 # change time to datetimeindex
                 hour = [x.strftime('%Y-%m-%d %H:%M:%S') for x in pd.date_range(start=filedate,
@@ -604,7 +606,7 @@ def wget_x_download_spSubset_PNNL(fileurl,
                 # remove the parent
                 ds.close()
                 os.remove(basename)
-                #print('closed')
+                # print('closed')
                 return(os.path.join(os.getcwd(), file_prefix+basename))
 
             else:
@@ -652,7 +654,7 @@ def get_x_hourlywrf_PNNL2018(homedir,
                                                                  file_prefix=file_prefix,
                                                                  rename_timelatlong_names=rename_timelatlong_names,
                                                                  replace_file=replace_file))
-    
+
     # run operations
     outputfiles = da.compute(NetCDFs)[0]
 
