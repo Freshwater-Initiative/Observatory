@@ -29,25 +29,6 @@ from bs4 import BeautifulSoup as bs
 # import ogh_xarray_landlab
 # mpl.style.use('seaborn-colorblind')
 # from mpl_toolkits.axes_grid1 import make_axes_locatable
-#
-# class ogh_meta:
-#     """
-#     The json object that describes the Gridded climate data products
-#     """
-#     def __init__(self):
-#         self.__meta_data = dict(meta_file())
-#
-#     # key-value retrieval
-#     def __getitem__(self, key):
-#         return(self.__meta_data[key])
-#
-#     # key list
-#     def keys(self):
-#         return(self.__meta_data.keys())
-#
-#     # value list
-#     def values(self):
-#         return(self.__meta_data.values())
 
 
 def saveDictOfDf(outfilepath, dictionaryObject):
@@ -76,8 +57,7 @@ def readDictOfDf(infilepath):
     return(dictionaryObject)
 
 
-def reprojShapefile(sourcepath, outpath=None,
-                    newprojdictionary={'proj': 'longlat', 'ellps': 'WGS84', 'datum': 'WGS84'}):
+def reprojShapefile(sourcepath, outpath=None, newprojdictionary={'proj': 'longlat', 'ellps': 'WGS84', 'datum': 'WGS84'}):
     """
     Convert a shapefile into a new projection
 
@@ -1008,7 +988,7 @@ def read_files_to_vardf(map_df, df_dict, gridclimname, dataset, metadata,
     file_start_date: (date) the start date of the files that will be read-in; default is None
     file_end_date: (date) the end date for the files that will be read in; default is None
     file_delimiter: (str) a file parsing character to be used for file reading
-    file_time_step: (str) the timedelta code for the difference between time points; default is 'D' (daily)    
+    file_time_step: (str) the timedelta code for the difference between time points; default is 'D' (daily)
     file_colnames: (list) the list of shorthand variables; default is None
     subset_start_date: (date) the start date of a date range of interest
     subset_end_date: (date) the end date of a date range of interest
@@ -1254,7 +1234,7 @@ def aggregate_space_time_average(df_dict, suffix, start_date, end_date):
     df_dict['meandaily_'+suffix] = Var_daily.mean(axis=1)
 
     # Mean monthly value at each station
-    df_dict['meanbymonth_'+suffix] = Var_daily.groupby(Var_daily.index.month).mean() 
+    df_dict['meanbymonth_'+suffix] = Var_daily.groupby(Var_daily.index.month).mean()
 
     # Mean monthly value averaged for all stations in analysis
     df_dict['meanmonth_'+suffix] = df_dict['meanbymonth_'+suffix].mean(axis=1)
@@ -1798,9 +1778,9 @@ def mappingfileSummary(listofmappingfiles, listofwatershednames, meta_file):
                 filesobtained = mapdf[mapdf[each].apply(lambda x: pd.notnull(x))].reset_index()
                 if len(filesobtained)>0:
                     tmp.append(tuple([each, 
-                                      '{0}[{1}-{2}] (n={3})'.format(int(filesobtained.ELEV.median()), 
-                                                                    int(filesobtained.ELEV.min()), 
-                                                                    int(filesobtained.ELEV.max()), 
+                                      '{0}[{1}-{2}] (n={3})'.format(int(filesobtained.ELEV.median()),
+                                                                    int(filesobtained.ELEV.min()),
+                                                                    int(filesobtained.ELEV.max()),
                                                                     int(filesobtained[each].count()))]))
 
         # interpret list to table form
@@ -1885,7 +1865,7 @@ def renderValueInBoxplot(vardf, outfilepath, plottitle, time_steps, value_name, 
     # xaxis order and xaxis labels
     # monthly in wateryear
     if (time_steps=='month') and (wateryear==True):
-        xaxis_order = [10,11,12,1,2,3,4,5,6,7,8,9]
+        xaxis_order = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         xaxis_labels = [pd.datetime.strptime(str(x), '%m').strftime('%b') for x in xaxis_order]
 
     # monthly but not wateryear
@@ -1983,7 +1963,7 @@ def renderValueInBoxplot(vardf, outfilepath, plottitle, time_steps, value_name, 
 #     nrow = int((mf.LAT.max()-mf.LAT.min())/spatial_resolution +1)
     
 #     # dimensions of the raster
-#     row_list = [mf.LAT.min() + spatial_resolution*(station) for station in range(0,nrow,1)]    
+#     row_list = [mf.LAT.min() + spatial_resolution*(station) for station in range(0,nrow,1)]
 #     col_list = [mf.LONG_.min() + spatial_resolution*(station) for station in range(0,ncol,1)]
     
 #     # initialize RasterModelGrid
@@ -2103,7 +2083,7 @@ def multiSiteVisual(listOfShapefiles, listOfNames,
     m.readshapefile(shapefile = multishape.replace('.shp', ''), name='eachwatershed', linewidth=0)
 
     # load and transform each polygon in shape
-    patches = [PolygonPatch(Polygon(np.array(shape)), fc=polygon_color, ec=polygon_color, linewidth=0.1, zorder=5.0) 
+    patches = [PolygonPatch(Polygon(np.array(shape)), fc=polygon_color, ec=polygon_color, linewidth=0.1, zorder=5.0)
                for info, shape in zip(m.allwatersheds_info, m.allwatersheds)]
 
     # assimilate shapes to plot axis
@@ -2123,7 +2103,7 @@ def multiSiteVisual(listOfShapefiles, listOfNames,
 
                 # annotate the text in the projection-scaled position
                 xycentroid = np.array(Polygon(eachpoly).centroid)
-                x0,y0 = m(xycentroid[0], xycentroid[1], inverse=True)
+                x0, y0 = m(xycentroid[0], xycentroid[1], inverse=True)
                 xytext = np.array(m(x0+text_x_dist, y0+text_y_dist, inverse=False)) 
                 text = eachinfo['shapeName'].replace(' ', '\n')
                 plt.annotate(text, fontsize=3, arrowprops=dict(arrowstyle='->'), xy=xycentroid, xytext=xytext)
@@ -2219,7 +2199,7 @@ def multiSiteStar(listOfShapefiles, listOfNames,
                 ys.append(xycentroid[1])
 
     # assign centroid stars
-    m.scatter(xs, ys, s=10, marker=(1,2,0), color=polygon_color, cmap=mpl.cm.gnuplot2, alpha=0.7, zorder=10)
+    m.scatter(xs, ys, s=10, marker=(1, 2, 0), color=polygon_color, cmap=mpl.cm.gnuplot2, alpha=0.7, zorder=10)
 
     # save and show map
     plt.savefig(fileoutpath, dpi=500)
@@ -2260,8 +2240,8 @@ def computeSurfaceArea(shapefile):
     reprojShapefile(shapefile)
 
     # generate the figure axis
-    fig = plt.figure(figsize=(2,2), dpi=500)
-    ax1 = plt.subplot2grid((1,1),(0,0))
+    fig = plt.figure(figsize=(2, 2), dpi=500)
+    ax1 = plt.subplot2grid((1, 1), (0, 0))
 
     # calculate bounding box based on the watershed shapefile
     watershed = gpd.read_file(shapefile)
