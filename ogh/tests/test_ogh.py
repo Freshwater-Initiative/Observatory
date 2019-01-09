@@ -227,19 +227,19 @@ class Test_ogh_cataloging(object):
     
 # Wrapper scripts
 class Test_ogh_wrappedget(object):
-    # def test_getDailyMET_livneh2013(self):
-    #    ogh.getDailyMET_livneh2013(homedir=data_path,
-    #                               mappingfile=os.path.join(data_path,'test_catalog.csv'),
-    #                               subdir=os.path.join(data_path,'test_files1'),
-    #                               catalog_label='dailymet_livneh2013')
-    #    assert True
+    def test_getDailyMET_livneh2013(self):
+        ogh.getDailyMET_livneh2013(homedir=data_path,
+                                   mappingfile=os.path.join(data_path,'test_catalog.csv'),
+                                   subdir=os.path.join(data_path,'test_files1'),
+                                   catalog_label='dailymet_livneh2013')
+        assert True
     
-    # def test_getDailyVIC_livneh2013(self):
-    #    ogh.getDailyVIC_livneh2013(homedir=data_path,
-    #                               mappingfile=os.path.join(data_path,'test_catalog.csv'),
-    #                               subdir=os.path.join(data_path,'test_files4'),
-    #                               catalog_label='dailyvic_livneh2013')
-    #    assert True
+    def test_getDailyVIC_livneh2013(self):
+        ogh.getDailyVIC_livneh2013(homedir=data_path,
+                                   mappingfile=os.path.join(data_path,'test_catalog.csv'),
+                                   subdir=os.path.join(data_path,'test_files4'),
+                                   catalog_label='dailyvic_livneh2013')
+        assert True
 
     def test_getDailyMET_bcLivneh2013(self):
         ogh.getDailyMET_bcLivneh2013(homedir=data_path,
