@@ -243,9 +243,6 @@ def scrape_domain(domain, subdomain, startswith=None):
     tmp = [dirname for dirname in ftp.nlst() if dirname.startswith(startswith)]
     geodf = pd.DataFrame(tmp, columns=['dirname'])
 
-    # close ftp connection
-    ftp.close()
-
     # conform to bounding box format
     tmp = geodf['dirname'].apply(lambda x: x.split('.')[1:])
     tmp = tmp.apply(lambda x: list(map(float, x)) if len(x) > 2 else x)
