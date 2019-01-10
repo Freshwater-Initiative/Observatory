@@ -8,9 +8,6 @@ wget
 seaborn
 landlab
 xarray
-libgdal
-gdal
-ncurses
 matplotlib==2.2.3
 # conda only requirements:
 # python-wget
