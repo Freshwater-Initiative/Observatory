@@ -534,11 +534,11 @@ def ftp_download_one(loci):
     filename=os.path.basename(fileurl)  # filename
 
     # download the file from the ftp server
-    ftp=ftplib.FTP(ipaddress)
+    ftp = ftplib.FTP(ipaddress)
     ftp.login()
     ftp.cwd(path)
     try:
-        ftp.retrbinary('RETR ' + filename, open(filename, 'wb').write)
+        ftp.retrbinary('RETR '+filename, open(filename, 'wb').write)
         ftp.close()
 
         # decompress the file
