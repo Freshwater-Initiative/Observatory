@@ -133,10 +133,10 @@ def filterPointsinShape(shape, points_lat, points_lon, points_elev=None, buffer_
 
     # construct points_elev if null
     if isinstance(points_elev, type(None)):
-        points_elev=np.repeat(np.nan, len(points_lon))
+        points_elev = np.repeat(np.nan, len(points_lon))
 
     # filter the points to the regional bounds
-    bound_filter = points_lat.map(lambda y: (y >= miny) and (y <= maxy)) & points_lon.map(lambda x:(x >= minx) and (x <= maxx))
+    bound_filter = points_lat.map(lambda y: (y >= miny) and (y <= maxy)) & points_lon.map(lambda x: (x >= minx) and (x <= maxx))
 
     # Intersection each coordinate with the region
     limited_list = []
@@ -289,7 +289,7 @@ def compile_Livneh2013_locations(maptable):
 
     maptable: (dataframe) a dataframe that contains the FID, LAT, LONG_, and ELEV for each interpolated data file
     """
-    locations=[]
+    locations = []
     for ind, row in maptable.iterrows():
         basename = '_'.join(['data', str(row['LAT']), str(row['LONG_'])])
         url = ['http://www.cses.washington.edu/rocinante/Livneh/Livneh_WWA_2013/forcs_dhsvm/', basename]
@@ -361,7 +361,7 @@ def compile_dailyMET_Livneh2013_locations(maptable):
     # map each coordinate to the subfolder
     maptable = mapToBlock(maptable, blocks)
 
-    locations=[]
+    locations = []
     for ind, row in maptable.iterrows():
         loci = '_'.join(['Meteorology_Livneh_CONUSExt_v.1.2_2013', str(row['LAT']), str(row['LONG_'])])
         url = os.path.join('ftp://'+domain, subdomain, str(row['blocks']), loci+'.bz2')
@@ -396,7 +396,7 @@ def compile_wrfnnrp_raw_Salathe2014_locations(maptable):
 
     maptable: (dataframe) a dataframe that contains the FID, LAT, LONG_, and ELEV for each interpolated data file
     """
-    locations=[]
+    locations = []
     for ind, row in maptable.iterrows():
         basename = '_'.join(['data', str(row['LAT']), str(row['LONG_'])])
         url = ['http://cses.washington.edu/rocinante/WRF/NNRP/vic_16d/WWA_1950_2010/raw/forcings_ascii/', basename]
@@ -460,7 +460,7 @@ def wget_download_one(fileurl):
     fileurl: (url) a url to request
     """
     # check and download each location point, if it doesn't already exist in the download directory
-    basename=os.path.basename(fileurl)
+    basename = os.path.basename(fileurl)
 
     # if it exists, remove for new download (overwrite mode)
     if os.path.isfile(basename):
@@ -468,7 +468,7 @@ def wget_download_one(fileurl):
 
     try:
         ping = urllib2.request.urlopen(fileurl)
-        if ping.getcode()!=404:
+        if ping.getcode() != 404:
             wget.download(fileurl)
             print('downloaded: ' + basename)
     except:
@@ -529,10 +529,10 @@ def ftp_download_one(loci):
     loci: (url) a url to request
     """
     # establish path info
-    fileurl=loci.replace('ftp://', '')  # loci is a url with the domain appended
-    ipaddress=fileurl.split('/', 1)[0]  # ip address
-    path=os.path.dirname(fileurl.split('/', 1)[1])  # folder path
-    filename=os.path.basename(fileurl)  # filename
+    fileurl = loci.replace('ftp://', '')  # loci is a url with the domain appended
+    ipaddress = fileurl.split('/', 1)[0]  # ip address
+    path = os.path.dirname(fileurl.split('/', 1)[1])  # folder path
+    filename = os.path.basename(fileurl)  # filename
 
     # download the file from the ftp server
     ftp = ftplib.FTP(ipaddress)
@@ -591,13 +591,13 @@ def catalogfiles(folderpath):
     """
     # read in downloaded files
     temp = [eachfile for eachfile in os.listdir(folderpath) if not os.path.isdir(eachfile)]
-    if len(temp)==0:
+    if len(temp) == 0:
         # no files were available; setting default catalog output structure
         catalog = pd.DataFrame([], columns=['filenames', 'LAT', 'LONG_'])
     else:
         # create the catalog dataframe and extract the filename components
         catalog = pd.DataFrame(temp, columns=['filenames'])
-        catalog[['LAT','LONG_']] = catalog['filenames'].apply(lambda x: pd.Series(str(x).rsplit('_', 2))[1:3]).astype(float)
+        catalog[['LAT', 'LONG_']] = catalog['filenames'].apply(lambda x: pd.Series(str(x).rsplit('_', 2))[1:3]).astype(float)
 
         # convert the filenames column to a filepath
         catalog['filenames'] = catalog['filenames'].apply(lambda x: os.path.join(folderpath, x))
@@ -624,7 +624,7 @@ def addCatalogToMap(outfilepath, maptable, folderpath, catalog_label):
         maptable = maptable.drop(labels=catalog_label, axis=1)
 
     # update with a vector for the catalog of files
-    maptable = maptable.merge(catalog, on=['LAT','LONG_'], how='left')
+    maptable = maptable.merge(catalog, on=['LAT', 'LONG_'], how='left')
 
     # remove blocks, if they were needed
     if 'blocks' in maptable.columns:
@@ -649,7 +649,7 @@ def getDailyMET_livneh2013(homedir, mappingfile,
     catalog_label: (str) the preferred name for the series of catalogged filepaths
     """
     # check and generate DailyMET livneh 2013 data directory
-    filedir=os.path.join(homedir, subdir)
+    filedir = os.path.join(homedir, subdir)
     ensure_dir(filedir)
 
     # generate table of lats and long coordinates
@@ -681,7 +681,7 @@ def getDailyMET_livneh2015(homedir, mappingfile,
     catalog_label: (str) the preferred name for the series of catalogged filepaths
     """
     # check and generate Daily MET livneh 2015 data directory
-    filedir=os.path.join(homedir, subdir)
+    filedir = os.path.join(homedir, subdir)
     ensure_dir(filedir)
 
     # generate table of lats and long coordinates
@@ -713,7 +713,7 @@ def getDailyMET_bcLivneh2013(homedir, mappingfile,
     catalog_label: (str) the preferred name for the series of catalogged filepaths
     """
     # check and generate baseline_corrected livneh 2013 data directory
-    filedir=os.path.join(homedir, subdir)
+    filedir = os.path.join(homedir, subdir)
     ensure_dir(filedir)
 
     # generate table of lats and long coordinates
@@ -746,7 +746,7 @@ def getDailyVIC_livneh2013(homedir, mappingfile,
     """
     # FIRST RUN
     # check and generate VIC_ASCII Flux model livneh 2013 data directory
-    filedir=os.path.join(homedir, subdir)
+    filedir = os.path.join(homedir, subdir)
     ensure_dir(filedir)
 
     # generate table of lats and long coordinates
@@ -778,7 +778,7 @@ def getDailyVIC_livneh2015(homedir, mappingfile,
     catalog_label: (str) the preferred name for the series of catalogged filepaths
     """
     # check and generate Daily VIC.ASCII Flux model livneh 2015 data directory
-    filedir=os.path.join(homedir, subdir)
+    filedir = os.path.join(homedir, subdir)
     ensure_dir(filedir)
 
     # generate table of lats and long coordinates
@@ -810,7 +810,7 @@ def getDailyWRF_salathe2014(homedir, mappingfile,
     catalog_label: (str) the preferred name for the series of catalogged filepaths
     """
     # check and generate the Daily Meteorology raw WRF Salathe 2014 data directory
-    filedir=os.path.join(homedir, subdir)
+    filedir = os.path.join(homedir, subdir)
     ensure_dir(filedir)
 
     # read in the longitude and latitude points from the reference mapping file
@@ -842,7 +842,7 @@ def getDailyWRF_bcsalathe2014(homedir, mappingfile,
     catalog_label: (str) the preferred name for the series of catalogged filepaths
     """
     # check and generate the Daily Meteorology bias corrected WRF Salathe 2014 data directory
-    filedir=os.path.join(homedir, subdir)
+    filedir = os.path.join(homedir, subdir)
     ensure_dir(filedir)
 
     # read in the longitude and latitude points from the reference mapping file
@@ -871,8 +871,8 @@ def filesWithPath(folderpath):
 
     folderpath: (dir) the folder of interest
     """
-    files =[os.path.join(folderpath, eachfile) for eachfile in os.listdir(folderpath)
-            if not eachfile.startswith('.') and not os.path.isdir(eachfile)] # exclude hidden files
+    files = [os.path.join(folderpath, eachfile) for eachfile in os.listdir(folderpath)
+            if not eachfile.startswith('.') and not os.path.isdir(eachfile)]  # exclude hidden files
     return(files)
 
 
@@ -910,10 +910,10 @@ def mappingfileToDF(mappingfile, colvar='all', summary=True):
 
     if summary:
         # compile summaries
-        print('Number of gridded data files:'+ str(len(map_df)))
-        print('Minimum elevation: ' + str(np.min(map_df.ELEV))+ 'm')
-        print('Mean elevation: '+ str(np.mean(map_df.ELEV))+ 'm')
-        print('Maximum elevation: '+ str(np.max(map_df.ELEV))+ 'm')
+        print('Number of gridded data files:' + str(len(map_df)))
+        print('Minimum elevation: ' + str(np.min(map_df.ELEV)) + 'm')
+        print('Mean elevation: ' + str(np.mean(map_df.ELEV)) + 'm')
+        print('Maximum elevation: ' + str(np.max(map_df.ELEV)) + 'm')
 
     return(map_df, len(map_df))
 
@@ -954,8 +954,8 @@ def read_in_all_files(map_df, dataset, metadata,
             file_delimiter = metadata[dataset]['delimiter']
 
     # initialize dictionary and time sequence
-    df_dict={}
-    met_daily_dates=pd.date_range(file_start_date, file_end_date, freq=file_time_step) # daily
+    df_dict = {}
+    met_daily_dates = pd.date_range(file_start_date, file_end_date, freq=file_time_step)  # daily
 
     # import data for all climate stations
     for ind, row in map_df.iterrows():
@@ -963,7 +963,7 @@ def read_in_all_files(map_df, dataset, metadata,
         tmp.set_index(met_daily_dates, inplace=True)
 
         # subset to the date range of interest (default is file date range)
-        tmp = tmp.iloc[(met_daily_dates>=subset_start_date) & (met_daily_dates<=subset_end_date), :]
+        tmp = tmp.iloc[(met_daily_dates >= subset_start_date) & (met_daily_dates <= subset_end_date), :]
 
         # set row indices
         df_dict[tuple(row[['FID', 'LAT', 'LONG_']].tolist())] = tmp
@@ -997,8 +997,8 @@ def read_files_to_vardf(map_df, df_dict, gridclimname, dataset, metadata,
     starttime = pd.datetime.now()
 
     # date range from ogh_meta file
-    met_daily_dates=pd.date_range(file_start_date, file_end_date, freq=file_time_step)
-    met_daily_subdates=pd.date_range(subset_start_date, subset_end_date, freq=file_time_step)
+    met_daily_dates = pd.date_range(file_start_date, file_end_date, freq=file_time_step)
+    met_daily_subdates = pd.date_range(subset_start_date, subset_end_date, freq=file_time_step)
 
     # omit null entries or missing data file
     map_df = map_df.loc[pd.notnull(map_df[dataset]), :]
@@ -1018,7 +1018,7 @@ def read_files_to_vardf(map_df, df_dict, gridclimname, dataset, metadata,
             usecols = [metadata[dataset]['variable_list'].index(eachvar)]
 
             # initiate df as a list
-            df_list=[]
+            df_list = []
 
             # loop through each file
             for ind, row in map_df.iterrows():
@@ -1062,7 +1062,7 @@ def read_daily_streamflow(file_name, drainage_area_m2, file_colnames=None, delim
     if 'flow_cfs' in daily_data.columns:
         flow_cfs = daily_data['flow_cfs']
         flow_cms = flow_cfs/(3.28084**3)
-        flow_mmday = flow_cms*1000*3600*24/drainage_area_m2 
+        flow_mmday = flow_cms*1000*3600*24/drainage_area_m2
     elif 'flow_cms' in daily_data.columns:
         flow_cms = daily_data['flow_cms']
         flow_cfs = flow_cms*(3.28084**3)
@@ -1073,17 +1073,17 @@ def read_daily_streamflow(file_name, drainage_area_m2, file_colnames=None, delim
     row_dates = pd.to_datetime(daily_data[date_index])
 
     # generate the daily_flow and set the datetime as row indices
-    daily_flow = pd.concat([flow_cfs, flow_cms, flow_mmday],axis=1)
+    daily_flow = pd.concat([flow_cfs, flow_cms, flow_mmday], axis=1)
     daily_flow.set_index(row_dates, inplace=True)
     daily_flow.columns = ['flow_cfs', 'flow_cms', 'flow_mmday']
     return(daily_flow)
 
 
-def read_daily_precip(file_name, file_colnames=None, header='infer', delimiter='\s+'):
+def read_daily_precip(file_name, file_colnames=None, header='infer', delimiter='\\s+'):
     """read in a daily precipitation data set"""
 
     # if file_colnames are supplied, use header=None
-    if ps.notnull(file_colnames):
+    if pd.notnull(file_colnames):
         header = None
 
     # read in the data
@@ -1105,7 +1105,7 @@ def read_daily_precip(file_name, file_colnames=None, header='infer', delimiter='
     row_dates = pd.to_datetime(daily_data[date_index])
 
     # generate the daily_flow and set the datetime as row indices
-    daily_precip = pd.concat([precip_m, precip_mm],axis=1)
+    daily_precip = pd.concat([precip_m, precip_mm], axis=1)
     daily_precip.set_index(row_dates, inplace=True)
     daily_precip.columns = ['precip_m', 'precip_mm']
     return(daily_precip)
@@ -1249,7 +1249,7 @@ def aggregate_space_time_average(df_dict, suffix, start_date, end_date):
     # annual anomaly compared to the global mean value
     df_dict['anomyear_'+suffix] = df_dict['meanyear_'+suffix] - df_dict['meanallyear_'+suffix]
 
-    df_dict = dask.compute(df_dict)[0]
+    df_dict = da.compute(df_dict)[0]
     print(suffix+ ' calculations completed in ' + str(pd.datetime.now() - starttime))
     return(df_dict)
 
@@ -1264,7 +1264,7 @@ def aggregate_space_time_sum(df_dict, suffix, start_date, end_date):
     starttime = pd.datetime.now()
 
     # subset dataframe to the date range of interest
-    Var_daily = dask.delayed(df_dict[suffix].loc[start_date:end_date,:])
+    Var_daily = da.delayed(df_dict[suffix].loc[start_date:end_date, :])
 
     # mean daily sum across all stations then averaged across all days in analysis
     df_dict['meanalldailysum_'+suffix] = Var_daily.groupby(pd.TimeGrouper('D')).sum().mean(axis=1)
@@ -1293,8 +1293,8 @@ def aggregate_space_time_sum(df_dict, suffix, start_date, end_date):
     # mean annual sum averaged across all stations and all years in analysis
     df_dict['meanallyearsum_'+suffix] = df_dict['meanyearsum_'+suffix].mean()
 
-    df_dict = dask.compute(df_dict)[0]
-    print(suffix+ ' calculations completed in ' + str(pd.datetime.now() - starttime))
+    df_dict = da.compute(df_dict)[0]
+    print(suffix + ' calculations completed in ' + str(pd.datetime.now() - starttime))
     return(df_dict)
 
 
@@ -1364,7 +1364,7 @@ def gridclim_dict(mappingfile, dataset, gridclimname=None, metadata=None,
 
     if pd.isnull(gridclimname):
         if pd.notnull(dataset):
-            gridclimname=dataset
+            gridclimname = dataset
         else:
             print('no suffix name provided. Provide a gridclimname or dataset label.')
             return
@@ -1394,10 +1394,12 @@ def gridclim_dict(mappingfile, dataset, gridclimname=None, metadata=None,
     for eachvardf in vardf_list:
 
         # update the dictionary with spatial and temporal average computations
-        df_dict.update(aggregate_space_time_average(df_dict=df_dict,suffix=eachvardf, start_date=subset_start_date,end_date=subset_end_date))
+        df_dict.update(aggregate_space_time_average(df_dict=df_dict, suffix=eachvardf,
+                                                    start_date=subset_start_date,
+                                                    end_date=subset_end_date))
 
         # if the number of stations exceeds 500, remove daily time-series dataframe
-        if len(locations_df)>300:
+        if len(locations_df) > 300:
             del df_dict[eachvardf]
 
     return(df_dict)
@@ -1409,12 +1411,12 @@ def compute_diffs(df_dict, df_str, gridclimname1, gridclimname2, prefix1,
     Compute difference between monthly means (e.g,. Temp) for two different gridded datasets (e.g., Liv, WRF)
     """
     if isinstance(comp_dict, type(None)):
-        comp_dict={}
+        comp_dict = {}
 
     for each1 in prefix1:
         for each2 in prefix2:
-            diffs = df_dict['_'.join([each2,each1,gridclimname1])]-df_dict['_'.join([each2,each1,gridclimname2])]
-            comp_dict['_'.join([str(each1),df_str])] = diffs
+            diffs = df_dict['_'.join([each2, each1, gridclimname1])] - df_dict['_'.join([each2, each1, gridclimname2])]
+            comp_dict['_'.join([str(each1), df_str])] = diffs
     return(comp_dict)
 
 
@@ -1424,20 +1426,20 @@ def compute_ratios(df_dict, df_str, gridclimname1, gridclimname2, prefix1,
     Compute fold-difference between monthly means (e.g,. Temp) for two different gridded datasets (e.g., Liv, WRF)
     """
     if isinstance(comp_dict, type(None)):
-        comp_dict={}
+        comp_dict = {}
 
     for each1 in prefix1:
         for each2 in prefix2:
-            ratios = df_dict['_'.join([each2,each1,gridclimname1])]/df_dict['_'.join([each2,each1,gridclimname2])]
-            comp_dict['_'.join([str(each1),df_str])] = ratios
+            ratios = df_dict['_'.join([each2, each1, gridclimname1])]/df_dict['_'.join([each2, each1, gridclimname2])]
+            comp_dict['_'.join([str(each1), df_str])] = ratios
     return(comp_dict)
 
 
 def compute_elev_diffs(df_dict, df_str, gridclimname1, prefix1,
                        prefix2a='meanmonth_minelev_', prefix2b='meanmonth_maxelev_'):
-    comp_dict={}
+    comp_dict = {}
     for each1 in prefix1:
-        comp_dict[str(each1)+df_str] = df_dict[prefix2a+each1+gridclimname1]-df_dict[prefix2b+each1+gridclimname1]
+        comp_dict[str(each1) + df_str] = df_dict[prefix2a + each1 + gridclimname1] - df_dict[prefix2b + each1 + gridclimname1]
     return(comp_dict)
 
 
@@ -1452,12 +1454,12 @@ def switchUpVICSoil(input_file=None, output_file='soil', mappingfile=None, homed
     maptable = pd.read_table(mappingfile, sep=',')
 
     # Make a list Lat/Long files that need to switched up
-    latlong_1=maptable.apply(lambda x:tuple([x['LAT'], x['LONG_']]), axis=1)
+    latlong_1 = maptable.apply(lambda x:tuple([x['LAT'], x['LONG_']]), axis=1)
 
     # Switch up from 0 to 1 so VIC will run for this Lat/Long point - print new output file (VIC model input file)
     soil_base[0] = latlong.apply(lambda x: 1 if x in set(latlong_1) else 0)
     soil_base.to_csv(output_file, header=False, index=False, sep='\t')
-    print(str(soil_base[0].sum()) +' VIC grid cells have successfully been switched up.')
+    print(str(soil_base[0].sum()) + ' VIC grid cells have successfully been switched up.')
     print('Check your home directory for your new VIC soil model input set to your list of Lat/Long grid centroids.')
 
 
@@ -1489,13 +1491,13 @@ def makebelieve(homedir, mappingfile, BiasCorr, metadata, start_catalog_label, e
     map_df, nstations = mappingfileToDF(mappingfile, colvar='all', summary=False)
 
     # compile the BiasCorr dictionary into a pandas panel
-    BiasCorr=pd.Panel.from_dict(BiasCorr)
+    BiasCorr = pd.Panel.from_dict(BiasCorr)
 
     # loop through each file
     for ind, eachfile in enumerate(map_df.loc[:, start_catalog_label]):
 
         # identify the file
-        station = map_df.loc[map_df.loc[:, start_catalog_label]==eachfile,['FID', 'LAT', 'LONG_']].reset_index(drop=True)
+        station = map_df.loc[map_df.loc[:, start_catalog_label] == eachfile, ['FID', 'LAT', 'LONG_']].reset_index(drop=True)
 
         # subset the bias correction to the file at hand
         print(str(ind)+' station: '+str(tuple(station.loc[0, :])))
@@ -1522,13 +1524,12 @@ def makebelieve(homedir, mappingfile, BiasCorr, metadata, start_catalog_label, e
                     s = month.merge(BiasCorr_subdf, how='left', on='month').loc[:, eachkey]
 
                     if eachvar=='PRECIP':
-                        #Use for ratio precip method
+                        # Use for ratio precip method
                         read_dat[eachvar] = np.multiply(np.array(read_dat.loc[:, eachvar]), np.array(s))
-
-                        #read_dat[eachvar] = np.array(read_dat.loc[:,eachvar])+np.array(s)
-                        #positiveprecip=read_dat[eachvar]
-                        #positiveprecip[positiveprecip<0.]=0.
-                        #read_dat[eachvar] = positiveprecip*.9842
+                        # read_dat[eachvar] = np.array(read_dat.loc[:,eachvar])+np.array(s)
+                        # positiveprecip=read_dat[eachvar]
+                        # positiveprecip[positiveprecip<0.]=0.
+                        # read_dat[eachvar] = positiveprecip*.9842
                     else:
                         read_dat[eachvar] = np.array(read_dat.loc[:, eachvar])+np.array(s)
 
@@ -1602,14 +1603,14 @@ def griddedCellGradient(mappingfile, shapefile, outfilepath, plottitle, colorbar
     cmap: (str) the code for matplotlib colormaps, e.g. 'coolwarm',
     """
     # generate the figure axis
-    fig = plt.figure(figsize=(3,3), dpi=500)
-    ax1 = plt.subplot2grid((1,1),(0,0))
+    fig = plt.figure(figsize=(3, 3), dpi=500)
+    ax1 = plt.subplot2grid((1, 1), (0, 0))
 
     # read mappingfile, generate gridded cell boxes, and initialize the geodataframe
     map_df = pd.read_csv(mappingfile)
-    midpt=spatial_resolution/2
-    crs={'init':'epsg:{0}'.format(epsg)}
-    geometry = map_df.apply(lambda x: box(x['LONG_']-midpt, x['LAT']-midpt, x['LONG_']+midpt, x['LAT']+midpt), axis=1)
+    midpt = spatial_resolution/2
+    crs={'init': 'epsg:{0}'.format(epsg)}
+    geometry = map_df.apply(lambda x: box(x['LONG_'] - midpt, x['LAT'] - midpt, x['LONG_'] + midpt, x['LAT'] + midpt), axis=1)
     map_df2 = gpd.GeoDataFrame(map_df, crs=crs, geometry=geometry)
 
     # normalize the color distribution according to the value distribution
@@ -1628,7 +1629,7 @@ def griddedCellGradient(mappingfile, shapefile, outfilepath, plottitle, colorbar
                 llcrnrlon=minx-margin*w, llcrnrlat=miny-margin*h, urcrnrlon=maxx+margin*w, urcrnrlat=maxy+margin*h)
 
     # read and transform the watershed shapefiles
-    m.readshapefile(shapefile=shapefile.replace('.shp',''), name='watershed', drawbounds=True, linewidth=2, color=polygon_color)
+    m.readshapefile(shapefile=shapefile.replace('.shp', ''), name='watershed', drawbounds=True, linewidth=2, color=polygon_color)
     m.arcgisimage(service=basemap_image, xpixels=500)
 
     # load and transform each polygon in shape
@@ -1655,8 +1656,8 @@ def griddedCellGradient(mappingfile, shapefile, outfilepath, plottitle, colorbar
 
 
 def renderValuesInPoints(vardf, vardf_dateindex, shapefile, outfilepath, plottitle, colorbar_label,
-                         vmin=None,vmax=None,spatial_resolution=1/16, margin=0.5, gridcell_alpha=0.5, epsg=3857,
-                         basemap_image='Canvas/World_Dark_Gray_Base', cmap='coolwarm', figsize=(2,2)):
+                         vmin=None, vmax=None, spatial_resolution=1/16, margin=0.5, gridcell_alpha=0.5, epsg=3857,
+                         basemap_image='Canvas/World_Dark_Gray_Base', cmap='coolwarm', figsize=(2, 2)):
     """
     A function to render the dynamics across gridded cell centroids on the spatial landscape
 
@@ -1674,14 +1675,14 @@ def renderValuesInPoints(vardf, vardf_dateindex, shapefile, outfilepath, plottit
     """
     # generate the figure axis
     fig = plt.figure(figsize=figsize, dpi=500)
-    ax1 = plt.subplot2grid((1,1),(0,0))
+    ax1 = plt.subplot2grid((1, 1), (0, 0))
 
     # set params
     if isinstance(vmin, type(None)):
-        vmin=vardf.values.flatten().min()
+        vmin = vardf.values.flatten().min()
 
     if isinstance(vmax, type(None)):
-        vmax=vardf.values.flatten().max()
+        vmax = vardf.values.flatten().max()
 
     # generate the polygon color-scheme
     cmap = mpl.cm.get_cmap(cmap)
@@ -1700,14 +1701,14 @@ def renderValuesInPoints(vardf, vardf_dateindex, shapefile, outfilepath, plottit
     m.arcgisimage(service=basemap_image, xpixels=500)
 
     # watershed
-    m.readshapefile(shapefile=shapefile.replace('.shp',''), name='watershed', drawbounds=True, linewidth=1, color='m')
+    m.readshapefile(shapefile=shapefile.replace('.shp', ''), name='watershed', drawbounds=True, linewidth=1, color='m')
 
     # variable dataframe
-    midpt=spatial_resolution/2
-    crs={'init': 'epsg:{0}'.format(epsg)}
-    cat=vardf.T.reset_index(level=[1,2]).rename(columns={'level_1': 'LAT', 'level_2': 'LONG_'})
-    geometry = cat.apply(lambda x: shapely.ops.transform(m, box(x['LONG_']-midpt, x['LAT']-midpt, 
-                                                                x['LONG_']+midpt, x['LAT']+midpt)), axis=1)
+    midpt = spatial_resolution/2
+    crs = {'init': 'epsg:{0}'.format(epsg)}
+    cat = vardf.T.reset_index(level=[1, 2]).rename(columns={'level_1': 'LAT', 'level_2': 'LONG_'})
+    geometry = cat.apply(lambda x: shapely.ops.transform(m, box(x['LONG_'] - midpt, x['LAT'] - midpt,
+                                                                x['LONG_'] + midpt, x['LAT'] + midpt)), axis=1)
     cat = gpd.GeoDataFrame(cat, crs=crs, geometry=geometry).reset_index(drop=True)
 
     # geopandas print
@@ -1726,9 +1727,9 @@ def renderValuesInPoints(vardf, vardf_dateindex, shapefile, outfilepath, plottit
     coll.set_array(vardf.values.flatten())
     coll.set_clim([vmin, vmax])
     cbar = plt.colorbar(coll, shrink=0.5)
-    cbar.ax.set_ylabel(colorbar_label, rotation=270, size=3, labelpad=3) # colorbar label
-    cbar.ax.tick_params(labelsize=2) # colorbar tick fontsize
-    cbar.outline.set_visible(False) # colorbar outline
+    cbar.ax.set_ylabel(colorbar_label, rotation=270, size=3, labelpad=3)  # colorbar label
+    cbar.ax.tick_params(labelsize=2)  # colorbar tick fontsize
+    cbar.outline.set_visible(False)  # colorbar outline
 
     # save image
     plt.title(plottitle, fontsize=3)
@@ -1743,7 +1744,7 @@ def findCentroidCode(mappingfile, colvar, colvalue):
     colvalue: (value) a value that corresponds to the colvar column
     """
     mapdf = pd.read_csv(mappingfile)
-    outcome = mapdf.loc[mapdf[colvar]==colvalue, :][['FID','LAT','LONG_']].reset_index(drop=True).set_index('FID')
+    outcome = mapdf.loc[mapdf[colvar] == colvalue, :][['FID', 'LAT', 'LONG_']].reset_index(drop=True).set_index('FID')
 
     return(list(map(tuple, outcome.to_records())))
 
@@ -1763,10 +1764,10 @@ def mappingfileSummary(listofmappingfiles, listofwatershednames, meta_file):
 
         # summarize the total dimensions
         tmp=[]
-        tmp.append(tuple(['Watershed',watershedname]))
+        tmp.append(tuple(['Watershed', watershedname]))
         tmp.append(tuple(['Median elevation in meters [range](Number of gridded cells)',
                           '{0}[{1}-{2}] (n={3})'.format(int(mapdf.ELEV.median()),
-                                                        int(mapdf.ELEV.min()), 
+                                                        int(mapdf.ELEV.min()),
                                                         int(mapdf.ELEV.max()),
                                                         int(len(mapdf)))]))
 
@@ -1774,8 +1775,8 @@ def mappingfileSummary(listofmappingfiles, listofwatershednames, meta_file):
         for each in mapdf.columns:
             if each in meta_file.keys():
                 filesobtained = mapdf[mapdf[each].apply(lambda x: pd.notnull(x))].reset_index()
-                if len(filesobtained)>0:
-                    tmp.append(tuple([each, 
+                if len(filesobtained) > 0:
+                    tmp.append(tuple([each,
                                       '{0}[{1}-{2}] (n={3})'.format(int(filesobtained.ELEV.median()),
                                                                     int(filesobtained.ELEV.min()),
                                                                     int(filesobtained.ELEV.max()),
@@ -1786,10 +1787,10 @@ def mappingfileSummary(listofmappingfiles, listofwatershednames, meta_file):
         t1 = t1.set_index(['Watershed','Median elevation in meters [range](Number of gridded cells)'])
 
         # compile into summary table
-        if len(datainventory)==0:
-            datainventory=t1.copy()
+        if len(datainventory) == 0:
+            datainventory = t1.copy()
         else:
-            datainventory=pd.concat([datainventory, t1], axis=0)
+            datainventory = pd.concat([datainventory, t1], axis=0)
 
     # conform into datasets by watershed summary
     datainventory = datainventory.T.fillna(0)
@@ -1828,7 +1829,7 @@ def dissolveShapefile(listOfShapefiles, listOfNames, newShapefilepath):
 
 
 def renderValueInBoxplot(vardf, outfilepath, plottitle, time_steps, value_name, cmap,
-                         wateryear=False, vmin=None, vmax=None, figsize=(10,4),
+                         wateryear=False, vmin=None, vmax=None, figsize=(10, 4),
                          reference_lines=False, ref_legend=True, ref_legend_loc=1,
                          obs_datavector=[], obs_datalabel=[], obs_legend=True, obs_legend_loc=2):
     """
@@ -1841,7 +1842,7 @@ def renderValueInBoxplot(vardf, outfilepath, plottitle, time_steps, value_name, 
     wateryear: (logic) organize months using wateryear
     vmin: (float64 - optional) colorbar minimum
     vmax:(float64 - optional) colorbar maximum
-    figsize: (tuple) figure height and width in inches 
+    figsize: (tuple) figure height and width in inches
     reference_lines: (list - optional) list of gridded cells to identify as reference lines
     ref_legend: (logic) display reference line legend
     ref_legend_loc: (int) matplotlib code for the legend location
@@ -1850,29 +1851,29 @@ def renderValueInBoxplot(vardf, outfilepath, plottitle, time_steps, value_name, 
     obs_legend: (logic) display the observation data legend
     obs_legend_loc: (int) matplotlib code for the legend location
     """    
-    # generate long table    
+    # generate long table
     longtable = pd.melt(vardf.T, value_name=value_name).rename(columns={'variable': time_steps})
 
     # if the time_steps column are dates, extract month or year
     if isinstance(longtable[time_steps][0], type(pd.datetime.strptime('1900-01-01', '%Y-%m-%d'))):
-        if time_steps=='month':
+        if time_steps == 'month':
             longtable[time_steps] = longtable[time_steps].apply(lambda x: x.month)
-        elif time_steps=='year':
+        elif time_steps == 'year':
             longtable[time_steps] = longtable[time_steps].apply(lambda x: x.year)
 
     # xaxis order and xaxis labels
     # monthly in wateryear
-    if (time_steps=='month') and (wateryear==True):
+    if (time_steps == 'month') and (wateryear == True):
         xaxis_order = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         xaxis_labels = [pd.datetime.strptime(str(x), '%m').strftime('%b') for x in xaxis_order]
 
     # monthly but not wateryear
-    elif (time_steps=='month') and (wateryear==False):
+    elif (time_steps == 'month') and (wateryear == False):
         xaxis_order = sorted(longtable[time_steps].unique())
         xaxis_labels = [pd.datetime.strptime(str(x), '%m').strftime('%b') for x in xaxis_order]
 
     # annually
-    elif (time_steps=='year'):
+    elif (time_steps == 'year'):
         xaxis_order = sorted(longtable[time_steps].unique())
         xaxis_labels = []
         for x in longtable[time_steps].unique():
@@ -1916,7 +1917,7 @@ def renderValueInBoxplot(vardf, outfilepath, plottitle, time_steps, value_name, 
     ax1.set_ylabel(value_name, fontsize=18)
 
     # round the yaxis limits
-    vrange = vmax-vmin
+    vrange = vmax - vmin
     plt.ylim(np.round(vmin - (vrange*0.1), 0), np.round(vmax + (vrange*0.1), 0))
 
     # change ticklabel size
@@ -2009,7 +2010,7 @@ def renderValueInBoxplot(vardf, outfilepath, plottitle, time_steps, value_name, 
 def multiSiteVisual(listOfShapefiles, listOfNames,
                     multishape='eachwatershed.shp', singleshape='allwatersheds.shp',
                     fileoutpath='annotated_map.png',
-                    projection='merc', epsg=3857, polygon_color='m', margin=0.75, 
+                    projection='merc', epsg=3857, polygon_color='m', margin=0.75,
                     scale_x_dist=0, scale_y_dist=-0.25, scale_ref_length=100, scale_yoffset=10000,
                     text_x_dist=0, text_y_dist=0.25, annotate=True):
     """
@@ -2057,7 +2058,7 @@ def multiSiteVisual(listOfShapefiles, listOfNames,
     cmap = mpl.cm.gnuplot2
 
     # generate basemap
-    if projection=='merc':
+    if projection == 'merc':
         m = Basemap(projection='merc', epsg=epsg, resolution='h', ax=ax1,
                     llcrnrlon=minx-margin*w, llcrnrlat=miny-margin*h,
                     urcrnrlon=maxx+margin*w, urcrnrlat=maxy+margin*h)
@@ -2102,7 +2103,7 @@ def multiSiteVisual(listOfShapefiles, listOfNames,
                 # annotate the text in the projection-scaled position
                 xycentroid = np.array(Polygon(eachpoly).centroid)
                 x0, y0 = m(xycentroid[0], xycentroid[1], inverse=True)
-                xytext = np.array(m(x0+text_x_dist, y0+text_y_dist, inverse=False)) 
+                xytext = np.array(m(x0+text_x_dist, y0+text_y_dist, inverse=False))
                 text = eachinfo['shapeName'].replace(' ', '\n')
                 plt.annotate(text, fontsize=3, arrowprops=dict(arrowstyle='->'), xy=xycentroid, xytext=xytext)
 
@@ -2159,7 +2160,7 @@ def multiSiteStar(listOfShapefiles, listOfNames,
     ax1 = plt.subplot2grid((1, 1), (0, 0))
 
     # generate basemap
-    if projection=='merc':
+    if projection == 'merc':
         m = Basemap(projection='merc', epsg=epsg, resolution='h', ax=ax1,
                     llcrnrlon=minx-margin*w, llcrnrlat=miny-margin*h, urcrnrlon=maxx+margin*w, urcrnrlat=maxy+margin*h)
     else:
@@ -2185,12 +2186,12 @@ def multiSiteStar(listOfShapefiles, listOfNames,
                    length=scale_ref_length, yoffset=scale_yoffset, barstyle='fancy', fontsize=3, linewidth=0.1)
 
     # parameters annotated based on non-cyl projections
-    if epsg!=4326:
+    if epsg != 4326:
         xs = []
         ys = []
         # annotate watersheds
         for eachinfo, eachpoly in zip(m.eachwatershed_info, m.eachwatershed):
-            if (eachinfo['RINGNUM']==1):
+            if (eachinfo['RINGNUM'] == 1):
                 # annotate the text in the projection-scaled position
                 xycentroid = np.array(Polygon(eachpoly).centroid)
                 xs.append(xycentroid[0])
@@ -2215,7 +2216,7 @@ def remapCatalog(homedir, mappingfile, subdir, catalog_label):
     catalog_label: (str) the preferred name for the series of catalogged filepaths
     """
     # check and generate Daily MET livneh 2015 data directory
-    filedir=os.path.join(homedir, subdir)
+    filedir = os.path.join(homedir, subdir)
     ensure_dir(filedir)
 
     # generate table of lats and long coordinates
@@ -2296,7 +2297,7 @@ def computeGCSurfaceArea(shapefile, spatial_resolution, vardf):
 
     # generate gridded cell bounding boxes
     midpt_dist = spatial_resolution/2
-    cat = vardf.T.reset_index(level=[1, 2]).rename(columns={'level_1': 'LAT','level_2': 'LONG_'})
+    cat = vardf.T.reset_index(level=[1, 2]).rename(columns={'level_1': 'LAT', 'level_2': 'LONG_'})
     geometry = cat.apply(lambda x: 
                          shapely.ops.transform(m, box(x['LONG_']-midpt_dist, x['LAT']-midpt_dist,
                                                       x['LONG_']+midpt_dist, x['LAT']+midpt_dist)), axis=1)
@@ -2335,7 +2336,7 @@ def F_to_C(F):
     return(C)
 
 
-def monthlyExceedence_cfs (df_dict, daily_streamflow_dfname, gridcell_area, exceedance):
+def monthlyExceedence_cfs(df_dict, daily_streamflow_dfname, gridcell_area, exceedance):
     """
     df_dict: (dict) dictionary of spatial-temporal computation dataframes
     daily_streamflow_dfname: (str) name of daily streamflow dataframe in df_dict in millimeters per second (mm/s)
@@ -2348,7 +2349,7 @@ def monthlyExceedence_cfs (df_dict, daily_streamflow_dfname, gridcell_area, exce
 
     # convert mm_s to m_s
     mm_s = df_dict[daily_streamflow_dfname]
-    m_s = mm_s*0.001
+    m_s = mm_s * 0.001
 
     # multiply streamflow (mps) with grid cell surface area (m2) to produce volumetric streamflow (cms)
     cms = m_s.multiply(np.array(gridcell_area))
@@ -2357,14 +2358,14 @@ def monthlyExceedence_cfs (df_dict, daily_streamflow_dfname, gridcell_area, exce
     cfs = cms.multiply((3.28084)**3)
 
     # output to df_dict
-    df_dict['cfs_'+daily_streamflow_dfname] = cfs
+    df_dict['cfs_' + daily_streamflow_dfname] = cfs
 
-    months = range(1,13)
+    months = range(1, 13)
     Exceed = pd.DataFrame()
 
     # for each month
     for ind, eachmonth in enumerate(months):
-        month_res = cfs.iloc[cfs.index.month==eachmonth, :].apply(lambda x: np.percentile(x, 100-exceedance), axis=0)
+        month_res = cfs.iloc[cfs.index.month == eachmonth, :].apply(lambda x: np.percentile(x, 100 - exceedance), axis=0)
         Exceed = pd.concat([Exceed, pd.DataFrame(month_res).T], axis=0)
 
     Exceed.index = months
@@ -2372,7 +2373,7 @@ def monthlyExceedence_cfs (df_dict, daily_streamflow_dfname, gridcell_area, exce
     return(df_dict)
 
 
-def monthlyExceedence_mmday (df_dict, daily_streamflow_dfname, exceedance):
+def monthlyExceedence_mmday(df_dict, daily_streamflow_dfname, exceedance):
     """
     df_dict: (dict) dictionary of spatial-temporal computation dataframes
     daily_streamflow_dfname: (str) name of daily streamflow dataframe in df_dict in millimeters per second (mm/s)
@@ -2385,12 +2386,12 @@ def monthlyExceedence_mmday (df_dict, daily_streamflow_dfname, exceedance):
     # initialize the streamflow in mm_day
     mmday = df_dict[daily_streamflow_dfname]
 
-    months = range(1,13)
+    months = range(1, 13)
     Exceed = pd.DataFrame()
 
     # for each month
     for ind, eachmonth in enumerate(months):
-        month_res = mmday.iloc[mmday.index.month==eachmonth, :].apply(lambda x: np.percentile(x, 100-exceedance), axis=0)
+        month_res = mmday.iloc[mmday.index.month == eachmonth, :].apply(lambda x: np.percentile(x, 100 - exceedance), axis=0)
         Exceed = pd.concat([Exceed, pd.DataFrame(month_res).T], axis=0)
 
     Exceed.index = months

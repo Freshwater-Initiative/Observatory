@@ -22,7 +22,7 @@ def meta_file():
 
     tmp['dailymet_livneh2013']['reference'] = {}
     tmp['dailymet_livneh2013']['reference'][1] = 'Livneh,  B.,  E. A. Rosenberg,  C. Lin,  B. Nijssen,  V. Mishra,  K. M. Andreadis,  E. P. Maurer,  and D. P. Lettenmaier,  2013:  A Long-Term Hydrologically Based Dataset of Land Surface Fluxes and States for the Conterminous United States:  Update and Extensions. J. Climate,  26,  9384-9392.'
-    tmp['dailymet_livneh2013']['reference'][2]='ftp://livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset/readme.txt'
+    tmp['dailymet_livneh2013']['reference'][2] = 'ftp://livnehpublicstorage.colorado.edu/public/Livneh.2013.CONUS.Dataset/readme.txt'
 
     tmp['dailymet_livneh2013']['start_date'] = '1915-01-01'
     tmp['dailymet_livneh2013']['end_date'] = '2011-12-31'

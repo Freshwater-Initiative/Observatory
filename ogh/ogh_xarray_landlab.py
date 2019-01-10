@@ -417,8 +417,8 @@ def rasterDimensions(maxx, maxy, minx=0, miny=0, dy=100, dx=100):
     y = pd.Series(range(int(miny), int(maxy)+1, 1))
 
     # filter for values that meet the increment or is the last value
-    cols = pd.Series(x.index).apply(lambda x1: x[x1] if x1 % dx == 0 or x1==x[0] or x1 == x.index[-1] else None)
-    rows = pd.Series(y.index).apply(lambda y1: y[y1] if y1 % dy == 0 or y1==y[0] or y1 == y.index[-1] else None)
+    cols = pd.Series(x.index).apply(lambda x1: x[x1] if x1 % dx == 0 or x1 == x[0] or x1 == x.index[-1] else None)
+    rows = pd.Series(y.index).apply(lambda y1: y[y1] if y1 % dy == 0 or y1 == y[0] or y1 == y.index[-1] else None)
 
     # construct the indices
     row_list = np.array(rows.loc[pd.notnull(rows)])
@@ -588,7 +588,7 @@ def wget_x_download_spSubset_PNNL(fileurl,
                     # print('renamed columns')
 
                 # slice by the bounding box NOTE:dataframe slice includes last index
-                ds=ds.assign_coords(SN=ds.SN, WE=ds.WE)
+                ds = ds.assign_coords(SN=ds.SN, WE=ds.WE)
                 spSubset = ds.sel(WE=slice(spatialbounds['minx'], spatialbounds['maxx']),
                                   SN=slice(spatialbounds['miny'], spatialbounds['maxy']))
                 # print('cropped')
