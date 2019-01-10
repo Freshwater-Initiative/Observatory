@@ -291,8 +291,8 @@ def compile_Livneh2013_locations(maptable):
     """
     locations=[]
     for ind, row in maptable.iterrows():
-        basename='_'.join(['data', str(row['LAT']), str(row['LONG_'])])
-        url=['http://www.cses.washington.edu/rocinante/Livneh/Livneh_WWA_2013/forcs_dhsvm/', basename]
+        basename = '_'.join(['data', str(row['LAT']), str(row['LONG_'])])
+        url = ['http://www.cses.washington.edu/rocinante/Livneh/Livneh_WWA_2013/forcs_dhsvm/', basename]
         locations.append(''.join(url))
     return(locations)
 
@@ -398,8 +398,8 @@ def compile_wrfnnrp_raw_Salathe2014_locations(maptable):
     """
     locations=[]
     for ind, row in maptable.iterrows():
-        basename='_'.join(['data', str(row['LAT']), str(row['LONG_'])])
-        url=['http://cses.washington.edu/rocinante/WRF/NNRP/vic_16d/WWA_1950_2010/raw/forcings_ascii/', basename]
+        basename = '_'.join(['data', str(row['LAT']), str(row['LONG_'])])
+        url = ['http://cses.washington.edu/rocinante/WRF/NNRP/vic_16d/WWA_1950_2010/raw/forcings_ascii/', basename]
         locations.append(''.join(url))
     return(locations)
 
@@ -410,10 +410,10 @@ def compile_wrfnnrp_bc_Salathe2014_locations(maptable):
 
     maptable: (dataframe) a dataframe that contains the FID, LAT, LONG_, and ELEV for each interpolated data file
     """
-    locations=[]
+    locations = []
     for ind, row in maptable.iterrows():
-        basename='_'.join(['data', str(row['LAT']), str(row['LONG_'])])
-        url=['http://cses.washington.edu/rocinante/WRF/NNRP/vic_16d/WWA_1950_2010/bc/forcings_ascii/', basename]
+        basename = '_'.join(['data', str(row['LAT']), str(row['LONG_'])])
+        url = ['http://cses.washington.edu/rocinante/WRF/NNRP/vic_16d/WWA_1950_2010/bc/forcings_ascii/', basename]
         locations.append(''.join(url))
     return(locations)
 
@@ -482,11 +482,12 @@ def wget_download_p(listofinterest, nworkers=20):
     listofinterest: (list) a list of urls to request
     nworkers: (int) the number of processors to distribute tasks; default is 20
     """
-    # initialize parallel workers
-    #da.set_options(pool=ThreadPool(nworkers))
-    #ProgressBar().register()
-    #pool = dask.delayed(wget_download_one)(each for each in listofinterest)
-    #dask.compute(pool)
+    # #initialize parallel workers
+    # da.set_options(pool=ThreadPool(nworkers))
+    # ProgressBar().register()
+    # pool = dask.delayed(wget_download_one)(each for each in listofinterest)
+    # dask.compute(pool)
+
     pool = Pool(int(nworkers))
     pool.map(wget_download_one, listofinterest)
     pool.close()
@@ -574,7 +575,7 @@ def decompbz2(filename):
     """
     with open(filename.split('.bz2', 1)[0], 'wb') as new_file, open(filename, 'rb') as zipfile:
         decompressor = bz2.BZ2Decompressor()
-        for data in iter(lambda : zipfile.read(100 * 1024), b''):
+        for data in iter(lambda: zipfile.read(100 * 1024), b''):
             new_file.write(decompressor.decompress(data))
     os.remove(filename)
     zipfile.close()
@@ -592,7 +593,7 @@ def catalogfiles(folderpath):
     temp = [eachfile for eachfile in os.listdir(folderpath) if not os.path.isdir(eachfile)]
     if len(temp)==0:
         # no files were available; setting default catalog output structure
-        catalog = pd.DataFrame([], columns=['filenames','LAT','LONG_'])
+        catalog = pd.DataFrame([], columns=['filenames', 'LAT', 'LONG_'])
     else:
         # create the catalog dataframe and extract the filename components
         catalog = pd.DataFrame(temp, columns=['filenames'])
@@ -668,8 +669,8 @@ def getDailyMET_livneh2013(homedir, mappingfile,
     return(filedir)
 
 
-def getDailyMET_livneh2015(homedir, mappingfile, 
-                           subdir='livneh2015/Daily_MET_1950_2013/raw', 
+def getDailyMET_livneh2015(homedir, mappingfile,
+                           subdir='livneh2015/Daily_MET_1950_2013/raw',
                            catalog_label='dailymet_livneh2015', nworkers=5):
     """
     Get the Livneh el al., 2015 Daily Meteorology files of interest using the reference mapping file
@@ -700,8 +701,8 @@ def getDailyMET_livneh2015(homedir, mappingfile,
     return(filedir)
 
 
-def getDailyMET_bcLivneh2013(homedir, mappingfile, 
-                             subdir='livneh2013/Daily_MET_1915_2011/bc', 
+def getDailyMET_bcLivneh2013(homedir, mappingfile,
+                             subdir='livneh2013/Daily_MET_1915_2011/bc',
                              catalog_label='dailymet_bclivneh2013', nworkers=20):
     """
     Get the Livneh el al., 2013 bias corrected Daily Meteorology files of interest using the reference mapping file
@@ -732,8 +733,8 @@ def getDailyMET_bcLivneh2013(homedir, mappingfile,
     return(filedir)
 
 
-def getDailyVIC_livneh2013(homedir, mappingfile, 
-                           subdir='livneh2013/Daily_VIC_1915_2011', 
+def getDailyVIC_livneh2013(homedir, mappingfile,
+                           subdir='livneh2013/Daily_VIC_1915_2011',
                            catalog_label='dailyvic_livneh2013', nworkers=4):
     """
     Get the Livneh el al., 2013 Daily VIC files of interest using the reference mapping file
@@ -870,7 +871,7 @@ def filesWithPath(folderpath):
 
     folderpath: (dir) the folder of interest
     """
-    files =[os.path.join(folderpath, eachfile) for eachfile in os.listdir(folderpath) 
+    files =[os.path.join(folderpath, eachfile) for eachfile in os.listdir(folderpath)
             if not eachfile.startswith('.') and not os.path.isdir(eachfile)] # exclude hidden files
     return(files)
 
@@ -904,7 +905,7 @@ def mappingfileToDF(mappingfile, colvar='all', summary=True):
     # Read in the mappingfile as a data frame
     map_df = pd.read_csv(mappingfile)
 
-    # select rows (datafiles) based on the colvar(s) chosen, default is 
+    # select rows (datafiles) based on the colvar(s) chosen, default is None
     map_df = compareonvar(map_df=map_df, colvar=colvar)
 
     if summary:
@@ -917,9 +918,9 @@ def mappingfileToDF(mappingfile, colvar='all', summary=True):
     return(map_df, len(map_df))
 
 
-def read_in_all_files(map_df, dataset, metadata, 
-                      file_start_date, file_end_date, file_time_step, 
-                      file_colnames, file_delimiter, 
+def read_in_all_files(map_df, dataset, metadata,
+                      file_start_date, file_end_date, file_time_step,
+                      file_colnames, file_delimiter,
                       subset_start_date, subset_end_date):
     """
     Read in files based on dataset label
@@ -930,7 +931,7 @@ def read_in_all_files(map_df, dataset, metadata,
     file_colnames: (list) the list of shorthand variables; default is None
     file_start_date: (date) the start date of the files that will be read-in; default is None
     file_end_date: (date) the end date for the files that will be read in; default is None
-    file_time_step: (str) the timedelta code for thedifference between time points; default is 'D' (daily)    
+    file_time_step: (str) the timedelta code for thedifference between time points; default is 'D' (daily)
     subset_start_date: (date) the start date of a date range of interest
     subset_end_date: (date) the end date of a date range of interest
     """
@@ -970,9 +971,9 @@ def read_in_all_files(map_df, dataset, metadata,
     return(df_dict)
 
 
-def read_files_to_vardf(map_df, df_dict, gridclimname, dataset, metadata, 
-                        file_start_date, file_end_date, file_delimiter, 
-                        file_time_step, file_colnames, 
+def read_files_to_vardf(map_df, df_dict, gridclimname, dataset, metadata,
+                        file_start_date, file_end_date, file_delimiter,
+                        file_time_step, file_colnames,
                         subset_start_date, subset_end_date, min_elev, max_elev, variable_list=None):
     """
     # reads in the files to generate variables dataframes
@@ -1023,20 +1024,20 @@ def read_files_to_vardf(map_df, df_dict, gridclimname, dataset, metadata,
             for ind, row in map_df.iterrows():
 
                 # consider rewriting the params to just select one column by index at a time
-                var_series = dask.delayed(pd.read_table)(filepath_or_buffer=row[dataset], delimiter=file_delimiter,header=None,usecols=usecols, names=[tuple(row[['FID', 'LAT', 'LONG_']])])
+                var_series = da.delayed(pd.read_table)(filepath_or_buffer=row[dataset], delimiter=file_delimiter, header=None, usecols=usecols, names=[tuple(row[['FID', 'LAT', 'LONG_']])])
 
                 # append the series into the list of series
                 df_list.append(var_series)
 
             # concatenate list of series (axis=1 is column-wise) into a dataframe
-            df1 = dask.delayed(pd.concat)(df_list, axis=1)
+            df1 = da.delayed(pd.concat)(df_list, axis=1)
 
             # set and subset date_range index
             df2 = df1.set_index(met_daily_dates, inplace=False).loc[met_daily_subdates]
 
             # assign dataframe to dictionary object
-            df_dict['_'.join([eachvar, gridclimname])] = dask.compute(df2)[0]
-            print(eachvar+ ' dataframe reading complete:' + str(pd.datetime.now()-starttime))
+            df_dict['_'.join([eachvar, gridclimname])] = da.compute(df2)[0]
+            print(eachvar+' dataframe reading complete:' + str(pd.datetime.now()-starttime))
 
     return(df_dict)
 
@@ -1046,35 +1047,35 @@ def read_daily_streamflow(file_name, drainage_area_m2, file_colnames=None, delim
 
     # if file_colnames are supplied, use header=None
     if file_colnames is not None:
-        header=None
+        header = None
 
     # read in the data
-    daily_data=pd.read_table(file_name, delimiter=delimiter, header=header)
+    daily_data = pd.read_table(file_name, delimiter=delimiter, header=header)
 
     # set columns, if header=None
     if file_colnames is not None:
-        daily_data.columns=file_colnames
+        daily_data.columns = file_colnames
     else:
-        file_colnames=list(daily_data.columns)
+        file_colnames = list(daily_data.columns)
 
     # calculate cfs to cms conversion, or vice versa
     if 'flow_cfs' in daily_data.columns:
-        flow_cfs=daily_data['flow_cfs']
-        flow_cms=flow_cfs/(3.28084**3)
-        flow_mmday=flow_cms*1000*3600*24/drainage_area_m2 
+        flow_cfs = daily_data['flow_cfs']
+        flow_cms = flow_cfs/(3.28084**3)
+        flow_mmday = flow_cms*1000*3600*24/drainage_area_m2 
     elif 'flow_cms' in daily_data.columns:
-        flow_cms=daily_data['flow_cms']
-        flow_cfs=flow_cms*(3.28084**3)
-        flow_mmday=flow_cms*1000*3600*24/drainage_area_m2
+        flow_cms = daily_data['flow_cms']
+        flow_cfs = flow_cms*(3.28084**3)
+        flow_mmday = flow_cms*1000*3600*24/drainage_area_m2
 
     # determine the datetime
-    date_index=[file_colnames.index(each) for each in ['year', 'month', 'day']]
-    row_dates=pd.to_datetime(daily_data[date_index])
+    date_index = [file_colnames.index(each) for each in ['year', 'month', 'day']]
+    row_dates = pd.to_datetime(daily_data[date_index])
 
     # generate the daily_flow and set the datetime as row indices
-    daily_flow=pd.concat([flow_cfs, flow_cms, flow_mmday],axis=1)
+    daily_flow = pd.concat([flow_cfs, flow_cms, flow_mmday],axis=1)
     daily_flow.set_index(row_dates, inplace=True)
-    daily_flow.columns=['flow_cfs', 'flow_cms', 'flow_mmday']
+    daily_flow.columns = ['flow_cfs', 'flow_cms', 'flow_mmday']
     return(daily_flow)
 
 
@@ -1083,30 +1084,30 @@ def read_daily_precip(file_name, file_colnames=None, header='infer', delimiter='
 
     # if file_colnames are supplied, use header=None
     if ps.notnull(file_colnames):
-        header=None
+        header = None
 
     # read in the data
-    daily_data=pd.read_table(file_name, delimiter=delimiter, header=header)
+    daily_data = pd.read_table(file_name, delimiter=delimiter, header=header)
 
     # set columns, if header=None
     if pd.notnull(file_colnames):
-        daily_data.columns=file_colnames
+        daily_data.columns = file_colnames
     else:
-        file_colnames=list(daily_data.columns)
+        file_colnames = list(daily_data.columns)
 
     # calculate cfs to cms conversion, or vice versa
     if 'precip_m' in daily_data.columns:
-        precip_m=daily_data['precip_m']
-        precip_mm=precip_m*1000
+        precip_m = daily_data['precip_m']
+        precip_mm = precip_m*1000
 
     # determine the datetime
-    date_index=[file_colnames.index(each) for each in ['year', 'month', 'day']]
-    row_dates=pd.to_datetime(daily_data[date_index])
+    date_index = [file_colnames.index(each) for each in ['year', 'month', 'day']]
+    row_dates = pd.to_datetime(daily_data[date_index])
 
     # generate the daily_flow and set the datetime as row indices
-    daily_precip=pd.concat([precip_m, precip_mm],axis=1)
+    daily_precip = pd.concat([precip_m, precip_mm],axis=1)
     daily_precip.set_index(row_dates, inplace=True)
-    daily_precip.columns=['precip_m', 'precip_mm']
+    daily_precip.columns = ['precip_m', 'precip_mm']
     return(daily_precip)
 
 
@@ -1222,7 +1223,7 @@ def aggregate_space_time_average(df_dict, suffix, start_date, end_date):
     starttime = pd.datetime.now()
 
     # subset dataframe to the date range of interest
-    Var_daily=dask.delayed(df_dict[suffix].loc[start_date:end_date, :])
+    Var_daily = da.delayed(df_dict[suffix].loc[start_date:end_date, :])
 
     # Mean daily value at each station
     df_dict['meanbydaily_'+suffix] = pd.DataFrame(Var_daily.mean(axis=0).compute()).T

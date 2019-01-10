@@ -289,7 +289,7 @@ class Test_ogh_wrappedget(object):
         
         # remove a directory of files
         for iter in [2, 3, 5, 6, 7]:
-            path = os.path.join(data_path, 'data', 'test_files'+str(iter))
+            path = os.path.join(data_path, 'test_files'+str(iter))
             pd.Series(os.listdir(path)).apply(lambda x: os.remove(os.path.join(path, x)))
         os.rmdir(path)
         assert True
