@@ -112,7 +112,7 @@ def readShapefileTable(shapefile):
     return(cent_df)
 
 
-def filterPointsinShape(shape, points_lat, points_lon, points_elev=None, buffer_distance=0.06, 
+def filterPointsinShape(shape, points_lat, points_lon, points_elev=None, buffer_distance=0.06,
                         buffer_resolution=16, labels=['LAT', 'LONG_', 'ELEV']):
     """
     Filter for datafiles that can be used
