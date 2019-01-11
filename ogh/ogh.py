@@ -502,13 +502,13 @@ def ftp_download(listofinterest):
     """
     for loci in listofinterest:
         # establish path info
-        fileurl=loci.replace('ftp://', '')  # loci is a url with the domain appended
-        ipaddress=fileurl.split('/', 1)[0]  # ip address
-        path=os.path.dirname(fileurl.split('/', 1)[1])  # folder path
-        filename=os.path.basename(fileurl)  # filename
+        fileurl = loci.replace('ftp://', '')  # loci is a url with the domain appended
+        ipaddress = fileurl.split('/', 1)[0]  # ip address
+        path = os.path.dirname(fileurl.split('/', 1)[1])  # folder path
+        filename = os.path.basename(fileurl)  # filename
 
         # download the file from the ftp server
-        ftp=ftplib.FTP(ipaddress)
+        ftp = ftplib.FTP(ipaddress)
         ftp.login()
         ftp.cwd(path)
         try:
@@ -1250,7 +1250,7 @@ def aggregate_space_time_average(df_dict, suffix, start_date, end_date):
     df_dict['anomyear_'+suffix] = df_dict['meanyear_'+suffix] - df_dict['meanallyear_'+suffix]
 
     df_dict = da.compute(df_dict)[0]
-    print(suffix+ ' calculations completed in ' + str(pd.datetime.now() - starttime))
+    print(suffix + ' calculations completed in ' + str(pd.datetime.now() - starttime))
     return(df_dict)
 
 
@@ -1448,13 +1448,13 @@ def switchUpVICSoil(input_file=None, output_file='soil', mappingfile=None, homed
     soil_base = pd.read_table(input_file, header=None)
 
     # Make a list of all lat/long values
-    latlong=soil_base.apply(lambda x:tuple([x[2], x[3]]), axis=1)
+    latlong = soil_base.apply(lambda x: tuple([x[2], x[3]]), axis=1)
 
     # Read in mappingfile from TreatGeoSelf()
     maptable = pd.read_table(mappingfile, sep=',')
 
     # Make a list Lat/Long files that need to switched up
-    latlong_1 = maptable.apply(lambda x:tuple([x['LAT'], x['LONG_']]), axis=1)
+    latlong_1 = maptable.apply(lambda x: tuple([x['LAT'], x['LONG_']]), axis=1)
 
     # Switch up from 0 to 1 so VIC will run for this Lat/Long point - print new output file (VIC model input file)
     soil_base[0] = latlong.apply(lambda x: 1 if x in set(latlong_1) else 0)
@@ -1523,7 +1523,7 @@ def makebelieve(homedir, mappingfile, BiasCorr, metadata, start_catalog_label, e
                     # generate the s-vector
                     s = month.merge(BiasCorr_subdf, how='left', on='month').loc[:, eachkey]
 
-                    if eachvar=='PRECIP':
+                    if eachvar == 'PRECIP':
                         # Use for ratio precip method
                         read_dat[eachvar] = np.multiply(np.array(read_dat.loc[:, eachvar]), np.array(s))
                         # read_dat[eachvar] = np.array(read_dat.loc[:,eachvar])+np.array(s)
@@ -1559,8 +1559,8 @@ def renderWatershed(shapefile, outfilepath, margin=0.25, epsg=4326,
     basemap_image: (str) the basemap arcgis service e.g., 'Canvas/World_Dark_Gray_Base' or 'ESRI_Imagery_World_2D'
     """
     # generate the figure axis
-    fig = plt.figure(figsize=(3,3), dpi=500)
-    ax1 = plt.subplot2grid((1,1),(0,0))
+    fig = plt.figure(figsize=(3, 3), dpi=500)
+    ax1 = plt.subplot2grid((1, 1), (0, 0))
 
     # normalize the color distribution according to the value distribution
     cmap = mpl.cm.gnuplot2
@@ -1577,7 +1577,7 @@ def renderWatershed(shapefile, outfilepath, margin=0.25, epsg=4326,
     m.arcgisimage(service=basemap_image, xpixels=500)
 
     # read and transform the watershed shapefiles
-    m.readshapefile(shapefile = shapefile.replace('.shp',''), name='watersheds',
+    m.readshapefile(shapefile=shapefile.replace('.shp', ''), name='watersheds',
                     drawbounds=True, zorder=None, linewidth=0.5, color='m', antialiased=1, default_encoding='utf-8')
 
     plt.savefig(outfilepath, dpi=500)
@@ -1609,7 +1609,7 @@ def griddedCellGradient(mappingfile, shapefile, outfilepath, plottitle, colorbar
     # read mappingfile, generate gridded cell boxes, and initialize the geodataframe
     map_df = pd.read_csv(mappingfile)
     midpt = spatial_resolution/2
-    crs={'init': 'epsg:{0}'.format(epsg)}
+    crs = {'init': 'epsg:{0}'.format(epsg)}
     geometry = map_df.apply(lambda x: box(x['LONG_'] - midpt, x['LAT'] - midpt, x['LONG_'] + midpt, x['LAT'] + midpt), axis=1)
     map_df2 = gpd.GeoDataFrame(map_df, crs=crs, geometry=geometry)
 
@@ -1646,8 +1646,8 @@ def griddedCellGradient(mappingfile, shapefile, outfilepath, plottitle, colorbar
     # generate colorbar
     coll.set_array(np.array(map_df2[column]))
     cbar = plt.colorbar(coll, shrink=0.5)
-    cbar.ax.set_ylabel(colorbar_label, rotation=270, size=3, labelpad=5) # colorbar label
-    cbar.ax.tick_params(labelsize=3) # colorbar tick fontsize
+    cbar.ax.set_ylabel(colorbar_label, rotation=270, size=3, labelpad=5)  # colorbar label
+    cbar.ax.tick_params(labelsize=3)  # colorbar tick fontsize
 
     # save image
     plt.title(plottitle, fontsize=3)
@@ -1763,7 +1763,7 @@ def mappingfileSummary(listofmappingfiles, listofwatershednames, meta_file):
         mapdf = pd.read_csv(mappingfile)
 
         # summarize the total dimensions
-        tmp=[]
+        tmp = []
         tmp.append(tuple(['Watershed', watershedname]))
         tmp.append(tuple(['Median elevation in meters [range](Number of gridded cells)',
                           '{0}[{1}-{2}] (n={3})'.format(int(mapdf.ELEV.median()),
@@ -1783,8 +1783,8 @@ def mappingfileSummary(listofmappingfiles, listofwatershednames, meta_file):
                                                                     int(filesobtained[each].count()))]))
 
         # interpret list to table form
-        t1 = pd.DataFrame.from_records(tmp, columns=['datasets','values']).set_index('datasets').T
-        t1 = t1.set_index(['Watershed','Median elevation in meters [range](Number of gridded cells)'])
+        t1 = pd.DataFrame.from_records(tmp, columns=['datasets', 'values']).set_index('datasets').T
+        t1 = t1.set_index(['Watershed', 'Median elevation in meters [range](Number of gridded cells)'])
 
         # compile into summary table
         if len(datainventory) == 0:
@@ -1850,7 +1850,7 @@ def renderValueInBoxplot(vardf, outfilepath, plottitle, time_steps, value_name, 
     obs_datalabel: (str) the name of the vector
     obs_legend: (logic) display the observation data legend
     obs_legend_loc: (int) matplotlib code for the legend location
-    """    
+    """
     # generate long table
     longtable = pd.melt(vardf.T, value_name=value_name).rename(columns={'variable': time_steps})
 
@@ -1877,7 +1877,7 @@ def renderValueInBoxplot(vardf, outfilepath, plottitle, time_steps, value_name, 
         xaxis_order = sorted(longtable[time_steps].unique())
         xaxis_labels = []
         for x in longtable[time_steps].unique():
-            if x%5 == 0:
+            if x % 5 == 0:
                 xaxis_labels.append(pd.datetime.strptime(str(x), '%Y').strftime('%Y'))
             else:
                 xaxis_labels.append(' ')
@@ -1887,7 +1887,7 @@ def renderValueInBoxplot(vardf, outfilepath, plottitle, time_steps, value_name, 
         xaxis_order = sorted(longtable[time_steps].unique())
         xaxis_labels = []
         for ind, x in enumerate(xaxis_order):
-            if ind%10 == 0:
+            if ind % 10 == 0:
                 xaxis_labels.append(str(x))
             else:
                 xaxis_labels.append(' ')
@@ -1955,58 +1955,6 @@ def renderValueInBoxplot(vardf, outfilepath, plottitle, time_steps, value_name, 
     return(ax1)
 
 
-# def mappingfileToRaster(mappingfile, spatial_resolution=0.01250, approx_distance_m_x=6000):
-#     # assess raster dimensions from mappingfile
-#     mf, nstations = mappingfileToDF(mappingfile, colvar=None)
-#     ncol = int((mf.LONG_.max()-mf.LONG_.min())/spatial_resolution +1)
-#     nrow = int((mf.LAT.max()-mf.LAT.min())/spatial_resolution +1)
-    
-#     # dimensions of the raster
-#     row_list = [mf.LAT.min() + spatial_resolution*(station) for station in range(0,nrow,1)]
-#     col_list = [mf.LONG_.min() + spatial_resolution*(station) for station in range(0,ncol,1)]
-    
-#     # initialize RasterModelGrid
-#     raster = r.RasterModelGrid(nrow, ncol, dx=approx_distance_m_x)
-#     raster.add_zeros
-    
-#     # initialize node list
-#     df_list=[]
-    
-#     # loop through the raster nodes (bottom to top arrays)
-#     for row_index, nodelist in enumerate(raster.nodes):
-        
-#         # index bottom to top arrays with ordered Latitude
-#         lat = row_list[row_index]
-        
-#         # index left to right with ordered Longitude
-#         for nodeid, long_ in zip(nodelist, col_list):
-#             df_list.append([nodeid, lat, long_])
-            
-#     # convert to dataframe
-#     df = pd.DataFrame.from_records(df_list).rename(columns={0: 'nodeid', 1: 'LAT', 2: 'LONG_'})
-    
-#     # identify raster nodeid and equivalent mappingfile FID
-#     df = df.merge(mf[['FID','LAT','LONG_','ELEV']], how='outer', on=['LAT','LONG_'])
-#     return(df, raster)
-
-
-# def temporalSlice(vardf, vardf_dateindex):
-#     values = vardf.loc[vardf_dateindex, :].reset_index(level=0)
-#     values = values.rename(columns={'level_0': 'FID', vardf_dateindex: 'value'}).reset_index(drop=True)
-#     return(values)
-
-
-# def rasterVector(vardf, vardf_dateindex, crossmap, nodata=-9999):
-#     values = temporalSlice(vardf=vardf, vardf_dateindex=vardf_dateindex)
-#     vector = crossmap.merge(values, on='FID', how='left').fillna(nodata)['value']
-#     return(vector)
-
-    
-# def valueRange(listOfDf):
-#     all_values = pd.concat(listOfDf, axis=1).as_matrix()
-#     return(all_values)
-
-
 def multiSiteVisual(listOfShapefiles, listOfNames,
                     multishape='eachwatershed.shp', singleshape='allwatersheds.shp',
                     fileoutpath='annotated_map.png',
@@ -2037,7 +1985,7 @@ def multiSiteVisual(listOfShapefiles, listOfNames,
         reprojShapefile(sourcepath=eachshp)
 
     # dissolve shapefiles into a single shapefile containing multiple shape polygons
-    w1 = dissolveShapefile(listOfShapefiles=listOfShapefiles, listOfNames=listOfNames, newShapefilepath = multishape)
+    w1 = dissolveShapefile(listOfShapefiles=listOfShapefiles, listOfNames=listOfNames, newShapefilepath=multishape)
 
     # dissolve all shapefiles into a single shapefile containing a single shape polygon
     w2 = w1.copy()
@@ -2078,8 +2026,8 @@ def multiSiteVisual(listOfShapefiles, listOfNames,
     m.drawcountries(linewidth=0.1, color='black')
 
     # read and transform the watershed shapefiles
-    m.readshapefile(shapefile = singleshape.replace('.shp', ''), name='allwatersheds', linewidth=0)
-    m.readshapefile(shapefile = multishape.replace('.shp', ''), name='eachwatershed', linewidth=0)
+    m.readshapefile(shapefile=singleshape.replace('.shp', ''), name='allwatersheds', linewidth=0)
+    m.readshapefile(shapefile=multishape.replace('.shp', ''), name='eachwatershed', linewidth=0)
 
     # load and transform each polygon in shape
     patches = [PolygonPatch(Polygon(np.array(shape)), fc=polygon_color, ec=polygon_color, linewidth=0.1, zorder=5.0)
@@ -2090,11 +2038,11 @@ def multiSiteVisual(listOfShapefiles, listOfNames,
     ax1.add_collection(coll)
 
     # draw distance scale (coordinate in degrees)
-    m.drawmapscale(center_x+scale_x_dist, center_y+scale_y_dist, maxx, maxy, 
+    m.drawmapscale(center_x+scale_x_dist, center_y+scale_y_dist, maxx, maxy,
                    length=scale_ref_length, yoffset=scale_yoffset, barstyle='fancy', fontsize=3, linewidth=0.1)
 
     # parameters annotated based on non-cyl projections
-    if (epsg!=4326) and (annotate is True):
+    if (epsg != 4326) and (annotate is True):
 
         # annotate watersheds
         for eachinfo, eachpoly in zip(m.eachwatershed_info, m.eachwatershed):
@@ -2115,7 +2063,7 @@ def multiSiteVisual(listOfShapefiles, listOfNames,
 
 def multiSiteStar(listOfShapefiles, listOfNames,
                   multishape='eachwatershed.shp', singleshape='allwatersheds.shp', fileoutpath='annotated_map.png',
-                  projection='merc', epsg=3857, polygon_color='m', margin=0.75, 
+                  projection='merc', epsg=3857, polygon_color='m', margin=0.75,
                   scale_x_dist=0, scale_y_dist=-0.25, scale_ref_length=100, scale_yoffset=10000,
                   text_x_dist=0, text_y_dist=0.5):
     """
@@ -2142,7 +2090,7 @@ def multiSiteStar(listOfShapefiles, listOfNames,
         reprojShapefile(sourcepath=eachshp)
 
     # dissolve shapefiles into a single shapefile containing multiple shape polygons
-    w1 = dissolveShapefile(listOfShapefiles=listOfShapefiles, listOfNames=listOfNames, newShapefilepath = multishape)
+    w1 = dissolveShapefile(listOfShapefiles=listOfShapefiles, listOfNames=listOfNames, newShapefilepath=multishape)
 
     # dissolve all shapefiles into a single shapefile containing a single shape polygon
     w2 = w1.copy()
@@ -2179,7 +2127,7 @@ def multiSiteStar(listOfShapefiles, listOfNames,
     m.drawcountries(linewidth=0.1, color='black')
 
     # read and transform the watershed shapefiles
-    m.readshapefile(shapefile = multishape.replace('.shp', ''), name='eachwatershed', linewidth=0)
+    m.readshapefile(shapefile=multishape.replace('.shp', ''), name='eachwatershed', linewidth=0)
 
     # draw distance scale (coordinate in degrees)
     m.drawmapscale(center_x+scale_x_dist, center_y+scale_y_dist, maxx, maxy,
@@ -2298,7 +2246,7 @@ def computeGCSurfaceArea(shapefile, spatial_resolution, vardf):
     # generate gridded cell bounding boxes
     midpt_dist = spatial_resolution/2
     cat = vardf.T.reset_index(level=[1, 2]).rename(columns={'level_1': 'LAT', 'level_2': 'LONG_'})
-    geometry = cat.apply(lambda x: 
+    geometry = cat.apply(lambda x:
                          shapely.ops.transform(m, box(x['LONG_']-midpt_dist, x['LAT']-midpt_dist,
                                                       x['LONG_']+midpt_dist, x['LAT']+midpt_dist)), axis=1)
 
@@ -2313,7 +2261,7 @@ def cfs_to_mmday(cfs, SA_sq_ft):
     cfs: (float) flow rate in cubic feet per second
     SA_sq_ft: (float) surface area in square feet
     """
-    return(cfs/SA_sq_ft * 24 * 60 * 60 * 304.8) # cfs / sqft * s/min * min*hr * hr/day * mm/ft
+    return(cfs/SA_sq_ft * 24 * 60 * 60 * 304.8)  # cfs / sqft * s/min * min*hr * hr/day * mm/ft
 
 
 def sec_to_day(sec):
@@ -2369,7 +2317,7 @@ def monthlyExceedence_cfs(df_dict, daily_streamflow_dfname, gridcell_area, excee
         Exceed = pd.concat([Exceed, pd.DataFrame(month_res).T], axis=0)
 
     Exceed.index = months
-    df_dict['EXCEED{0}_{1}'.format(exceedance,dataset)] = Exceed
+    df_dict['EXCEED{0}_{1}'.format(exceedance, dataset)] = Exceed
     return(df_dict)
 
 
@@ -2395,5 +2343,5 @@ def monthlyExceedence_mmday(df_dict, daily_streamflow_dfname, exceedance):
         Exceed = pd.concat([Exceed, pd.DataFrame(month_res).T], axis=0)
 
     Exceed.index = months
-    df_dict['EXCEED{0}_mmday_{1}'.format(exceedance,dataset)] = Exceed
+    df_dict['EXCEED{0}_mmday_{1}'.format(exceedance, dataset)] = Exceed
     return(df_dict)

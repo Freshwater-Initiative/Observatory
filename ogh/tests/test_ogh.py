@@ -72,11 +72,10 @@ class Test_ogh_shape_functions(object):
         test = ogh.getShapeBbox(fiona.open(os.path.join(data_path, 'shape.shp')))
         assert True
 
-
     def test_reprojShapefile(self):
         ogh.reprojShapefile(sourcepath=os.path.join(data_path, 'shape.shp'),
                             outpath=os.path.join(data_path, 'shape2.shp'),
-                            newprojdictionary={'proj':'longlat', 'ellps':'WGS84', 'datum':'WGS84'})
+                            newprojdictionary={'proj': 'longlat', 'ellps': 'WGS84', 'datum': 'WGS84'})
 
         for fil in os.listdir(os.path.join(ogh.__path__[0], 'tests/data')):
             if fil.startswith('shape2'):
@@ -90,11 +89,9 @@ class Test_ogh_spatial_mapping(object):
         test = ogh.canadabox_bc()
         assert True
 
-
     def test_mapContentFolder(self):
         test = ogh.mapContentFolder(os.path.join(data_path, 'test_files'))
         assert True
-
 
     def test_mapfilelocations(self):
         test_maptable = pd.read_csv(os.path.join(data_path, 'test_mappingfile.csv'))
@@ -126,7 +123,6 @@ class Test_ogh_spatial_mapping(object):
     #    assert len(filenames)>0
     #    assert True
     #
-    #
     # def test_scrapedomain(self):  # this domain has issues with travis-ci ftp connection - needs new test
     #    # gridded data product metadata
     #    domain='livnehpublicstorage.colorado.edu'
@@ -143,8 +139,8 @@ class Test_ogh_webdownload(object):
         protocol = 'ftp://'
         ipaddress = 'livnehpublicstorage.colorado.edu'
         subdomain = 'public/Livneh.2013.CONUS.Dataset/Fluxes.asc.v.1.2.1915.2011.bz2/fluxes.100.95.25.36'
-        filename1 = 'VIC_fluxes_Livneh_CONUSExt_v.1.2_2013_25.90625_-97.40625.bz2' # real
-        filename2 = 'VIC_fluxes_Livneh_CONUSExt_v.1.2_2013_25.90625_-97.40626.bz2' # fake
+        filename1 = 'VIC_fluxes_Livneh_CONUSExt_v.1.2_2013_25.90625_-97.40625.bz2'  # real
+        filename2 = 'VIC_fluxes_Livneh_CONUSExt_v.1.2_2013_25.90625_-97.40626.bz2'  # fake
 
         # connect to ipaddress and subfolder
         try:
@@ -164,7 +160,6 @@ class Test_ogh_webdownload(object):
         except:
             pass
 
-
     def test_ftp_download_one(self):
         protocol = 'ftp://'
         ipaddress = 'livnehpublicstorage.colorado.edu'
@@ -174,7 +169,6 @@ class Test_ogh_webdownload(object):
         urlofinterest = os.path.join(protocol, ipaddress, subdomain, filename1)
         ogh.ftp_download_one(urlofinterest)
         assert True
-
 
     def test_ftp_download_p(self):
         protocol = 'ftp://'
@@ -189,18 +183,15 @@ class Test_ogh_webdownload(object):
         # os.remove(filename1.replace('.bz2', ''))
         assert True
 
-        
     def test_wget_download(self):
         listofinterest = ['test1', 'test2']
         ogh.wget_download(listofinterest)
         assert True
 
-
     def test_wget_download_one(self):
         urlofinterest = 'test1'
         ogh.wget_download_one(urlofinterest)
         assert True
-
 
     def test_wget_download_p(self):
         listofinterest = ['test1', 'test2']
@@ -241,14 +232,12 @@ class Test_ogh_wrappedget(object):
                                    catalog_label='dailymet_livneh2015')
         assert True
 
-
     def test_getDailyMET_bcLivneh2013(self):
         ogh.getDailyMET_bcLivneh2013(homedir=data_path,
                                      mappingfile=os.path.join(data_path, 'test_catalog.csv'),
                                      subdir=os.path.join(data_path, 'test_files3'),
                                      catalog_label='dailymet_bclivneh2013')
         assert True
-
 
     # def test_getDailyVIC_livneh2013(self):  # issue with ftp download unit test; need new test
     #     ogh.getDailyVIC_livneh2013(homedir=data_path,
@@ -257,14 +246,12 @@ class Test_ogh_wrappedget(object):
     #                                catalog_label='dailyvic_livneh2013')
     #     assert True
 
-
     def test_getDailyVIC_livneh2015(self):
         ogh.getDailyVIC_livneh2015(homedir=data_path,
                                    mappingfile=os.path.join(data_path, 'test_catalog.csv'),
                                    subdir=os.path.join(data_path, 'test_files5'),
                                    catalog_label='dailyvic_livneh2015')
         assert True
-
 
     def test_getDailyWRF_salathe2014(self):
         ogh.getDailyWRF_salathe2014(homedir=data_path,
@@ -273,7 +260,6 @@ class Test_ogh_wrappedget(object):
                                     catalog_label='dailywrf_salathe2014')
         assert True
 
-
     def test_getDailyWRF_bcsalathe2014(self):
         ogh.getDailyWRF_bcsalathe2014(homedir=data_path,
                                       mappingfile=os.path.join(data_path, 'test_catalog.csv'),
@@ -281,15 +267,14 @@ class Test_ogh_wrappedget(object):
                                       catalog_label='dailywrf_bcsalathe2014')
         assert True
 
-
     def test_files_remove(self):
         # remove 1 file
         os.remove(os.path.join(data_path, 'test_catalog.csv'))
         assert True
 
         # remove a directory of files
-        for iter in [2, 3, 5, 6, 7]:
-            path = os.path.join(data_path, 'test_files'+str(iter))
+        for test_iter in [2, 3, 5, 6, 7]:
+            path = os.path.join(data_path, 'test_files'+str(test_iter))
             pd.Series(os.listdir(path)).apply(lambda x: os.remove(os.path.join(path, x)))
         os.rmdir(path)
         assert True
@@ -299,13 +284,12 @@ class Test_mappingfile_ops(object):
     def test_readmappingfile(self):
         test_map, nstat = ogh.mappingfileToDF(os.path.join(data_path, 'test_mappingfile.csv'), colvar=None)
         test_map = test_map.drop_duplicates()
-        test_map.to_csv(os.path.join(data_path, 'test_mappingfile.csv'), index=False, 
+        test_map.to_csv(os.path.join(data_path, 'test_mappingfile.csv'), index=False,
                         columns=['FID', 'LAT', 'LONG_', 'ELEV'])
         assert True
 
         test_compare = ogh.compareonvar(map_df=test_map, colvar=None)
         assert True
-
 
     def test_treatgeoself_parts(self):
         inpath = os.path.join(data_path, 'shape.shp')
