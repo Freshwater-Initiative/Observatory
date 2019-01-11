@@ -180,7 +180,6 @@ class Test_ogh_webdownload(object):
         listofinterest = [os.path.join(protocol, ipaddress, subdomain, filename1),
                           os.path.join(protocol, ipaddress, subdomain, filename2)]
         ogh.ftp_download_p(listofinterest, nworkers=2)
-        # os.remove(filename1.replace('.bz2', ''))
         assert True
 
     def test_wget_download(self):
@@ -272,7 +271,7 @@ class Test_ogh_wrappedget(object):
         os.remove(os.path.join(data_path, 'test_catalog.csv'))
         assert True
 
-        # remove a directory of files
+        # remove each directory of files
         for test_iter in [2, 3, 5, 6, 7]:
             path = os.path.join(data_path, 'test_files'+str(test_iter))
             pd.Series(os.listdir(path)).apply(lambda x: os.remove(os.path.join(path, x)))
