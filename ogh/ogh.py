@@ -3,32 +3,28 @@ import json
 import os
 import pickle
 import numpy as np
-from multiprocessing import Pool
 import pandas as pd
 import dask as da
+from multiprocessing import Pool
 
 # graphical control libraries
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import seaborn as sns
+import geopandas as gpd
+import fiona
+import shapely.ops
+import ftplib
+import urllib as urllib2
+import wget
+import bz2
 
 # shape and layer libraries
 from descartes import PolygonPatch
-import shapely.ops
 from shapely.geometry import MultiPolygon, Polygon, box, point, shape
-import fiona
 from matplotlib.collections import PatchCollection
-import ftplib, urllib as urllib2, wget, bz2
 from mpl_toolkits.basemap import Basemap
-import geopandas as gpd
 from bs4 import BeautifulSoup as bs
-
-
-# #ogh supplemental info
-# from .ogh_meta import meta_file
-# import ogh_xarray_landlab
-# mpl.style.use('seaborn-colorblind')
-# from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
 def saveDictOfDf(outfilepath, dictionaryObject):

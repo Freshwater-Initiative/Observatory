@@ -28,7 +28,7 @@ def compile_x_wrfnnrp_raw_Salathe2014_locations(time_increments):
 
     for ind, yearmo in enumerate(time_increments):
         basename = 'WRF_NNRP_noBC.{0}.nc'.format(yearmo)
-        url = '{0}/{1}/{2}'.format(domain, subdomain, basename)
+        url = os.path.join(domain, subdomain, basename)
         locations.append(url)
     return(locations)
 
@@ -48,7 +48,7 @@ def compile_x_dailymet_Livneh2013_raw_locations(time_increments):
             basename = 'Meteorology_Livneh_CONUSExt_v.1.2_2013.{0}.nc'.format(yearmo)
         else:
             basename = 'Meteorology_Livneh_CONUSExt_v.1.2_2013.{0}.nc.bz2'.format(yearmo)
-        url = '{0}{1}{2}'.format(domain, subdomain, basename)
+        url = os.path.join(domain, subdomain, basename)
         locations.append(url)
     return(locations)
 
@@ -533,7 +533,7 @@ def compile_x_wrfpnnl2018_raw_locations(time_increments,
     for ind, ymd in enumerate(time_increments):
         subfolder = '{0}'.format(ymd.strftime('%Y'))
         basename = 'data.{0}.nc'.format(ymd.strftime('%Y-%m-%d'))
-        url = '{0}/{1}/{2}/{3}'.format(domain, subdomain, subfolder, basename)
+        url = os.path.join(domain, subdomain, subfolder, basename)
         locations.append(url)
     return(locations)
 
